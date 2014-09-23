@@ -1,17 +1,14 @@
+/// <reference path="../../typings/observe-js/observe-js.d.ts" />
 /// <reference path="../../typings/lodash/lodash.d.ts" />
 /// <reference path="../../typings/EventEmitter2/EventEmitter2.d.ts" />
 /// <reference path="../../typings/sockjs/sockjs.d.ts" />
 /// <reference path="../../typings/q/Q.d.ts" />
-/// <reference path="../../settings.ts" />
-/// <reference path="../geolocation.ts" />
 //import sockjs = require('sockjs');
-var geo = require('../geolocation');
+var geolocation = require('../geolocation');
+var settins = require('../../settings');
 
-var jsd = require('../../settings');
-
-var settings = jsd.settings;
-
-var geolocation = new geo.GeoLocation();
+var settings = settins.settings;
+var geo = new geolocation.GeoLocation();
 
 var Server = (function () {
     function Server(config) {
@@ -129,13 +126,13 @@ var Server = (function () {
     };
 
     Server.prototype.sendAuthentication = function () {
-        return geolocation.getGeoLocation().then(function (location) {
+        return geo.getGeoLocation().then(function (location) {
             return this.send('peer:auth', { uuid: settings.uuid, location: location }, true);
         });
     };
 
     Server.prototype.sendPeerOffer = function (targetPeerUuid, offer) {
-        return geolocation.getGeoLocation().then(function (location) {
+        return geo.getGeoLocation().then(function (location) {
             this.send('peer:offer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, location: location }, false);
         });
     };
@@ -180,4 +177,5 @@ var Server = (function () {
     };
     return Server;
 })();
+exports.Server = Server;
 //# sourceMappingURL=server.js.map

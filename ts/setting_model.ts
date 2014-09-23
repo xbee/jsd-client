@@ -63,6 +63,7 @@ declare module J2T {
         broadcast: Broadcast;
         synchronization: Synchronization;
         useGeoLocation: boolean;
+        useIp: boolean;
         services: any[];
     }
 
@@ -76,6 +77,7 @@ declare module J2T {
         signalServers: SignalServer[];
         syncInterval: number;
         uuid: string;
+        projectUuid: string;
         network: Network;
     }
 

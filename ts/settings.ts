@@ -1,21 +1,20 @@
 /**
  * Created by michael on 14-9-18.
  */
-
 /// <reference path="typings/observe-js/observe-js.d.ts" />
 /// <reference path="typings/lodash/lodash.d.ts" />
-/// <reference path="./setting_model.ts" />
-
+/// <reference path="setting_model.ts" />
+/// <reference path="uuid.ts" />
 
 import _ = require('lodash');
-import uuid = require('uuid');
+import uuid = require('./uuid');
 
 export class SettingModel implements J2T.SettingInterface {
-    authToken: string;
-    maxPeers: number = 3;
-    maxFactories: number = 1;
-    maxWorkers: number = 1;
-    protocol: string = 'sctp';
+    authToken:string;
+    maxPeers:number = 3;
+    maxFactories:number = 4;
+    maxWorkers:number = 1;
+    protocol:string = 'sctp';
     iceServers: J2T.IceServer[] = [
         {
             url: 'stun:stun.l.google.com:19302'
@@ -31,9 +30,10 @@ export class SettingModel implements J2T.SettingInterface {
             port: 3080
         }
     ];
-    syncInterval: number = 3600000; // 1h
-    uuid: string; //everyone will know (public)
-    network: J2T.Network;
+    syncInterval:number = 3600000; // 1h
+    uuid:string; //everyone will know (public)
+    projectUuid: string; // for every site
+    network:J2T.Network;
 
     constructor() {
         this.authToken = uuid.generate();
@@ -55,20 +55,20 @@ export class SettingModel implements J2T.SettingInterface {
 
 class Settings {
 
-    private _storeName: string = 'settings';
-    settingstore: SettingModel;
+    private _storeName:string = 'settings';
+    settingstore:SettingModel;
 
     //Chrome is currently the only one supporting native O_o
     //which would be
     //Object.observe(settingstore, storeSettingsToLocalStorage);
-    private _observer: Observer = new ObjectObserver(this.settingstore);
+    private _observer:Observer = new ObjectObserver(this.settingstore);
 
     /**
      * @private
      * @method readSettingsFromLocalStorage
      * @return {Object} Settings
      */
-    private readSettingsFromLocalStorage(): any {
+    private readSettingsFromLocalStorage():any {
         return JSON.parse(localStorage.getItem(this._storeName)) || {};
     }
 
@@ -76,50 +76,28 @@ class Settings {
      * @private
      * @method storeSettingsToLocalStorage
      */
-    private storeSettingsToLocalStorage(): any {
+    private storeSettingsToLocalStorage():any {
         localStorage.setItem(this._storeName, JSON.stringify(this.settingstore));
     }
 
     constructor() {
         this.settingstore = <SettingModel>this.readSettingsFromLocalStorage();
         this._observer.open(this.storeSettingsToLocalStorage);
-
-        //Defaults
-//        _.defaults(this.settingstore, {
-//            authToken: uuid.generate(), // Will never be sent to any peer (private)
-//            i18n: 'en_US',
-//            maxPeers: 3,
-//            maxFactories: 1,
-//            maxWorkers: 1,
-//            fileStorageSize: 500 * 1024 * 1024, //500MB
-//            protocol: 'sctp', //srtp || sctp
-//            iceServers: [
-//                {
-//                    'url': 'stun:stun.l.google.com:19302'
-//                },
-//                {
-//                    'url': 'stun:stun.turnservers.com:3478'
-//                }
-//            ],
-//            syncInterval: 3600000, //1h
-//            uuid: uuid.generate() //everyone will know (public)
-//        });
     }
 
-    private static _instance : Settings;
+    private static _instance:Settings;
 
-    public static getInstance() : Settings {
+    public static getInstance():Settings {
 
-        if(Settings._instance === null) {
+        if (Settings._instance === null) {
             Settings._instance = new Settings();
-        } else  {
+        } else {
         }
         return Settings._instance;
     }
 }
 
 export var settings: SettingModel = Settings.getInstance().settingstore;
-
 
 
 

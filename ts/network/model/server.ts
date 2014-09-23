@@ -1,27 +1,46 @@
-
+/// <reference path="../../typings/observe-js/observe-js.d.ts" />
 /// <reference path="../../typings/lodash/lodash.d.ts" />
 /// <reference path="../../typings/EventEmitter2/EventEmitter2.d.ts" />
 /// <reference path="../../typings/sockjs/sockjs.d.ts" />
 /// <reference path="../../typings/q/Q.d.ts" />
-/// <reference path="../../settings.ts" />
-/// <reference path="../geolocation.ts" />
 
 //import sockjs = require('sockjs');
-import geo = require('../geolocation');
+import geolocation = require('../geolocation');
+import settins = require('../../settings');
 
-import jsd = require('../../settings');
+var settings: settins.SettingModel = settins.settings;
+var geo: geolocation.GeoLocation = new geolocation.GeoLocation();
 
-var settings: jsd.SettingModel = jsd.settings;
-
-var geolocation: geo.GeoLocation = new geo.GeoLocation();
-
-interface Host {
+export interface Host {
     host: string;
     port: number;
     isSecure: boolean;
 }
 
-class Server {
+export interface Message {
+    cmd: string;
+    data: any;
+}
+
+export interface ServerInterface {
+    host: string;
+    port: number;
+    isSecure: boolean;
+    url: string; // set via WS
+    id: number; // for local use only
+    uuid: string; // config.uuid
+    socket: any;
+    isConnected: boolean;
+
+    emit: (event:string, ...args: any[]) => boolean;
+    on: (type: string, listener: Function) => EventEmitter2;
+    off: (type: string, listener: Function) => EventEmitter2;
+    onAny: (fn: Function) => EventEmitter2;
+    offAny: (fn: Function) => EventEmitter2;
+    removeAllListeners: (type: string[]) => EventEmitter2;
+}
+
+export class Server implements ServerInterface {
 
     host: string;
     port: number;
@@ -157,15 +176,15 @@ class Server {
     }
 
     sendAuthentication() {
-        return geolocation.getGeoLocation()
+        return geo.getGeoLocation()
             .then(function (location) {
                 return this.send('peer:auth', {uuid: settings.uuid, location: location}, true);
-        });
+            });
     }
 
     sendPeerOffer(targetPeerUuid, offer): Q.Promise<any> {
 
-        return geolocation.getGeoLocation()
+        return geo.getGeoLocation()
             .then(function (location) {
                 this.send('peer:offer', {uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, location: location}, false);
             });
@@ -183,7 +202,7 @@ class Server {
         return this.send('peer:list', {projectUuid: settings.uuid}, true);
     }
 
-    private messageHandler(e: any) {
+    private messageHandler(e: Message) {
         var self = this;
         var data = JSON.parse(e.data),
             cmd = data.cmd;

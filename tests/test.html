@@ -1,0 +1,136 @@
+
+<!doctype html>
+<html><head>
+    <meta charset="utf-8">
+    <title>Network IP Address via ipcalf.com</title>
+
+    <script type="text/javascript">
+
+        function enumLocalIPs(cb) {
+            var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+            if (!RTCPeerConnection) return false;
+            var addrs = Object.create(null);
+            addrs['0.0.0.0'] = false;
+            function addAddress(newAddr) {
+                if (newAddr in addrs) return;
+                addrs[newAddr] = true;
+                cb(newAddr);
+            }
+            function grepSDP(sdp) {
+                var hosts = [];
+                sdp.split('\r\n').forEach(function (line) {
+                    if (~line.indexOf('a=candidate')) {
+                        var parts = line.split(' '),
+                                addr = parts[4],
+                                type = parts[7];
+                        if (type === 'host') addAddress(addr);
+                    } else if (~line.indexOf('c=')) {
+                        var parts = line.split(' '),
+                                addr = parts[2];
+                        addAddress(addr);
+                    }
+                });
+            }
+            var rtc = new RTCPeerConnection({iceServers:[]});
+            if (window.mozRTCPeerConnection)
+                rtc.createDataChannel('', {reliable:false});
+            rtc.onicecandidate = function (evt) {
+                if (evt.candidate)
+                    grepSDP(evt.candidate.candidate);
+            };
+            setTimeout(function() {
+                rtc.createOffer(function (offerDesc) {
+                    grepSDP(offerDesc.sdp);
+                    rtc.setLocalDescription(offerDesc);
+                }, function (e) {});
+            }, 50);
+            return true;
+        }
+
+        function getIp() {
+
+            // NOTE: window.RTCPeerConnection is "not a constructor" in FF22/23
+            var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+
+            if (!RTCPeerConnection) {
+                console.error('RTCPeerConnection does not supported by your browser!');
+                return;
+            }
+
+            var rtc = new RTCPeerConnection({iceServers:[]});
+            if (window.mozRTCPeerConnection) {      // FF needs a channel/stream to proceed
+                rtc.createDataChannel('', {reliable:false});
+            };
+
+            rtc.onicecandidate = function (evt) {
+                if (evt.candidate) grepSDP(evt.candidate.candidate);
+            };
+            rtc.createOffer(function (offerDesc) {
+                grepSDP(offerDesc.sdp);
+                rtc.setLocalDescription(offerDesc);
+            }, function (e) { console.warn("offer failed", e); });
+
+
+            var addrs = Object.create(null);
+            addrs["0.0.0.0"] = false;
+            function updateDisplay(newAddr) {
+                if (newAddr in addrs) return;
+                else addrs[newAddr] = true;
+                var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
+                document.getElementById('list').textContent = displayAddrs.join(" or perhaps ") || "n/a";
+            }
+
+            function grepSDP(sdp) {
+                var hosts = [];
+                sdp.split('\r\n').forEach(function (line) { // c.f. http://tools.ietf.org/html/rfc4566#page-39
+                    if (~line.indexOf("a=candidate")) {     // http://tools.ietf.org/html/rfc4566#section-5.13
+                        var parts = line.split(' '),        // http://tools.ietf.org/html/rfc5245#section-15.1
+                                addr = parts[4],
+                                type = parts[7];
+                        if (type === 'host') updateDisplay(addr);
+                    } else if (~line.indexOf("c=")) {       // http://tools.ietf.org/html/rfc4566#section-5.7
+                        var parts = line.split(' '),
+                                addr = parts[2];
+                        updateDisplay(addr);
+                    }
+                });
+            }
+
+        }
+
+        function go() {
+            enumLocalIPs(function(localIp) {
+                console.log('localips: ', localIp);
+                document.getElementById('localips').innerHTML += localIp + '<br>';
+            }) || (document.getElementById('localips').innerHTML = 'WebRTC seems not to be supported');
+        }
+
+        //    // NOTE: window.RTCPeerConnection is "not a constructor" in FF22/23
+        //    var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+        //
+        //    if (RTCPeerConnection) {
+        //        getIp();
+        //        getIpPromise()
+        //        .then(function(ips) {
+        //            console.log(ips);
+        //        });
+        //    } else {
+        //        document.getElementById('list').innerHTML = "<code>ifconfig | grep inet | grep -v inet6 | cut -d\" \" -f2 | tail -n1</code>";
+        //        document.getElementById('list').nextSibling.textContent = "In Chrome and Firefox your IP should display automatically, by the power of WebRTCskull.";
+        //    }
+
+    </script>
+</head>
+<body onload="go()">
+Your network IP is: <h1 id=list>-</h1> Make the locals proud.
+<div id="localips"></div>
+<!--<script type="text/javascript" src="q.js" ></script>-->
+
+
+
+
+</body>
+
+</html>
+
+

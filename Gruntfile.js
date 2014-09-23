@@ -11,11 +11,12 @@ module.exports = function (grunt) {
 				dev: {
 					src: [
 						"./ts/views/**/*.html.ts",
-						"./ts/*.ts"
+						"./ts/*.ts",
+                        "./ts/**/*.ts"
 					],        // The source typescript files, http://gruntjs.com/configuring-tasks#files
 					html: ["./ts/views/**/*.html"], // The source html files, https://github.com/basarat/grunt-ts#html-2-typescript-support
 					reference: "./ts/reference.ts",  // If specified, generate this file that you can use for your reference management
-					//watch: './ts',                     // If specified, watches this directory for changes, and re-runs the current target
+					watch: ['./ts', './ts/**'],      // If specified, watches this directory for changes, and re-runs the current target
 					outDir:'./build',
 					options: {                         // use to override the default options, http://gruntjs.com/configuring-tasks#options
 						target: 'es3',                 // 'es3' (default) | 'es5'

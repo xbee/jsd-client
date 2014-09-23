@@ -21,7 +21,7 @@ export class GeoLocation {
      * @static
      * @final
      */
-    EARTH_RADIUS: number = 6371;
+    EARTH_RADIUS:number = 6371;
 
     /**
      * Internal caching for the location object
@@ -30,7 +30,7 @@ export class GeoLocation {
      * @type Object
      * @default null
      */
-    private _location: Location;
+    private _location:Location;
 
     /**
      * Convert angular-value to radian
@@ -39,7 +39,7 @@ export class GeoLocation {
      * @param deg {Number} Degrees
      * @return {Number}
      */
-    private deg2rad(deg: number): number {
+    private deg2rad(deg:number):number {
         return deg * (Math.PI / 180);
     }
 
@@ -48,7 +48,7 @@ export class GeoLocation {
      * @method getGeoLocation
      * @return {Promise}
      */
-    getGeoLocation(): Q.Promise<{}> {
+    getGeoLocation():Q.Promise<{}> {
         var deferred = Q.defer();
 
         //don't return the actual location
@@ -63,7 +63,7 @@ export class GeoLocation {
         //ask for it
         else {
             navigator.geolocation.getCurrentPosition(
-                function success(position: Position) {
+                function success(position:Position) {
                     //caching
                     this._location.lat = position.coords.latitude;
                     this._location.long = position.coords.longitude;
@@ -95,7 +95,7 @@ export class GeoLocation {
      *
      * @return [Number] distance in kilometers
      */
-    getDistanceBetweenTwoLocations(position1: Location, position2: Location): number {
+    getDistanceBetweenTwoLocations(position1:Location, position2:Location):number {
 
         position2 = position2 || this._location;
 

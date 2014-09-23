@@ -28,4 +28,11 @@ class JsdModule {
         this.removeAllListeners = this._ee.removeAllListeners;
     }
 
+    extend(obj: any) {
+        var self: any = this;
+        return _.extend(self, obj);
+    }
+
 }
+
+export = JsdModule;

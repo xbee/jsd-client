@@ -1,7 +1,7 @@
 
 /// <reference path="../node/node.d.ts" />
 
-interface EventEmitter2 {
+interface                       EventEmitter {
     newListener: boolean;
     delimiter: string;
     wildcard: boolean;
@@ -9,24 +9,24 @@ interface EventEmitter2 {
     maxListeners: number;
 
     setMaxListeners(n: number)
-    once(event: string, fn: Function): EventEmitter2
-    many(event: string, ttl: number, fn: Function): EventEmitter2
+    once(event: string, fn: Function): EventEmitter
+    many(event: string, ttl: number, fn: Function): EventEmitter
     emit(event: string, ...args: any[]): boolean
-    on(type: any, listener: Function): EventEmitter2
-    onAny(fn: Function): EventEmitter2
-    addListener(event: string, listener: Function): EventEmitter2
-    off(event: string, listener: Function): EventEmitter2
-    offAny(fn: Function): EventEmitter2
-    removeListener(event: string, listener: Function): EventEmitter2
-    removeAllListeners(event: string[]): EventEmitter2
+    on(type: any, listener: Function): EventEmitter
+    onAny(fn: Function): EventEmitter
+    addListener(event: string, listener: Function): EventEmitter
+    off(event: string, listener: Function): EventEmitter
+    offAny(fn: Function): EventEmitter
+    removeListener(event: string, listener: Function): EventEmitter
+    removeAllListeners(event: string[]): EventEmitter
     listeners(event: string): any[]
     listenersAny(): any[]
 
 }
 
-declare var EventEmitter2: {
-    prototype: EventEmitter2;
-    new(conf: any): EventEmitter2;
+declare var EventEmitter: {
+    prototype: EventEmitter;
+    new(conf: any): EventEmitter;
 };
 
 

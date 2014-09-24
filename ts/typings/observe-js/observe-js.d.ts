@@ -40,6 +40,7 @@ interface Observer {
 //}
 declare var Observer: {
     hasObjectObserve: boolean
+    prototype: Observer
     defineComputedProperty(target: any, name: string, observable: any): () => void
 };
 
@@ -102,10 +103,12 @@ interface ArraySplice {
 }
 
 declare var ObjectObserver: {
-  new (object: any): ObjectObserver
+    prototype: ObjectObserver;
+    new (object: any): ObjectObserver
 };
 
 declare var ArrayObserver: {
+    prototype: ArrayObserver;
     new (array: any): ArrayObserver
     applySplices(previous: any, current: any, splices: any)
     calculateSplices(current: any, previous: any): any

@@ -1,4 +1,5 @@
-/// <reference path="typings/EventEmitter2/EventEmitter2.d.ts" />
+/// <reference path="typings/node/node.d.ts" />
+/// <reference path="typings/eventemitter2/eventemitter2.d.ts" />
 /// <reference path="typings/observe-js/observe-js.d.ts" />
 /// <reference path="typings/lodash/lodash.d.ts" />
 /// <reference path="typings/node-uuid/node-uuid.d.ts" />
@@ -6,6 +7,10 @@
 /// <reference path="typings/q/Q.d.ts" />
 /// <reference path="typings/sockjs/sockjs.d.ts" />
 
+require('observe-js');
+require('sockjs');
+import EventEmitter2 = require('eventemitter2');
+import _ = require('lodash');
 import Q = require('q');
 import nuuid = require('node-uuid');
 
@@ -64,13 +69,13 @@ declare module J2T {
         servers: Servers;
     }
 
-    export interface Network {
-        broadcast: Broadcast;
-        synchronization: Synchronization;
-        useGeoLocation: boolean;
-        useIp: boolean;
-        services: any[];
-    }
+//    export interface Network {
+//        broadcast: Broadcast;
+//        synchronization: Synchronization;
+//        useGeoLocation: boolean;
+//        useIp: boolean;
+//        services: any[];
+//    }
 
     export interface SettingInterface {
         authToken: string;
@@ -83,7 +88,7 @@ declare module J2T {
         syncInterval: number;
         uuid: string;
         projectUuid: string;
-        network: Network;
+//        network: Network;
     }
 }
 
@@ -120,7 +125,7 @@ class SettingModel implements J2T.SettingInterface {
     maxFactories:number = 4;
     maxWorkers:number = 1;
     protocol:string = 'sctp';
-    iceServers: J2T.IceServer[] = [
+    public iceServers: J2T.IceServer[] = [
         {
             url: 'stun:stun.l.google.com:19302'
         },
@@ -138,35 +143,35 @@ class SettingModel implements J2T.SettingInterface {
     syncInterval:number = 3600000; // 1h
     uuid:string; //everyone will know (public)
     projectUuid: string; // for every site
-    network:J2T.Network;
+//    network:J2T.Network;
 
     constructor() {
         this.authToken = Uuid.generate();
         this.uuid = Uuid.generate();
 
-        this.network.broadcast.messageTtl = 10000;
-        this.network.broadcast.peers.enabled = true;
-        this.network.broadcast.servers.enabled = true;
-        this.network.broadcast.servers.groupSize = 1;
-        this.network.synchronization.peers.enabled = true;
-        this.network.synchronization.peers.groupSize = 15;
-        this.network.synchronization.peers.interval = 3600000;
-        this.network.synchronization.servers.enabled = true;
-        this.network.synchronization.servers.groupSize = 15;
-        this.network.synchronization.servers.interval = 3600000;
-        this.network.useGeoLocation = true;
+//        this.network.broadcast.messageTtl = 10000;
+//        this.network.broadcast.peers.enabled = true;
+//        this.network.broadcast.servers.enabled = true;
+//        this.network.broadcast.servers.groupSize = 1;
+//        this.network.synchronization.peers.enabled = true;
+//        this.network.synchronization.peers.groupSize = 15;
+//        this.network.synchronization.peers.interval = 3600000;
+//        this.network.synchronization.servers.enabled = true;
+//        this.network.synchronization.servers.groupSize = 15;
+//        this.network.synchronization.servers.interval = 3600000;
+//        this.network.useGeoLocation = true;
     }
 }
 
 class Settings {
 
     private _storeName:string = 'settings';
-    settingstore:SettingModel;
+    public settingstore: SettingModel = new SettingModel();
 
     //Chrome is currently the only one supporting native O_o
     //which would be
     //Object.observe(settingstore, storeSettingsToLocalStorage);
-    private _observer:Observer = new ObjectObserver(this.settingstore);
+    private _observer:ObjectObserver = new ObjectObserver(this.settingstore);
 
     /**
      * @private
@@ -174,7 +179,13 @@ class Settings {
      * @return {Object} Settings
      */
     private readSettingsFromLocalStorage():any {
-        return JSON.parse(localStorage.getItem(this._storeName)) || {};
+//        if(typeof(window.localStorage) != 'undefined') {
+//            var data: any;
+//            data = localStorage.getItem (this._storeName);
+//            return JSON.parse(data);
+//        } else{
+//            return {};
+//        }
     }
 
     /**
@@ -182,40 +193,31 @@ class Settings {
      * @method storeSettingsToLocalStorage
      */
     private storeSettingsToLocalStorage():any {
-        localStorage.setItem(this._storeName, JSON.stringify(this.settingstore));
+//        if(typeof(window.localStorage) != 'undefined') {
+//            window.localStorage.setItem(this._storeName, JSON.stringify(this.settingstore));
+//        }
     }
 
     constructor() {
         this.settingstore = <SettingModel>this.readSettingsFromLocalStorage();
-        this._observer.open(this.storeSettingsToLocalStorage);
-    }
-
-    private static _instance:Settings;
-
-    public static getInstance():Settings {
-
-        if (Settings._instance === null) {
-            Settings._instance = new Settings();
-        } else {
-        }
-        return Settings._instance;
+//        this._observer.open(this.storeSettingsToLocalStorage);
     }
 }
+var settingobj: Settings = new Settings();
+var settings: SettingModel = settingobj.settingstore;
 
-var settings: SettingModel = Settings.getInstance().settingstore;
-
-interface Host {
+export interface Host {
     host: string;
     port: number;
     isSecure: boolean;
 }
 
-interface Message {
+export interface Message {
     cmd: string;
     data: any;
 }
 
-class SignalSession {
+export class SignalSession {
 
     host: string;
     port: number;
@@ -462,7 +464,14 @@ class SignalSession {
 var TIMEOUT_WAIT_TIME = 10000, //10s
     QUEUE_RETRY_TIME = 75,
     ICE_SERVER_SETTINGS = {
-        iceServers: settings.iceServers
+        iceServers: [
+            {
+                url: 'stun:stun.l.google.com:19302'
+            },
+            {
+                url: 'stun:stun.turnservers.com:3478'
+            }
+        ]
     };
 
 var connectionConstraint: RTCMediaConstraints = {
@@ -804,9 +813,9 @@ class PeerSession {
      */
     answerOffer(data): Q.Promise<any> {
         var _self = this;
-        var uuid = this.uuid,
-            deferred = Q.defer,
-            signal = this.server;
+        var uuid = this.uuid;
+        var deferred: any = Q.defer;
+        var signal = this.server;
 
         _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
         _self.connection.ondatachannel = this.dataChannelHandler;
@@ -834,9 +843,328 @@ class PeerSession {
                     logger.log(err);
                 },
                 connectionConstraint);
-
         });
 
         return deferred.promise;
     }
+
+    /**
+     * Accept a WebRTC-Connection
+     *
+     * @method acceptConnection
+     * @param data
+     */
+    acceptConnection(data) {
+        var _self = this;
+        this.isTarget = true;
+        this.isSource = false;
+
+        //9. Alice sets Eve's answer as the remote session description using setRemoteDescription().
+        _self.connection.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+    }
+
+    /**
+     * Add candidate info to connection
+     * @method addCandidate
+     * @param data
+     */
+    addCandidate(data) {
+        var _self = this;
+        _self.connection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    }
+
+    /**
+     * Send data via a WebRTC-Channel to a peer
+     *
+     * @method send
+     * @param data
+     * @param {Boolean} reliable Should a retry occur if the transmission fails?
+     */
+    send(data, reliable: boolean = false): void {
+
+        var _self = this;
+
+        var jsonString: string;
+
+        if (!_self.isConnected || _self.channel.readyState !== 'open') {
+            logger.error('Peer ' + _self.id, 'Attempt to send, but channel is not open!');
+            return;
+        }
+
+        // Actually it should be possible to send a blob, but it isn't
+        // https://code.google.com/p/webrtc/issues/detail?id=2276
+        if (data instanceof Blob) {
+            _self.channel.send(data);
+        }
+        else {
+            // Currently JSON & Channel.send error produce a SyntaxError
+            // https://code.google.com/p/webrtc/issues/detail?id=2434
+            try {
+                jsonString = JSON.stringify(data);
+            }
+            catch (e) {
+                // We won't retry as this always will fail
+            }
+            try {
+                _self.channel.send(jsonString);
+            }
+            catch (e) {
+                if (reliable) {
+                    logger.error('Peer ' + _self.id, 'Error while sending reliable msg, queuing data');
+                    // Retry again
+                    _.delay(_self.send, QUEUE_RETRY_TIME, data);
+                }
+            }
+        }
+
+    }
+
+    sendFile(uuid, chunk, pos) {
+        pos = pos || 0;
+
+        // Send as blob, wrapped with info
+        if (chunk instanceof Blob) {
+            this.send({ type: 'file:push:start', uuid: uuid, pos: pos});
+            this.send(chunk);
+            this.send({ type: 'file:push:end', uuid: uuid});
+        }
+        // Send as base64-String, along with info
+        else {
+            this.send({ type: 'file:push', uuid: uuid, chunk: chunk, pos: pos});
+        }
+
+    }
+
+    /**
+     * @method serialize
+     * @return {Object}
+     */
+    serialize() {
+        return{
+            uuid: this.uuid,
+            server: this.server
+        }
+    }
+
+    /**
+     * @method broadcast
+     */
+    broadcast(type: string, data: any) {
+        var _self = this;
+
+        // Add broadcast prefix?
+        if (type.indexOf('broadcast:') < 0) {
+            type = 'broadcast:' + type;
+        }
+
+        _self.send({type: type, data: data});
+    }
+
+
+    /**
+     * @method disconnect
+     */
+    disconnect() {
+        var _self = this;
+        _self.isConnected = false;
+        _self.channel.close();
+        _self.connection.close();
+    }
+}
+
+var TIMEOUT_RETRY_TIME: number = 60000; //60s
+var MAX_RANDOM_ASSESSMENT_DELAY_TIME: number = 150;
+
+
+class PeerSessionManager {
+
+    _peers: PeerSession[] = [];
+
+    /**
+     * @method add
+     * @param peer
+     */
+    add(peer: PeerSession) {
+        if (!this.getPeerByUuid(peer.uuid)) {
+            this._peers.push(peer);
+        }
+    }
+
+    /**
+     * @method connect
+     * @param {Array} [peers]
+     * @return {Promise}
+     */
+    connect(peers: PeerSession[] = this._peers): Q.Promise<any[]> {
+
+        var promises = [];
+
+        _.each(peers, function (peer) {
+
+            // Never connect to null or self
+            if (!peer || peer.uuid === settings.uuid) return;
+
+            // No need to connect if already connected
+            if (!peer.isConnected) {
+                promises.push(peer.createConnection());
+            }
+
+        });
+
+        return Q.all(promises);
+    }
+
+    /**
+     * @method connectToNeighbourPeers
+     * @return {Promise}
+     */
+    connectToNeighbourPeers(): Q.Promise<any> {
+        return this.connect(this.getNeighbourPeers());
+    }
+
+    /**
+     * @method getPeerByUuid
+     * @param {String} uuid
+     * @returns {Peer}
+     */
+    getPeerByUuid(uuid: string) {
+        return _.find(this._peers, function (peer: PeerSession) {
+            return peer.uuid === uuid;
+        });
+    }
+
+    /**
+     * @method getNeighbourPeers
+     * @return {Array}
+     */
+    getNeighbourPeers(): any[] {
+        // Assuming they are already sorted in a specific way
+        // e.g. geolocation-distance
+
+        // Remove all peers that had a timeout shortly
+        var peers = this._peers.filter(function (peer) {
+            // Timeout at all? && Timeout was long ago
+            return !peer.timeout || peer.timeout + TIMEOUT_RETRY_TIME < Date.now();
+        });
+
+        return peers.slice(0, settings.maxPeers || 2);
+    }
+
+    /**
+     * Get all known Peers Uuids as an array
+     *
+     * @method getPeerUuidsAsArray
+     * @return {Array}
+     */
+    getPeerUuidsAsArray() {
+        return _.map(this._peers, function (peer) {
+            return peer.uuid;
+        })
+    }
+
+    /**
+     * Broadcast data to peers using a RAD--time.
+     * Will exclude originPeerUuid from receivers if passed.
+     *
+     * @method broadcast
+     * @param type
+     * @param data
+     * @param {String} [originPeerUuid]
+     * @param {Boolean} reliable
+     */
+    broadcast(type, data, originPeerUuid, reliable = false) {
+
+        var peers: PeerSession[] = this.getConnectedPeers();
+
+        // Remove own uuid from list and
+        // the peer we received the message from
+        peers = _.reject(peers, function (peer) {
+            return peer.uuid === settings.uuid || peer.uuid === originPeerUuid;
+        });
+
+        // Nobody to broadcast to
+        if (peers.length === 0) {
+            return;
+        }
+
+        if (!originPeerUuid) {
+            //logger.log('Peers', 'Broadcasting', type, 'to', peers.length, 'peer(s)');
+            data.timestamp = Date.now();
+        }
+        else {
+            //logger.log('Peers', 'Rebroadcasting', type, 'to', peers.length, 'peer(s)');
+        }
+
+
+        // Broadcast to all connected peers
+        peers.forEach(function (peer) {
+            // Get a RAD before broadcasting
+            var rad = Math.random() * MAX_RANDOM_ASSESSMENT_DELAY_TIME;
+            _.delay(peer.broadcast, rad, type, data, reliable);
+        });
+    }
+
+    /**
+     * @method update
+     * @param {Object} peerData
+     */
+    update(peerData: any[]) {
+
+        // Multidimensional array form multiple nodes needs to be flattened
+        peerData = _.flatten(peerData);
+
+        peerData.forEach(function (data) {
+
+            //make sure it's not self
+            if (data.uuid === settings.uuid) return;
+
+            //already got this one?
+            var peer = this.getPeerByUuid(data.uuid);
+
+            //already got this peer?
+            if (peer) {
+                //only add the node uuid
+                peer.addNodes(data.nodes);
+                return;
+            }
+
+            // Local id for debugging
+            data.id = this._peers.length + 1;
+
+            // Save as new peer
+            peer = new PeerSession(this.server, data);
+            this.add(peer);
+
+            // Pass-through events
+            peer.onAny(function (e) {
+                this.emit(this.event, e);
+            });
+
+            // Calculate geolocation distance
+//            peer.distance = geolocation.getDistanceBetweenTwoLocations(peer.location);
+
+        });
+
+
+        // Sort peers by their geolocation-distance
+//        this._peers = _.sortBy(this._peers, function (peer) {
+//            return peer.distance;
+//        });
+
+        // Update public list
+//        this.list = _peers;
+    }
+
+    /**
+     * Get a list of all peers to which there is an active connection.
+     *
+     * @method getConnectedPeers
+     *
+     * @return {Array}
+     */
+    getConnectedPeers() {
+        return _.where(this._peers, {isConnected: true});
+    }
+
 }

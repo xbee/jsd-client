@@ -4,17 +4,30 @@
   "description": "typescript-serializer",
   "main": "Gruntfile.js",
   "devDependencies": {
+    "chai": "^1.9.1",
+    "expect.js": "^0.3.1",
     "grunt": "^0.4.5",
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-uglify": "^0.5.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-ts": "^1.11.3"
+    "grunt-ts": "^1.11.3",
+    "intern": "^2.1.0",
+    "jasmine": "^2.0.1",
+    "should": "^4.0.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Pedro Casaubon <xperiments@gmail.com> (http://www.xperiments.io/)",
   "license": "MIT",
-  "homepage": "https://github.com/xperiments/typescript-serializer"
+  "homepage": "https://github.com/xperiments/typescript-serializer",
+  "dependencies": {
+    "eventemitter2": "^0.4.14",
+    "lodash": "^2.4.1",
+    "node-uuid": "^1.4.1",
+    "observe-js": "^0.1.0",
+    "q": "^1.0.1",
+    "sockjs": "^0.3.9"
+  }
 }

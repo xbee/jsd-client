@@ -56,7 +56,7 @@ export class SettingModel implements J2T.SettingInterface {
 class Settings {
 
     private _storeName:string = 'settings';
-    settingstore:SettingModel;
+    settingstore:SettingModel = new SettingModel();
 
     //Chrome is currently the only one supporting native O_o
     //which would be

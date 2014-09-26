@@ -1,5 +1,4 @@
 /// <reference path="typings/node/node.d.ts" />
-/// <reference path="typings/eventemitter2/eventemitter2.d.ts" />
 /// <reference path="typings/observe-js/observe-js.d.ts" />
 /// <reference path="typings/lodash/lodash.d.ts" />
 /// <reference path="typings/node-uuid/node-uuid.d.ts" />
@@ -8,11 +7,14 @@
 /// <reference path="typings/sockjs/sockjs.d.ts" />
 
 require('observe-js');
-require('sockjs');
-import EventEmitter2 = require('eventemitter2');
+require('sockjs-client');
+import events = require('events');
+//import EventEmitter2 = require('eventemitter2');
 import _ = require('lodash');
 import Q = require('q');
 import nuuid = require('node-uuid');
+
+//var EventEmitter: events.EventEmitter = events.EventEmitter;
 
 var logger: any = console;
 
@@ -69,14 +71,6 @@ declare module J2T {
         servers: Servers;
     }
 
-//    export interface Network {
-//        broadcast: Broadcast;
-//        synchronization: Synchronization;
-//        useGeoLocation: boolean;
-//        useIp: boolean;
-//        services: any[];
-//    }
-
     export interface SettingInterface {
         authToken: string;
         maxPeers: number;
@@ -88,7 +82,6 @@ declare module J2T {
         syncInterval: number;
         uuid: string;
         projectUuid: string;
-//        network: Network;
     }
 }
 
@@ -229,26 +222,27 @@ export class SignalSession {
     isConnected: boolean = false;
     localIPs: string[] = undefined;
 
-    emit: (event:string, ...args: any[]) => boolean;
-    on: (type: string, listener: Function) => EventEmitter2;
-    off: (type: string, listener: Function) => EventEmitter2;
-    onAny: (fn: Function) => EventEmitter2;
-    offAny: (fn: Function) => EventEmitter2;
-    removeAllListeners: (type: string[]) => EventEmitter2;
+    emit: (event: string, ...args: any[]) => boolean;
+    on: (type: string, listener: Function) => events.EventEmitter;
+    off: (type: string, listener: Function) => events.EventEmitter;
+//    onAny: (fn: Function) => events.EventEmitter;
+//    offAny: (fn: Function) => events.EventEmitter;
+    removeAllListeners: (event?: string) => events.EventEmitter;
 
-    private _ee: EventEmitter2 = new EventEmitter2({
-        wildcard: true, // should the event emitter use wildcards.
-        delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
-        newListener: false, // if you want to emit the newListener event set to true.
-        maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
-    });
+    private _ee: events.EventEmitter = new events.EventEmitter();
+//    private _ee: EventEmitter = new EventEmitter({
+//        wildcard: true, // should the event emitter use wildcards.
+//        delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
+//        newListener: false, // if you want to emit the newListener event set to true.
+//        maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
+//    });
 
     constructor(config: Host) {
         this.emit = this._ee.emit;
         this.on = this._ee.on;
-        this.off = this._ee.off;
-        this.onAny = this._ee.onAny;
-        this.offAny = this._ee.offAny;
+        this.off = this._ee.removeListener;
+//        this.onAny = this._ee.onAny;
+//        this.offAny = this._ee.offAny;
         this.removeAllListeners = this._ee.removeAllListeners;
 
         this.enumLocalIPs(function(datas: string[]) {
@@ -487,7 +481,7 @@ var connectionConstraint: RTCMediaConstraints = {
 
 var channelConstraint: RTCDataChannelInit;
 
-class PeerSession {
+export class PeerSession {
 
     _self: any = this;
 
@@ -585,18 +579,19 @@ class PeerSession {
     protocol: string;
 
     emit: (event:string, ...args: any[]) => boolean;
-    on: (type: string, listener: Function) => EventEmitter2;
-    off: (type: string, listener: Function) => EventEmitter2;
-    onAny: (fn: Function) => EventEmitter2;
-    offAny: (fn: Function) => EventEmitter2;
-    removeAllListeners: (type: string[]) => EventEmitter2;
+    on: (type: string, listener: Function) => events.EventEmitter;
+    off: (type: string, listener: Function) => events.EventEmitter;
+//    onAny: (fn: Function) => events.EventEmitter;
+//    offAny: (fn: Function) => events.EventEmitter;
+//    removeAllListeners: (type: string[]) => events.EventEmitter;
 
-    private _ee: EventEmitter2 = new EventEmitter2({
-        wildcard: true, // should the event emitter use wildcards.
-        delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
-        newListener: false, // if you want to emit the newListener event set to true.
-        maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
-    });
+    private  _ee: events.EventEmitter = new events.EventEmitter();
+//    private _ee: EventEmitter = new EventEmitter({
+//        wildcard: true, // should the event emitter use wildcards.
+//        delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
+//        newListener: false, // if you want to emit the newListener event set to true.
+//        maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
+//    });
 
     constructor(server: SignalSession, config: any) {
         var _self = this;
@@ -606,9 +601,9 @@ class PeerSession {
             this.server = server;
 
         this.on = this._ee.on;
-        this.off = this._ee.off;
-        this.onAny = this._ee.onAny;
-        this.offAny = this._ee.offAny;
+        this.off = this._ee.removeListener;
+//        this.onAny = this._ee.onAny;
+//        this.offAny = this._ee.offAny;
         this.emit = this._ee.emit;
 
         // Protocol switch SRTP(=default) or SCTP
@@ -977,7 +972,7 @@ var TIMEOUT_RETRY_TIME: number = 60000; //60s
 var MAX_RANDOM_ASSESSMENT_DELAY_TIME: number = 150;
 
 
-class PeerSessionManager {
+export class PeerSessionManager {
 
     _peers: PeerSession[] = [];
 

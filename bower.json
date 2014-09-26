@@ -1,0 +1,23 @@
+{
+  "name": "jsd-client",
+  "version": "0.0.1",
+  "authors": [
+    "xman <mymojing@163.com>"
+  ],
+  "description": "jiasudu client",
+  "main": "app.js",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "jiasudu"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

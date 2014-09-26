@@ -1,0 +1,43 @@
+{
+  "name": "mixing",
+  "main": [
+    "dist/mixing.js",
+    "dist/mixing.min.js"
+  ],
+  "version": "0.1.0",
+  "homepage": "https://github.com/gamtiq/mixing",
+  "authors": [
+    "Denis Sikuler"
+  ],
+  "description": "Functions to mix, filter, change and copy/clone objects",
+  "keywords": [
+    "mix",
+    "merge",
+    "mixin",
+    "object",
+    "filter",
+    "map",
+    "change",
+    "copy",
+    "clone"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "build",
+    "components",
+    "test",
+    "tests"
+  ],
+  "_release": "0.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.1.0",
+    "commit": "b7fdb8fd1809c1043711ab0d13d828ef4d0380e0"
+  },
+  "_source": "git://github.com/gamtiq/mixing.git",
+  "_target": "*",
+  "_originalSource": "mixing"
+}

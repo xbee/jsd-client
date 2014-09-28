@@ -6,11 +6,28 @@ define(["require",
         'q',
         'eventemitter2',
         'node-uuid',
-        'observe-js',
-        'sockjs'],
-function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
+        'observe-js'],
+function(require, exports, module, _, Q, EventEmitter2, nuuid) {
+
+    var _debuging = true;
+
+    exports._debuging = _debuging;
 
     var logger = console;
+
+    var utils = (function() {
+        this.sleep = function(milliseconds) {
+            var start = new Date().getTime();
+            for (var i = 0; i < 10000000; i++) {
+                if ((new Date().getTime() - start) > milliseconds) {
+                    break;
+                }
+            }
+        };
+
+        return {sleep: this.sleep};
+    })();
+    exports.utils = utils;
 
     var Uuid = (function () {
         function Uuid() {
@@ -22,8 +39,14 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @return {String} An Universally unique identifier v4
          * @see http://en.wikipedia.org/wiki/Universally_unique_identifier
          */
-        Uuid.generate = function () {
+        this.generate = function () {
+//            if (_debuging) {
+//                return '11111111-2222-3333-4444-cb8c4b75b564';
+//            } else {
+//                return nuuid.v4();
+//            }
             return nuuid.v4();
+
         };
 
         /**
@@ -33,89 +56,136 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @param uuid
          * @returns {boolean}
          */
-        Uuid.isValid = function (uuid) {
+        this.isValid = function (uuid) {
             return Uuid._format.test(uuid);
         };
-        Uuid._format = new RegExp('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i');
-        return Uuid;
+        this._format = new RegExp('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i');
+        return {
+            generate: this.generate,
+            isValid: this.isValid
+        };
     })();
+    if (_debuging) {
+        exports.Uuid = Uuid;
+    }
 
-    var SettingModel = (function () {
-        //    network:J2T.Network;
-        function SettingModel() {
-            this.maxPeers = 3;
-            this.maxFactories = 4;
-            this.maxWorkers = 1;
-            this.protocol = 'sctp';
-            this.iceServers = [
-                {
-                    url: 'stun:stun.l.google.com:19302'
-                },
-                {
-                    url: 'stun:stun.turnservers.com:3478'
-                }
-            ];
-            this.signalServers = [
-                {
-                    host: 'localhost',
-                    isSecure: false,
-                    port: 3080
-                }
-            ];
-            this.syncInterval = 3600000;
-            this.authToken = Uuid.generate();
-            this.uuid = Uuid.generate();
-        }
-        return SettingModel;
-    })();
+    var settings = (function () {
+        var _storeName = 'settings',
+            _settings = readSettingsFromLocalStorage();
 
-    var Settings = (function () {
-        function Settings() {
-            this._storeName = 'settings';
-            this.settingstore = new SettingModel();
-            //Chrome is currently the only one supporting native O_o
-            //which would be
-            //Object.observe(settingstore, storeSettingsToLocalStorage);
-            this._observer = new ObjectObserver(this.settingstore);
-            this.settingstore = this.readSettingsFromLocalStorage();
-            //        this._observer.open(this.storeSettingsToLocalStorage);
-        }
         /**
          * @private
          * @method readSettingsFromLocalStorage
          * @return {Object} Settings
          */
-        Settings.prototype.readSettingsFromLocalStorage = function () {
-            //        if(typeof(window.localStorage) != 'undefined') {
-            //            var data: any;
-            //            data = localStorage.getItem (this._storeName);
-            //            return JSON.parse(data);
-            //        } else{
-            //            return {};
-            //        }
-        };
+        function readSettingsFromLocalStorage() {
+            return JSON.parse(localStorage.getItem(_storeName)) || {};
+        }
 
         /**
          * @private
          * @method storeSettingsToLocalStorage
          */
-        Settings.prototype.storeSettingsToLocalStorage = function () {
-            //        if(typeof(window.localStorage) != 'undefined') {
-            //            window.localStorage.setItem(this._storeName, JSON.stringify(this.settingstore));
-            //        }
-        };
-        return Settings;
+        function storeSettingsToLocalStorage() {
+            localStorage.setItem(_storeName, JSON.stringify(_settings));
+        }
+
+        //Chrome is currently the only one supporting native O_o
+        //which would be
+        //Object.observe(_settings, storeSettingsToLocalStorage);
+        var observer = new ObjectObserver(_settings);
+        observer.open(storeSettingsToLocalStorage);
+
+        //Defaults
+        _.defaults(_settings, {
+            authToken: Uuid.generate(), // Will never be sent to any peer (private)
+            maxPeers: 3,
+            maxFactories: 1,
+            maxWorkers: 1,
+            fileStorageSize: 500 * 1024 * 1024, //500MB
+            protocol: 'sctp', //srtp || sctp
+            iceServers: [
+                {
+                    'url': 'stun:stun.l.google.com:19302'
+                },
+                {
+                    'url': 'stun:stun.turnservers.com:3478'
+                }
+            ],
+            signalServer: {
+                'host': 'localhost',
+                'port': 3081,
+                'isSecure': false
+            },
+            syncInterval: 3600000, //1h
+            uuid: Uuid.generate() //everyone will know (public)
+        });
+
+        return _settings;
     })();
-//    exports.Settings = Settings;
-    var settingobj = new Settings();
-    var settings = settingobj.settingstore;
-//    exports.settings = settings;
+    if (_debuging) {
+        exports.settings = settings;
+    }
+
+    /*
+     *  get all of local ip address
+     */
+    var enumLocalIPs = function (ctx, cb) {
+        var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+        if (!RTCPeerConnection)
+            return false;
+        var addrs = Object.create(null);
+        addrs['0.0.0.0'] = false;
+        var addAddress = function (newAddr) {
+            if (newAddr in addrs)
+                return;
+            addrs[newAddr] = true;
+            cb.apply(ctx, [newAddr]);
+        };
+        var grepSDP = function (sdp) {
+            sdp.split('\r\n').forEach(function (line) {
+                if (~line.indexOf('a=candidate')) {
+                    var parts = line.split(' '), addr = parts[4], type = parts[7];
+                    if (type === 'host')
+                        addAddress(addr);
+                } else if (~line.indexOf('c=')) {
+                    var parts = line.split(' '), addr = parts[2];
+                    addAddress(addr);
+                }
+            });
+        };
+
+        // typescript do not support polyfill
+        var rtc = new RTCPeerConnection({iceServers: []});
+        if (window.mozRTCPeerConnection) {
+            rtc.createDataChannel('', { reliable: false });
+        }
+        rtc.onicecandidate = function (evt) {
+            if (evt.candidate)
+                grepSDP(evt.candidate.candidate);
+        };
+        rtc.createOffer(function (offerDesc) {
+            grepSDP(offerDesc.sdp);
+            rtc.setLocalDescription(offerDesc);
+        }, function (e) {});
+//        setTimeout(function () {
+//
+//        }, 50);
+        return true;
+    };
+    if (_debuging) {
+        exports.enumLocalIPs = enumLocalIPs;
+    }
 
     var SignalSession = function(config) {
-        this.id = 0;
+        var _self = this;
+        this.host = settings.signalServer.host;
+        this.port = settings.signalServer.port ;
+        this.isSecure = settings.signalServer.isSecure;
+        this.id = settings.uuid;
         this.socket = null;
         this.isConnected = false;
-        this.localIPs = undefined;
+        this.localIPs = [];
         this._ee = new EventEmitter2({
             wildcard: true, // should the event emitter use wildcards.
             delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
@@ -129,57 +199,6 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
         this.offAny = this._ee.offAny;
         this.removeAllListeners = this._ee.removeAllListeners;
 
-        /*
-         *  get all of local ip address
-         */
-        this.enumLocalIPs = function (cb) {
-            var x = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-            if (!x)
-                return false;
-            var addrs = Object.create(null);
-            addrs['0.0.0.0'] = false;
-            var addAddress = function (newAddr) {
-                if (newAddr in addrs)
-                    return;
-                addrs[newAddr] = true;
-                cb(newAddr);
-            };
-            var grepSDP = function (sdp) {
-                sdp.split('\r\n').forEach(function (line) {
-                    if (~line.indexOf('a=candidate')) {
-                        var parts = line.split(' '), addr = parts[4], type = parts[7];
-                        if (type === 'host')
-                            addAddress(addr);
-                    } else if (~line.indexOf('c=')) {
-                        var parts = line.split(' '), addr = parts[2];
-                        addAddress(addr);
-                    }
-                });
-            };
-
-            // typescript do not support polyfill
-            //    var rtc = new RTCPeerConnection({iceServers: []});
-            var rtc;
-            if (window.mozRTCPeerConnection) {
-                rtc = new mozRTCPeerConnection({ iceServers: [] });
-                rtc.createDataChannel('', { reliable: false });
-            } else if (window.webkitRTCPeerConnection) {
-                rtc = new webkitRTCPeerConnection({ iceServers: [] });
-            }
-            rtc.onicecandidate = function (evt) {
-                if (evt.candidate)
-                    grepSDP(evt.candidate.candidate);
-            };
-            setTimeout(function () {
-                rtc.createOffer(function (offerDesc) {
-                    grepSDP(offerDesc.sdp);
-                    rtc.setLocalDescription(offerDesc);
-                }, function (e) {
-                });
-            }, 50);
-            return true;
-        };
-
         /**
          * @method connect
          * @return {Promise}
@@ -190,8 +209,8 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             var deferred = Q.defer();
 
             try  {
-                var url = (this.isSecure ? 'https' : 'http') + '://' + this.host + ':' + this.port;
-                this.socket = new SockJS(url, null, { debug: true, devel: true });
+                var url = (this.isSecure ? 'wss' : 'ws') + '://' + this.host + ':' + this.port;
+                this.socket = new WebSocket(url, null, { debug: true, devel: true });
                 this.url = url;
 
                 //add listeners
@@ -283,10 +302,6 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
 
         this.sendPeerOffer = function (targetPeerUuid, offer) {
             return this.send('peer:offer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, ips: location }, false);
-            //        return geo.getGeoLocation()
-            //            .then(function (location) {
-            //
-            //            });
         };
 
         this.sendPeerAnswer = function (targetPeerUuid, answer) {
@@ -328,14 +343,21 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             };
         };
 
-        this.enumLocalIPs(function (datas) {
-            this.localIPs = datas;
-        });
+        this.saveIPs = function(ip) {
+            _self.localIPs.push(ip);
+        };
+
+        enumLocalIPs(_self, _self.saveIPs);
 
         // public methods or fields
         return {
             // public fields
-            localIPs: [1, 3, 4],
+            host : this.host,
+            port : this.port,
+            isSecure : this.isSecure,
+            id: this.id,
+            isConnected: this.isConnected,
+            localIPs: this.localIPs,
             // public methods
             connect: this.connect,
             disconnect: this.disconnect,
@@ -344,8 +366,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             sendPeerOffer: this.sendPeerOffer,
             sendPeerAnswer: this.sendPeerAnswer,
             sendPeerCandidate: this.sendPeerCandidate,
-            serialize: this.serialize,
-            enumLocalIPs: this.enumLocalIPs
+            serialize: this.serialize
         }
 
     };
@@ -375,99 +396,97 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
 
     var channelConstraint;
 
-    var PeerSession = (function () {
-
-        function PeerSession(server, config) {
-            this._self = this;
-            /**
-             * @property connection
-             * @type {RTCPeerCpnnection}
-             */
-            this.connection = undefined;
-            /**
-             * @property channel
-             * @type {RTCDataChannel}
-             */
-            this.channel = undefined;
-            /**
-             * Indicates if there is a stable conenction to this peer
-             * @property isConnected
-             * @default false
-             * @type {Boolean}
-             */
-            this.isConnected = false;
-            /**
-             * Whether this peer is the initiator of a connection
-             * @property isSource
-             * @default false
-             * @type {Boolean}
-             */
-            this.isSource = false;
-            /**
-             * Whether this peer is the initiator of a connection
-             * @property isTarget
-             * @default false
-             * @type {Boolean}
-             */
-            this.isTarget = false;
-            /**
-             * List of timers for synchronization
-             * @type {Array}
-             */
-            this.syncTimers = [];
-            //    onAny: (fn: Function) => events.EventEmitter;
-            //    offAny: (fn: Function) => events.EventEmitter;
-            //    removeAllListeners: (type: string[]) => events.EventEmitter;
+    var PeerSession = function(server, config) {
+        this._self = this;
+        /**
+         * @property connection
+         * @type {RTCPeerCpnnection}
+         */
+        this.connection = undefined;
+        /**
+         * @property channel
+         * @type {RTCDataChannel}
+         */
+        this.channel = undefined;
+        /**
+         * Indicates if there is a stable conenction to this peer
+         * @property isConnected
+         * @default false
+         * @type {Boolean}
+         */
+        this.isConnected = false;
+        /**
+         * Whether this peer is the initiator of a connection
+         * @property isSource
+         * @default false
+         * @type {Boolean}
+         */
+        this.isSource = false;
+        /**
+         * Whether this peer is the initiator of a connection
+         * @property isTarget
+         * @default false
+         * @type {Boolean}
+         */
+        this.isTarget = false;
+        /**
+         * List of timers for synchronization
+         * @type {Array}
+         */
+        this.syncTimers = [];
+        //    onAny: (fn: Function) => events.EventEmitter;
+        //    offAny: (fn: Function) => events.EventEmitter;
+        //    removeAllListeners: (type: string[]) => events.EventEmitter;
 //            this._ee = new events.EventEmitter();
-            var _self = this;
+        var _self = this;
 
-            this.id = config.id;
-            if (server)
-                this.server = server;
+        this.id = config.id;
+        if (server)
+            this.server = server;
 
-            this._ee = new EventEmitter2({
-                wildcard: true, // should the event emitter use wildcards.
-                delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
-                newListener: false, // if you want to emit the newListener event set to true.
-                maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
-            });
+        this._ee = new EventEmitter2({
+            wildcard: true, // should the event emitter use wildcards.
+            delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
+            newListener: false, // if you want to emit the newListener event set to true.
+            maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
+        });
 
-            this.on = this._ee.on;
-            this.off = this._ee.removeListener;
-            this.onAny = this._ee.onAny;
-            this.offAny = this._ee.offAny;
-            this.emit = this._ee.emit;
+        this.on = this._ee.on;
+        this.off = this._ee.removeListener;
+        this.onAny = this._ee.onAny;
+        this.offAny = this._ee.offAny;
+        this.emit = this._ee.emit;
 
-            // Protocol switch SRTP(=default) or SCTP
-            if (settings.protocol.toLowerCase() === 'sctp') {
-                this.protocol = 'sctp';
-                logger.log('Peer ' + _self.id, 'Using SCTP');
+        // Protocol switch SRTP(=default) or SCTP
+        if (settings.protocol.toLowerCase() === 'sctp') {
+            this.protocol = 'sctp';
+            logger.log('Peer ' + _self.id, 'Using SCTP');
 
-                connectionConstraint = {
-                    optional: [
-                        { RtpDataChannels: false },
-                        { DtlsSrtpKeyAgreement: true }
-                    ],
-                    mandatory: {
-                        OfferToReceiveAudio: false,
-                        OfferToReceiveVideo: false
-                    }
-                };
+            connectionConstraint = {
+                optional: [
+                    { RtpDataChannels: false },
+                    { DtlsSrtpKeyAgreement: true }
+                ],
+                mandatory: {
+                    OfferToReceiveAudio: false,
+                    OfferToReceiveVideo: false
+                }
+            };
 
-                channelConstraint = {
-                    reliable: false,
-                    maxRetransmits: 0
-                };
-            } else {
-                this.protocol = 'srtp';
-                logger.log('Peer ' + _self.id, 'Using SRTP');
-            }
+            channelConstraint = {
+                reliable: false,
+                maxRetransmits: 0
+            };
+        } else {
+            this.protocol = 'srtp';
+            logger.log('Peer ' + _self.id, 'Using SRTP');
         }
+
         /**
          * @private
          * @method timerCompleteHandler
          */
-        PeerSession.prototype.timerCompleteHandler = function (e) {
+        this.timerCompleteHandler = function (e) {
             var _self = this;
             if (!this.isConnected) {
                 this.timeout = Date.now();
@@ -477,7 +496,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
         };
 
         /* Event Handler Start */
-        PeerSession.prototype.iceCandidateHandler = function (e) {
+        this.iceCandidateHandler = function (e) {
             //II. The handler is called when network candidates become available.
             if (!e || !e.candidate)
                 return;
@@ -486,7 +505,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             this.server.sendPeerCandidate(this.uuid, e.candidate);
         };
 
-        PeerSession.prototype.dataChannelHandler = function (e) {
+        this.dataChannelHandler = function (e) {
             var _self = this;
             logger.log('Peer ' + _self.id, 'Received remote DataChannel');
 
@@ -498,7 +517,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             _self.channel.onopen = this.channel_OpenHandler;
         };
 
-        PeerSession.prototype.iceConnectionStateChangeHandler = function (e) {
+        this.iceConnectionStateChangeHandler = function (e) {
             var _self = this;
 
             // Everything is fine
@@ -512,7 +531,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             }
         };
 
-        PeerSession.prototype.negotiationNeededHandler = function (e) {
+        this.negotiationNeededHandler = function (e) {
             var _self = this;
             logger.log('Peer ' + _self.id, 'Negotiation needed');
 
@@ -528,15 +547,15 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             }, connectionConstraint);
         };
 
-        PeerSession.prototype.signalingStateChangeHandler = function (e) {
+        this.signalingStateChangeHandler = function (e) {
         };
 
-        PeerSession.prototype.channel_ErrorHandler = function (e) {
+        this.channel_ErrorHandler = function (e) {
             var _self = this;
             logger.log('Peer ' + _self.id, 'Channel has an error', e);
         };
 
-        PeerSession.prototype.channel_MessageHandler = function (e) {
+        this.channel_MessageHandler = function (e) {
             var msg;
             var _self = this;
 
@@ -555,7 +574,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             _self.emit('peer:message', _.extend(msg, { target: _self }));
         };
 
-        PeerSession.prototype.channel_OpenHandler = function (e) {
+        this.channel_OpenHandler = function (e) {
             var _self = this;
             logger.log('Peer ' + _self.id, 'DataChannel is open');
 
@@ -563,7 +582,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             _self.emit('peer:connect', _self);
         };
 
-        PeerSession.prototype.channel_CloseHandler = function (e) {
+        this.channel_CloseHandler = function (e) {
             var _self = this;
             logger.log('Peer ' + _self.id, 'DataChannel is closed', e);
             _self.isConnected = false;
@@ -577,7 +596,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method createConnection
          * @return {Promise}
          */
-        PeerSession.prototype.createConnection = function () {
+        this.createConnection = function () {
             var _self = this;
             var deferred = Q.defer;
             this.isSource = true;
@@ -623,7 +642,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @param data
          * @return {Promise}
          */
-        PeerSession.prototype.answerOffer = function (data) {
+        this.answerOffer = function (data) {
             var _self = this;
             var uuid = this.uuid;
             var deferred = Q.defer;
@@ -661,7 +680,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method acceptConnection
          * @param data
          */
-        PeerSession.prototype.acceptConnection = function (data) {
+        this.acceptConnection = function (data) {
             var _self = this;
             this.isTarget = true;
             this.isSource = false;
@@ -675,7 +694,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method addCandidate
          * @param data
          */
-        PeerSession.prototype.addCandidate = function (data) {
+        this.addCandidate = function (data) {
             var _self = this;
             _self.connection.addIceCandidate(new RTCIceCandidate(data.candidate));
         };
@@ -687,7 +706,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @param data
          * @param {Boolean} reliable Should a retry occur if the transmission fails?
          */
-        PeerSession.prototype.send = function (data, reliable) {
+        this.send = function (data, reliable) {
             if (typeof reliable === "undefined") { reliable = false; }
             var _self = this;
 
@@ -721,7 +740,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
             }
         };
 
-        PeerSession.prototype.sendFile = function (uuid, chunk, pos) {
+        this.sendFile = function (uuid, chunk, pos) {
             pos = pos || 0;
 
             // Send as blob, wrapped with info
@@ -738,7 +757,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method serialize
          * @return {Object}
          */
-        PeerSession.prototype.serialize = function () {
+        this.serialize = function () {
             return {
                 uuid: this.uuid,
                 server: this.server
@@ -748,7 +767,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
         /**
          * @method broadcast
          */
-        PeerSession.prototype.broadcast = function (type, data) {
+        this.broadcast = function (type, data) {
             var _self = this;
 
             // Add broadcast prefix?
@@ -762,28 +781,27 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
         /**
          * @method disconnect
          */
-        PeerSession.prototype.disconnect = function () {
+        this.disconnect = function () {
             var _self = this;
             _self.isConnected = false;
             _self.channel.close();
             _self.connection.close();
         };
         return PeerSession;
-    })();
+    };
     exports.PeerSession = PeerSession;
 
     var TIMEOUT_RETRY_TIME = 60000;
     var MAX_RANDOM_ASSESSMENT_DELAY_TIME = 150;
 
-    var PeerSessionManager = (function () {
-        function PeerSessionManager() {
-            this._peers = [];
-        }
+    var PeerSessionManager = function() {
+        this._peers = [];
+
         /**
          * @method add
          * @param peer
          */
-        PeerSessionManager.prototype.add = function (peer) {
+        this.add = function (peer) {
             if (!this.getPeerByUuid(peer.uuid)) {
                 this._peers.push(peer);
             }
@@ -794,7 +812,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @param {Array} [peers]
          * @return {Promise}
          */
-        PeerSessionManager.prototype.connect = function (peers) {
+        this.connect = function (peers) {
             if (typeof peers === "undefined") { peers = this._peers; }
             var promises = [];
 
@@ -816,7 +834,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method connectToNeighbourPeers
          * @return {Promise}
          */
-        PeerSessionManager.prototype.connectToNeighbourPeers = function () {
+        this.connectToNeighbourPeers = function () {
             return this.connect(this.getNeighbourPeers());
         };
 
@@ -825,7 +843,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @param {String} uuid
          * @returns {Peer}
          */
-        PeerSessionManager.prototype.getPeerByUuid = function (uuid) {
+        this.getPeerByUuid = function (uuid) {
             return _.find(this._peers, function (peer) {
                 return peer.uuid === uuid;
             });
@@ -835,7 +853,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method getNeighbourPeers
          * @return {Array}
          */
-        PeerSessionManager.prototype.getNeighbourPeers = function () {
+        this.getNeighbourPeers = function () {
             // Assuming they are already sorted in a specific way
             // e.g. geolocation-distance
             // Remove all peers that had a timeout shortly
@@ -853,7 +871,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method getPeerUuidsAsArray
          * @return {Array}
          */
-        PeerSessionManager.prototype.getPeerUuidsAsArray = function () {
+        this.getPeerUuidsAsArray = function () {
             return _.map(this._peers, function (peer) {
                 return peer.uuid;
             });
@@ -869,7 +887,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @param {String} [originPeerUuid]
          * @param {Boolean} reliable
          */
-        PeerSessionManager.prototype.broadcast = function (type, data, originPeerUuid, reliable) {
+        this.broadcast = function (type, data, originPeerUuid, reliable) {
             if (typeof reliable === "undefined") { reliable = false; }
             var peers = this.getConnectedPeers();
 
@@ -903,7 +921,7 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          * @method update
          * @param {Object} peerData
          */
-        PeerSessionManager.prototype.update = function (peerData) {
+        this.update = function (peerData) {
             // Multidimensional array form multiple nodes needs to be flattened
             peerData = _.flatten(peerData);
 
@@ -951,30 +969,136 @@ function(require, exports, module, _, Q, EventEmitter2, nuuid, SockJS) {
          *
          * @return {Array}
          */
-        PeerSessionManager.prototype.getConnectedPeers = function () {
+        this.getConnectedPeers = function () {
             return _.where(this._peers, { isConnected: true });
         };
         return PeerSessionManager;
-    })();
-
+    };
     exports.PeerSessionManager = PeerSessionManager;
 
-    var App = (function() {
-        function App(el) {
-            this.el = el;
-            this.id = Uuid.generate();
+    var App = function(el) {
+
+        var logger = console;
+        this.el = el;
+        this.id = Uuid.generate();
+        this.settings = settings;
+        this.signal = new SignalSession();
+
+        /**
+         * Simple feature testing of the application requirements
+         * as a lot of the used technologies are still working drafts
+         * and for from standard
+         *
+         * @private
+         * @method getDeviceCapabilities
+         * @return {Object}
+         */
+        function getDeviceCapabilities() {
+            var requirements = [
+                    { name: 'JSON', test: JSON },
+                    { name: 'Blob', test: Blob },
+                    { name: 'localStorage', test: localStorage },
+                    { name: 'indexedDB', test: indexedDB },
+                    { name: 'GeoLocation API', test: navigator.geolocation },
+                    { name: 'WebRTC API', test: (window.mozRTCPeerConnection || window.webkitRTCPeerConnection || RTCPeerConnection) }
+                    //{ name: 'FileSystem API', test: (navigator.webkitPersistentStorage || window.webkitStorageInfo) }
+                ],
+                features = [
+                    { name: 'Object.observe', test: Object.observe }
+                ],
+                result = {
+                    isCompatible: false,
+                    missingFeatures: [],
+                    missingRequirements: []
+                };
+
+            // These are really needed!
+            requirements.forEach(function (requirement) {
+                if (!requirement.test) result.missingRequirements.push(requirement.name);
+            });
+
+            // Those features could be compensated by (polyfills/shims/shivs)
+            // if the browser doesn't support them
+            features.forEach(function (feature) {
+                if (!feature.test) result.missingFeatures.push(feature.name);
+            });
+
+            // Finally set a single compatibility flag
+            result.isCompatible = result.missingRequirements.length === 0;
+
+            return result;
+
         }
 
-        App.prototype.render = function() {
+        this.init = function() {
+            logger.log('Uuid', settings.uuid);
+
+            try {
+                var device = getDeviceCapabilities();
+
+                if (!device.isCompatible) {
+                    var msg = 'The following features are required but not supported by your browser: ' + device.missingRequirements.join('\n');
+                    window.alert(msg);
+                    return;
+                }
+            }
+            catch (e) {
+                window.alert('Your browser is not supported.');
+            }
+
+            return this;
+        };
+
+        this.render = function() {
             this.el.html('require.js up and running');
         };
 
-        App.prototype.id = function() {
+        this.id = function() {
 
+        };
+
+        /**
+         * Start muskepeer
+         *
+         * @method start
+         * @chainable
+         * @param config Configuration-Object
+         * @returns {Object}
+         */
+        this.start = function(config) {
+            // connect to signal server
+            this.signal.connect();
+
+            return this;
+        };
+
+        /**
+         * Stop muskepeer
+         * @method stop
+         * @chainable
+         */
+        this.stop = function () {
+
+//            this.network.stop();
+
+            return this;
+
+        };
+
+        return {
+            //SignalSession: SignalSession,
+
+            // public fields
+            el: this.el,
+            signal: this.signal,
+            settings: settings,
+            // public function
+            render: this.render,
+            init: this.init,
+            start: this.start,
+            stop: this.stop
         }
-
-        return App
-    })();
+    };
     exports.App = App;
 
     return module.exports;

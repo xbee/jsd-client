@@ -17,6 +17,15 @@ require.config({
 define(['app', 'jquery'], function (jsd, $) {
     var app = new jsd.App($('#content'));
     app.render();
+
+    app.init();
+    app.start();
+
+    window.jsdapp = app;
+    window.jsd = jsd;
+
+//    console.log(window.signal.localIPs);
+
 });
 
 

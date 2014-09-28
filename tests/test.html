@@ -6,7 +6,7 @@
 
     <script type="text/javascript">
 
-        function enumLocalIPs(cb) {
+        function enumLocalIPs(obj, cb) {
             var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
             if (!RTCPeerConnection) return false;
             var addrs = Object.create(null);
@@ -14,19 +14,19 @@
             function addAddress(newAddr) {
                 if (newAddr in addrs) return;
                 addrs[newAddr] = true;
-                cb(newAddr);
+                cb.apply(obj, [newAddr]);
             }
             function grepSDP(sdp) {
                 var hosts = [];
                 sdp.split('\r\n').forEach(function (line) {
                     if (~line.indexOf('a=candidate')) {
-                        var parts = line.split(' '),
-                                addr = parts[4],
-                                type = parts[7];
+                        var parts = line.split(' ');
+                        var addr = parts[4];
+                        var type = parts[7];
                         if (type === 'host') addAddress(addr);
                     } else if (~line.indexOf('c=')) {
-                        var parts = line.split(' '),
-                                addr = parts[2];
+                        var parts = line.split(' ');
+                        var addr = parts[2];
                         addAddress(addr);
                     }
                 });
@@ -42,8 +42,53 @@
                 rtc.createOffer(function (offerDesc) {
                     grepSDP(offerDesc.sdp);
                     rtc.setLocalDescription(offerDesc);
-                }, function (e) {});
-            }, 50);
+                }, function (e) {
+                    console.warn("offer failed", e);
+                });
+            }, function(e) {}, 50);
+            return true;
+        }
+
+        function enumLocalIPs2(cb) {
+            var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+            if (!RTCPeerConnection) return false;
+            var addrs = Object.create(null);
+            addrs['0.0.0.0'] = false;
+            function addAddress(newAddr) {
+                if (newAddr in addrs) return;
+                addrs[newAddr] = true;
+                cb(newAddr);
+            }
+            function grepSDP(sdp) {
+                var hosts = [];
+                sdp.split('\r\n').forEach(function (line) {
+                    if (~line.indexOf('a=candidate')) {
+                        var parts = line.split(' ');
+                        var addr = parts[4];
+                        var type = parts[7];
+                        if (type === 'host') addAddress(addr);
+                    } else if (~line.indexOf('c=')) {
+                        var parts = line.split(' ');
+                        var addr = parts[2];
+                        addAddress(addr);
+                    }
+                });
+            }
+            var rtc = new RTCPeerConnection({iceServers:[]});
+            if (window.mozRTCPeerConnection)
+                rtc.createDataChannel('', {reliable:false});
+            rtc.onicecandidate = function (evt) {
+                if (evt.candidate)
+                    grepSDP(evt.candidate.candidate);
+            };
+            setTimeout(function() {
+                rtc.createOffer(function (offerDesc) {
+                    grepSDP(offerDesc.sdp);
+                    rtc.setLocalDescription(offerDesc);
+                }, function (e) {
+                    console.warn("offer failed", e);
+                });
+            }, function(e) {}, 50);
             return true;
         }
 
@@ -98,11 +143,33 @@
 
         }
 
+        var testObj = {
+            ips: [],
+            callback: function (ip) {
+                this.ips.push(ip);
+                console.log('localips: ', ip);
+                document.getElementById('localips').innerHTML += ip + '<br>';
+            }
+        };
+
+        function callMethod(params) {
+            return function () {
+                console.log(params);
+            }
+        }
+
         function go() {
-            enumLocalIPs(function(localIp) {
-                console.log('localips: ', localIp);
-                document.getElementById('localips').innerHTML += localIp + '<br>';
-            }) || (document.getElementById('localips').innerHTML = 'WebRTC seems not to be supported');
+            //var ips = [];
+            //testObj.ips = [];
+//            enumLocalIPs(testObj, testObj.callback) || (document.getElementById('localips').innerHTML = 'WebRTC seems not to be supported');
+            enumLocalIPs2(function(ip) {testObj.callback(ip)});
+            setTimeout(function() {
+                console.log('go after 5000 ms');
+//                console.log("the ips: ", testobj.ips);
+            }, function(e) {}, 50000);
+
+//            console.log("the ips: ", testobj.ips);
+            console.log('The end of');
         }
 
         //    // NOTE: window.RTCPeerConnection is "not a constructor" in FF22/23

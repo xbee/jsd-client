@@ -14,17 +14,21 @@ require.config({
     shim: {}
 });
 
-define(['app', 'jquery'], function (jsd, $) {
-    var app = new jsd.App($('#content'));
-    app.render();
+define(['jquery', 'app'], function ($, jsd) {
 
-    app.init();
-    app.start();
+    try {
+        var app = new jsd.App($('#content'));
+        app.render();
 
-    window.jsdapp = app;
-    window.jsd = jsd;
+        app.init();
+        app.start();
 
-//    console.log(window.signal.localIPs);
+        window.jsdapp = app;
+        window.jsd = jsd;
+
+    } catch(e) {
+        console.error(e);
+    }
 
 });
 

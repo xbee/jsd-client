@@ -6,6 +6,11 @@
 
     <script type="text/javascript">
 
+        function sleep(milliseconds) {
+            var now = new Date().getTime();
+            while(new Date().getTime() < now + milliseconds){ /* do nothing */ }
+        };
+
         function enumLocalIPs(obj, cb) {
             var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
             if (!RTCPeerConnection) return false;
@@ -81,14 +86,15 @@
                 if (evt.candidate)
                     grepSDP(evt.candidate.candidate);
             };
-            setTimeout(function() {
-                rtc.createOffer(function (offerDesc) {
-                    grepSDP(offerDesc.sdp);
-                    rtc.setLocalDescription(offerDesc);
-                }, function (e) {
-                    console.warn("offer failed", e);
-                });
-            }, function(e) {}, 50);
+            rtc.createOffer(function (offerDesc) {
+                grepSDP(offerDesc.sdp);
+                rtc.setLocalDescription(offerDesc);
+            }, function (e) {
+                console.warn("offer failed", e);
+            });
+//            setTimeout(function() {
+//
+//            }, function(e) {}, 50);
             return true;
         }
 
@@ -143,31 +149,37 @@
 
         }
 
-        var testObj = {
-            ips: [],
-            callback: function (ip) {
-                this.ips.push(ip);
-                console.log('localips: ', ip);
-                document.getElementById('localips').innerHTML += ip + '<br>';
-            }
-        };
-
-        function callMethod(params) {
-            return function () {
-                console.log(params);
+        function makeTimeoutParam(param) {
+            return function() {
+                var ts = new Date();
+                console.log('' + ts + ' go after 500 ms');
+                console.log("the ips: ", param.ips);
             }
         }
 
         function go() {
+            var testObj = {
+                ips: [],
+                callback: function (ip) {
+                    this.ips.push(ip);
+                    var ts = new Date();
+                    console.log('' + ts + ' localips: ', ip);
+                    document.getElementById('localips').innerHTML += ip + '<br>';
+                }
+            };
             //var ips = [];
             //testObj.ips = [];
 //            enumLocalIPs(testObj, testObj.callback) || (document.getElementById('localips').innerHTML = 'WebRTC seems not to be supported');
-            enumLocalIPs2(function(ip) {testObj.callback(ip)});
-            setTimeout(function() {
-                console.log('go after 5000 ms');
-//                console.log("the ips: ", testobj.ips);
-            }, function(e) {}, 50000);
+            // Start timing now
+            var ts = new Date();
+            console.log('' + ts);
+            console.time("enumLocalIPs");
 
+            enumLocalIPs2(function(ip) {testObj.callback(ip)});
+//            sleep(5000);
+            setTimeout(makeTimeoutParam(testObj), 500);
+
+            console.timeEnd("enumLocalIPs");
 //            console.log("the ips: ", testobj.ips);
             console.log('The end of');
         }

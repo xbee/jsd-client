@@ -23,7 +23,7 @@ define(['app', 'jquery', 'lodash'], function(jsd, $, _) {
             if (jsd._debuging) {
                 expect(jsd.Uuid).toBeDefined();
                 expect(jsd.Uuid.generate).toBeDefined();
-                var uuid = new jsd.Uuid();
+//                var uuid = new jsd.Uuid();
 //                expect(uuid.generate).toBeDefined();
 //                expect(uuid.generate().length).toEqual(36);
 //                expect(jsd.settings.uuid).toEqual('11111111-2222-3333-4444-cb8c4b75b564');
@@ -44,7 +44,7 @@ define(['app', 'jquery', 'lodash'], function(jsd, $, _) {
     describe('Test SignalSession', function() {
         var el = $('<div></div>');
         var app = new jsd.App(el);
-        var signal = jsd.SignalSession();
+        var signal = new jsd.SignalSession();
 
         expect(signal.connect).toBeDefined();
         expect(signal.disconnect).toBeDefined();

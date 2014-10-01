@@ -3,15 +3,6 @@ define(['app', 'jquery', 'lodash'], function(jsd, $, _) {
 
     describe('just checking', function() {
 
-        it('works for app', function() {
-            var el = $('<div></div>');
-
-            var app = new jsd.App(el);
-            app.render();
-
-            expect(el.text()).toEqual('require.js up and running');
-        });
-
         it('works for lodash', function() {
             // just checking that _ works
             expect(_.size([1,2,3])).toEqual(3);
@@ -36,7 +27,7 @@ define(['app', 'jquery', 'lodash'], function(jsd, $, _) {
             expect(jsd.PeerSessionManager).toBeDefined();
             expect(jsd.settings.uuid).toBeDefined();
             expect(jsd.settings.signalServer.host).toEqual('localhost');
-            expect(jsd.settings.signalServer.port).toEqual(3080);
+            expect(jsd.settings.signalServer.port).toEqual(3081);
         });
 
     });

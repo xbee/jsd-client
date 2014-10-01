@@ -14,17 +14,38 @@ require.config({
     shim: {}
 });
 
-define(['jquery', 'app'], function ($, jsd) {
+define(['app'], function (jsd) {
 
     try {
-        var app = new jsd.App($('#content'));
-        app.render();
+      var app = new jsd.App();
 
-        app.init();
-        app.start();
+      app.init();
+      app.start();
 
-        window.jsdapp = app;
-        window.jsd = jsd;
+      window.jsdapp = app;
+      window.jsd = jsd;
+
+      /**
+       * Event-Handler, called when Network state changes
+       *
+       * @private
+       * @method networkConnectivityStateChangeHandler
+       * @param {Object} e
+       */
+      function networkConnectivityStateChangeHandler(e) {
+        if (e.type === 'online') {
+          logger.log('Network', 'online!');
+          logger.log('Network', 'try to reconnecting ...');
+          app.start();
+        }
+        else {
+          logger.warn('Network', 'offline!');
+          app.stop();
+        }
+      }
+
+      window.addEventListener('offline', networkConnectivityStateChangeHandler);
+      window.addEventListener('online', networkConnectivityStateChangeHandler);
 
     } catch(e) {
         console.error(e);

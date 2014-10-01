@@ -6,13 +6,20 @@
 
 var _ = require('underscore');
 var peers = require('./peermanager');
+//var WebSocket = require('ws');
+//var ws = new WebSocket('ws://localhost:3081');
+
 var WebSocketServer = require('ws').Server;
-var wss = new WebSocketServer(
-    {
-        host: process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1',
-        port: 3081
-    }
-);
+var wss = new WebSocketServer({port: 3081});
+//var WebSocketServer = require('ws').Server;
+//var wss = new WebSocketServer(
+//    {
+//        host: process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1',
+//        port: 3081
+//    }
+//);
+
+console.log('listening on 3081 ... ');
 
 var HEARTBEAT_INTERVAL = 1000 * 60; //1m
 
@@ -24,12 +31,13 @@ process.on('uncaughtException', function (err) {
 
 wss.on('connection', function (socket) {
 
-    console.log('listening on 3081 ... ');
+  console.log('a client connected ...');
+//  peers.add(socket);
 
-    var heartbeat = setInterval(function () {
-            sendToPeer(socket, {cmd: 'signal:heartbeat'});
-        }, HEARTBEAT_INTERVAL
-    );
+//    var heartbeat = setInterval(function () {
+//            sendToPeer(socket, {cmd: 'signal:heartbeat'});
+//        }, HEARTBEAT_INTERVAL
+//    );
 
     socket.on('message', function (data) {
         console.log('received: %s', data);
@@ -37,8 +45,9 @@ wss.on('connection', function (socket) {
     });
 
     socket.on('close', function (e) {
+        console.log('client disconnected!');
         peers.remove(peers.getPeerBySocket(socket));
-        clearInterval(heartbeat);
+//        clearInterval(heartbeat);
     });
 
 });
@@ -47,10 +56,13 @@ wss.on('connection', function (socket) {
 function messageHandler(socket, data) {
     var peer;
 
+  console.log('Received a message: ', data);
+
     if (!data.cmd) return;
 
     switch (data.cmd.toLowerCase()) {
         case 'signal:auth' :
+          console.log('signal:auth');
 
             //TODO Test if peers authToken matches
             var success = peers.add({
@@ -87,6 +99,7 @@ function messageHandler(socket, data) {
             sendToPeer(peer.socket, {cmd: 'peer:candidate', data: {targetPeerUuid: data.uuid, candidate: data.candidate}});
             break;
         default:
+            console.log(data);
             break;
 
     }

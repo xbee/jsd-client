@@ -66,8 +66,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
   exports.utils = utils;
 
   /**
-   * @author Matthieu Holzer
-   * @date 12.11.13
+   * @author Michael
+   * @date 29.09.14
    * @module Logger
    * @class Logger
    */
@@ -120,7 +120,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
           dataAsString = _.clone(data);
 
       //Console
-      console[type].apply(console, [getPrettyTimeStamp(), origin, ':'].concat(data));
+      console[type].apply(console, [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data));
 
       //DOM
       if (htmlLogging) {
@@ -561,6 +561,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
 
       //send data to websocket as String
       this.socket.send(JSON.stringify(data));
+      logger.log(JSON.stringify(data));
 
       // If we need to wait for the answer
 
@@ -592,14 +593,14 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       // will return a promise
       function responseHandler(e) {
         var response = JSON.parse(e.data);
-        if (response.cmd === 'peer:auth') {
+        if (response.cmd === 'signal:auth') {
           self.socket.removeEventListener('message', responseHandler);
           deferred.resolve(response.data);
           self.triggerEvent(SignalStatus.AUTHENTICATED);
         }
       }
 
-      return this.send('peer:auth', { apiKey: settings.apiKey, ips: this.localIPs }, responseHandler);
+      return this.send('signal:auth', { apiKey: settings.apiKey, ips: this.localIPs }, responseHandler);
     };
 
     SignalSession.prototype.sendPeerOffer = function (targetPeerUuid, offer) {
@@ -1275,10 +1276,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
   exports.PeerSessionManager = PeerSessionManager;
 
   var App = (function () {
-    function App(el) {
+    function App() {
 
 //            var logger = console;
-      this.el = el;
+//      this.el = el;
       this.id = Uuid.generate();
       this.settings = settings;
       this.session = {};
@@ -1333,24 +1334,24 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
 
     App.prototype.session_onConnected = function (event) {
       //var id = this.session.id;
-      logger.log('Server ' + this.session.id, this.session.url, 'connected');
-      logger.log('session_onConnected');
+      logger.log('Signal', 'Server ' + this.session.id, this.session.url, 'connected');
+      logger.log('Signal', 'session_onConnected');
     };
 
     App.prototype.session_onConnecting = function (event) {
-      logger.log('session_onConnecting');
+      logger.log('Signal', 'session_onConnecting');
     };
 
     App.prototype.session_onAuthenticating = function (event) {
-      logger.log('session_onAuthenticating');
+      logger.log('Signal', 'session_onAuthenticating');
     };
 
     App.prototype.session_onAuthenticated = function (event) {
-      logger.log('session_onAuthenticated');
+      logger.log('Signal', 'session_onAuthenticated');
     };
 
     App.prototype.session_onError = function (event) {
-      logger.log('session_onError');
+      logger.log('Signal', 'session_onError');
     };
 
     App.prototype.createSession = function () {
@@ -1359,27 +1360,27 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
     };
 
     App.prototype.init = function () {
-      logger.log('Uuid', settings.uuid);
+      logger.log('Signal', 'Uuid', settings.uuid);
 
       try {
         var device = getDeviceCapabilities();
 
         if (!device.isCompatible) {
           var msg = 'The following features are required but not supported by your browser: ' + device.missingRequirements.join('\n');
-          window.alert(msg);
+          logger.warn('Jiasudu', msg);
           return;
         }
       }
       catch (e) {
-        window.alert('Your browser is not supported.');
+        logger.warn('Jiasudu', 'Your browser is not supported.');
       }
 
       return this;
     };
 
-    App.prototype.render = function () {
-      this.el.html('require.js up and running');
-    };
+//    App.prototype.render = function () {
+//      this.el.html('require.js up and running');
+//    };
 
     App.prototype.id = function () {
 
@@ -1408,8 +1409,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       // connect to signal server
       this.session.connect();
       this.session.authenticate();
-
-
       return this;
     };
 
@@ -1420,8 +1419,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
      */
     App.prototype.stop = function () {
 
-//            this.network.stop();
-
+      this.session.disconnect();
       return this;
 
     };

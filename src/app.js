@@ -1,5 +1,5 @@
-define(["require",
-      "exports",
+define(['require',
+      'exports',
       'module',
       'lodash',
       'q',

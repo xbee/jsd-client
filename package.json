@@ -4,17 +4,37 @@
   "description": "typescript-serializer",
   "main": "Gruntfile.js",
   "devDependencies": {
+    "browserify": "^5.12.0",
     "chai": "^1.9.1",
+    "cucumber": "^0.4.4",
     "expect.js": "^0.3.1",
     "grunt": "^0.4.5",
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-uglify": "^0.5.0",
     "grunt-contrib-watch": "^0.6.1",
+    "grunt-karma": "^0.8.2",
+    "grunt-mocha-test": "^0.10.2",
     "grunt-ts": "^1.11.3",
     "intern": "^2.1.0",
     "jasmine": "^2.0.1",
-    "should": "^4.0.4"
+    "karma": "^0.12.23",
+    "karma-browserify": "^0.2.1",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-coffee-preprocessor": "^0.2.1",
+    "karma-coverage": "^0.2.1",
+    "karma-firefox-launcher": "^0.1.3",
+    "karma-html2js-preprocessor": "^0.1.0",
+    "karma-jasmine": "^0.1.5",
+    "karma-ng-html2js-preprocessor": "^0.1.0",
+    "karma-ng-scenario": "^0.1.0",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-requirejs": "^0.2.1",
+    "karma-script-launcher": "^0.1.0",
+    "ms": "^0.6.2",
+    "requirejs": "^2.1.11",
+    "should": "3.3.1",
+    "supertest": "0.11.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,11 +43,15 @@
   "license": "MIT",
   "homepage": "https://github.com/xperiments/typescript-serializer",
   "dependencies": {
+    "deamdify": "^0.1.1",
+    "deglobalify": "^0.2.0",
     "eventemitter2": "^0.4.14",
     "lodash": "^2.4.1",
     "node-uuid": "^1.4.1",
     "observe-js": "^0.1.0",
     "q": "^1.0.1",
-    "sockjs": "^0.3.9"
+    "sockjs": "^0.3.9",
+    "sockjs-client": "^0.1.3",
+    "urequire": "^0.6.19"
   }
 }

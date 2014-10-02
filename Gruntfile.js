@@ -19,8 +19,8 @@ module.exports = function (grunt) {
 					watch: ['./ts', './ts/**'],      // If specified, watches this directory for changes, and re-runs the current target
 					outDir:'./build',
 					options: {                         // use to override the default options, http://gruntjs.com/configuring-tasks#options
-						target: 'es3',                 // 'es3' (default) | 'es5'
-						module: 'commonjs',            // 'amd' (default) | 'commonjs'
+						target: 'es5',                 // 'es3' (default) | 'es5'
+						module: 'amd',            // 'amd' (default) | 'commonjs'
 						sourceMap: false,               // true (default) | false
 						declaration: true,            // true | false (default)
 						removeComments: true,           // true (default) | false

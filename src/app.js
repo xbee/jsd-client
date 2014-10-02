@@ -396,11 +396,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
   SignalStatus = {};
   SignalStatus.CONNECTING = 'signal:connecting';
   SignalStatus.CONNECTED = 'signal:connected';
+  SignalStatus.DISCONNECTED = 'signal:disconnected';
+  SignalStatus.INCOMINGCALL = 'signal:incomingCall';
+
   SignalStatus.AUTHENTICATING = 'signal:authenticating';
   SignalStatus.AUTHENTICATED = 'signal:authenticated';
   SignalStatus.ERROR = 'signal:error';
-  SignalStatus.DISCONNECTED = 'signal:disconnected';
-  SignalStatus.INCOMINGCALL = 'signal:incomingCall';
 
   PeerStatus = {};
   PeerStatus.CONNECTING = 'signal:connecting';
@@ -412,6 +413,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
   PeerStatus.ADDSTREAM = 'stream:add';
 
   var SignalSession = (function () {
+
+    var pending = [];
+
     function SignalSession(id, token, config, callback) {
       var _self = this;
       this.host = settings.signalServer.host;
@@ -443,6 +447,16 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       enumLocalIPs(_self, _self.saveIPs);
     };
 
+    SignalSession.prototype.connected = function() {
+      if (this.inStatus !== SignalStatus.DISCONNECTED ||
+          this.inStatus !== SignalStatus.CONNECTING) {
+        return true;
+      } else {
+        return false;
+      }
+
+    };
+
     SignalSession.prototype.triggerEvent = function (status, peer) {
       var eventInfo = {}, i;
       if (peer) {
@@ -470,7 +484,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
      */
     SignalSession.prototype.connect = function () {
       var self = this;
-      var deferred = Q.defer();
+//      var deferred = Q.defer();
 
       try {
         if (self.inStatus === SignalStatus.DISCONNECTED) {
@@ -483,9 +497,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
           //add listeners
           this.socket.addEventListener('message', this.messageHandler.bind(this));
           this.socket.addEventListener('open', function (ev) {
-            self.triggerEvent(SignalStatus.CONNECTED);
             self.inStatus = SignalStatus.CONNECTED;
-            deferred.resolve(null);
+            self.triggerEvent(SignalStatus.CONNECTED);
+//            deferred.resolve(null);
           });
 
           this.socket.addEventListener('error', function (e) {
@@ -496,7 +510,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
 
           this.socket.addEventListener('close', function (e) {
             self.disconnect();
-            logger.log('Server ' + self.id, self.url, 'disconnected', e.code + ' : ' + e.reason);
+            logger.log('Server ' + self.id, self.url, 'disconnected', 'error: ' + e.code + ' : ' + e.reason);
 
             switch (e.code) {
               case 1011:
@@ -504,15 +518,21 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
                 break;
             }
           });
+          pending.push(self);
+        } else if (self.inStatus === SignalStatus.CONNECTING) {
+          pending.push(self);
+        } else if (self.inStatus === SignalStatus.CONNECTED) {
 
-        } // end of if
+        }
+        // end of if
 
       } catch (e) {
-        deferred.reject(null);
+        logger.error(e);
         self.disconnect();
+        return false;
       }
 
-      return deferred.promise;
+      return true;
     }; // end of connect function
 
     /**
@@ -536,21 +556,27 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
     };
 
     SignalSession.prototype.send = function (cmd, data, waitForResponse) {
-      var self = this, deferred = Q.defer();
+      var self = this;
+//      var deferred = Q.defer();
 
-      if (!this.isConnected) {
-        deferred.reject('Not connected to server!');
-        return deferred.promise;
+      if (!self.connected()) {
+//        deferred.reject('Not connected to server!');
+        throw new Error('Not connected to server, current status: ' + self.inStatus);
+        return false;
       }
 
       if (!data || !_.isObject(data) || _.isEmpty(data)) {
-        deferred.reject('Data is not an object/empty!');
-        return deferred.promise;
+        throw new Error('Data is not an object/empty!');
+        return false;
+//        deferred.reject('Data is not an object/empty!');
+//        return deferred.promise;
       }
 
       if (!cmd) {
-        deferred.reject('Command is not defined!');
-        return deferred.promise;
+        throw new Error('Command is not defined!');
+        return false;
+//        deferred.reject('Command is not defined!');
+//        return deferred.promise;
       }
 
       // add cmd to data
@@ -569,38 +595,30 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
         var responseHandler = waitForResponse;
         this.socket.addEventListener('message', responseHandler);
         // No need to wait
-      } else if (waitForResponse && (typeof waitForResponse === 'boolean')) {
+      } else
+      if (waitForResponse && (typeof waitForResponse === 'boolean')) {
 
         function responseHandler(e) {
           var response = JSON.parse(e.data);
           if (response.cmd === cmd) {
             self.socket.removeEventListener('message', responseHandler);
-            deferred.resolve(response.data);
+//            deferred.resolve(response.data);
+            return response.data;
           }
         }
 
         this.socket.addEventListener('message', responseHandler);
-
+        return true;
       } else {
-        deferred.resolve(null);
+        return true;
       }
 
-      return deferred.promise;
+      return true;
     };
 
     SignalSession.prototype.sendAuthentication = function () {
       var self = this;
-      // will return a promise
-      function responseHandler(e) {
-        var response = JSON.parse(e.data);
-        if (response.cmd === 'signal:auth') {
-          self.socket.removeEventListener('message', responseHandler);
-          deferred.resolve(response.data);
-          self.triggerEvent(SignalStatus.AUTHENTICATED);
-        }
-      }
-
-      return this.send('signal:auth', { apiKey: settings.apiKey, ips: this.localIPs }, responseHandler);
+      return this.send('signal:auth', { uuid: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs }, false);
     };
 
     SignalSession.prototype.sendPeerOffer = function (targetPeerUuid, offer) {
@@ -634,6 +652,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
           break;
         case 'peer:candidate':
           this.emit('peer:candidate', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, candidate: data.data.candidate });
+          break;
+        case 'signal:auth':
+          // received response of auth
+          if (data['data']['success'] && (data['data']['success'] === true)) {
+            self.triggerEvent(SignalStatus.AUTHENTICATED);
+          }
           break;
       }
     };
@@ -1336,6 +1360,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       //var id = this.session.id;
       logger.log('Signal', 'Server ' + this.session.id, this.session.url, 'connected');
       logger.log('Signal', 'session_onConnected');
+      this.session.authenticate();
     };
 
     App.prototype.session_onConnecting = function (event) {
@@ -1408,7 +1433,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       // 3. session connect
       // connect to signal server
       this.session.connect();
-      this.session.authenticate();
+
       return this;
     };
 

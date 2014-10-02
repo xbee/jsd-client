@@ -17,7 +17,7 @@ proto.list = function () {
 
 proto.add = function(peer) {
     //missing values?
-    if (!peer.socket || !peer.uuid || !peer.location) return false;
+    if (!peer.socket || !peer.uuid ) return false;
 
     //already existent?
     if (this.getPeerByUuid(peer.uuid)) return false;

@@ -47,8 +47,8 @@ define(['app'], function (jsd) {
       window.addEventListener('offline', networkConnectivityStateChangeHandler);
       window.addEventListener('online', networkConnectivityStateChangeHandler);
 
-    } catch(e) {
-        console.error(e);
+    } catch(ex) {
+        console.log(ex.stack);
     }
 
 });

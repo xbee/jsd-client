@@ -66,7 +66,7 @@ function messageHandler(socket, data) {
 
             //TODO Test if peers authToken matches
             var success = peers.add({
-                location: data.location,
+                ips: data.ips,
                 socket: socket,
                 uuid: data.uuid
             });
@@ -108,13 +108,13 @@ function messageHandler(socket, data) {
 
 function sendToPeer(socket, data) {
     //state 1 = ready
-    if (!socket || !socket.connected) {
+    if (!socket || !(socket.readyState === 1)) {
         peers.remove(peers.getPeerBySocket(socket));
         return;
     }
     try {
         socket.send(JSON.stringify(data));
-        console.log('message: ', JSON.stringify(data));
+        console.log('Send a message: ', JSON.stringify(data));
     }
     catch (e) {
         peers.remove(peers.getPeerBySocket(socket));

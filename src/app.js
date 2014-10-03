@@ -5,8 +5,11 @@ define(['require',
       'q',
       'eventemitter2',
       'node-uuid',
+      'evercookie',
+      'state-machine',
+      'fingerprint',
       'observe-js'],
-function (require, exports, module, _, Q, EventEmitter2, nuuid) {
+function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine, fp) {
 
   var _debuging = true;
 
@@ -94,10 +97,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
           hours = current.getHours() < 10 ? ('0' + current.getHours()) : current.getHours(),
           minutes = current.getMinutes() < 10 ? ('0' + current.getMinutes()) : current.getMinutes(),
           seconds = current.getSeconds() < 10 ? ('0' + current.getSeconds()) : current.getSeconds();
+          mseconds = current.getMilliseconds() ;
 
       date.push(hours);
       date.push(minutes);
       date.push(seconds);
+      date.push(mseconds);
 
       return date.join(':');
     }
@@ -394,14 +399,23 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
   }
 
   SignalStatus = {};
-  SignalStatus.CONNECTING = 'signal:connecting';
-  SignalStatus.CONNECTED = 'signal:connected';
+//  SignalStatus.CONNECTING = 'signal:connecting';
   SignalStatus.DISCONNECTED = 'signal:disconnected';
+  SignalStatus.CONNECTED = 'signal:connected';
+  SignalStatus.AUTHENTICATED = 'signal:authenticated';
   SignalStatus.INCOMINGCALL = 'signal:incomingCall';
 
-  SignalStatus.AUTHENTICATING = 'signal:authenticating';
-  SignalStatus.AUTHENTICATED = 'signal:authenticated';
-  SignalStatus.ERROR = 'signal:error';
+  SignalEvent = {};
+  SignalEvent.CONNECTED = 'signal:onenterconnected';
+  SignalEvent.DISCONNECTED = 'signal:onenterdisconnected';
+  SignalEvent.AUTHENTICATED = 'signal:onenterauthenticated';
+  SignalEvent.BEFORECONNECT = 'signal:onbeforeconnect';
+  SignalEvent.BEFOREAUTHENTICATE = 'signal:onbeforeauthenticate';
+  SignalEvent.CONNECTING = 'signal:connecting';
+  SignalEvent.AUTHENTICATING = 'signal:authenticating';
+  SignalEvent.ERROR = 'signal:error';
+  SignalEvent.PEERLIST = 'peer:list';
+
 
   PeerStatus = {};
   PeerStatus.CONNECTING = 'signal:connecting';
@@ -414,8 +428,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
 
   var SignalSession = (function () {
 
-    var pending = [];
-
     function SignalSession(id, token, config, callback) {
       var _self = this;
       this.host = settings.signalServer.host;
@@ -427,8 +439,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       //this.isConnected = false;
       this.localIPs = [];
       this.peers = [];
-      this.status = SignalStatus.DISCONNECTED;
-      this.inStatus = SignalStatus.DISCONNECTED;
+//      this.status = SignalStatus.DISCONNECTED;
+//      this.inStatus = SignalStatus.DISCONNECTED;
 
       this.emitter = new EventEmitter2({
         wildcard: true, // should the event emitter use wildcards.
@@ -444,52 +456,32 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       this.offAny = this.emitter.offAny;
       this.removeAllListeners = this.emitter.removeAllListeners;
 
+      // for fsm to initialize
+      this.startup();
       enumLocalIPs(_self, _self.saveIPs);
     };
 
-    SignalSession.prototype.connected = function() {
-      if (this.inStatus !== SignalStatus.DISCONNECTED ||
-          this.inStatus !== SignalStatus.CONNECTING) {
-        return true;
-      } else {
-        return false;
-      }
+    SignalSession.prototype = {
+      //------------------ begin of events ------------------
+      onbeforestartup: function(event, from, to) { logger.log('FSM', "START   EVENT: startup!"); },
+      onbeforeconnect: function(event, from, to) {
+        logger.log('FSM', "START   EVENT: connect!");
+        this.triggerEvent(SignalEvent.BEFORECONNECT);
+      },
+      onbeforedisconnect: function(event, from, to) {
+        logger.log('FSM', "START   EVENT: disconnect!");
+      },
+      onbeforeauthenticate: function(event, from, to) {
+        logger.log('FSM', "START   EVENT: authenticate!");
+        this.triggerEvent(SignalEvent.BEFOREAUTHENTICATE);
+      },
 
-    };
+      onleavedisconnected: function(event, from, to) {
+        logger.log('FSM', "LEAVE   STATE: disconnected");
+        var self = this;
 
-    SignalSession.prototype.triggerEvent = function (status, peer) {
-      var eventInfo = {}, i;
-      if (peer) {
-        eventInfo.peer = peer;
-        this.peers.push(peer);
-      } else {
-        this.status = status;
-        this.inStatus = status;
-        if (status === SignalStatus.DISCONNECTED) {
-          for (i = 0; i < this.peers.length; i += 1) {
-            this.peers[i].parallel.triggerEvent(PeerStatus.DISCONNECTED);
-            this.peers[i].triggerEvent(PeerStatus.DISCONNECTED);
-          }
-        }
-      }
-      // can not use this.emitter.emit , why ?
-      // next line is ok
-      // (this.emitter.emit.bind(this))(status, eventInfo, this.callback);
-      this.emit(status, eventInfo, this.callback);
-    };
-
-    /**
-     * @method connect
-     * @return {Promise}
-     */
-    SignalSession.prototype.connect = function () {
-      var self = this;
-//      var deferred = Q.defer();
-
-      try {
-        if (self.inStatus === SignalStatus.DISCONNECTED) {
-          self.inStatus = SignalStatus.CONNECTING;
-          self.triggerEvent(SignalStatus.CONNECTING);
+        try {
+//          self.triggerEvent(SignalStatus.CONNECTING);
           var url = (self.isSecure ? 'wss' : 'ws') + '://' + self.host + ':' + self.port;
           self.socket = new WebSocket(url, null, { debug: true, devel: true });
           self.url = url;
@@ -497,14 +489,16 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
           //add listeners
           this.socket.addEventListener('message', this.messageHandler.bind(this));
           this.socket.addEventListener('open', function (ev) {
-            self.inStatus = SignalStatus.CONNECTED;
-            self.triggerEvent(SignalStatus.CONNECTED);
-//            deferred.resolve(null);
+            // self.inStatus = SignalStatus.CONNECTED;
+            // self.triggerEvent(SignalStatus.CONNECTED);
+            // enter connected state
+            // NOTE: If you decide to cancel the ASYNC event, you can call fsm.transition.cancel();
+            self.transition();
           });
 
           this.socket.addEventListener('error', function (e) {
             logger.log('Server ' + self.id, self.url, 'error: ', e.code + ' : ' + e.reason);
-            self.triggerEvent(SignalStatus.ERROR);
+            // self.triggerEvent(SignalStatus.ERROR);
             self.disconnect();
           });
 
@@ -518,166 +512,308 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
                 break;
             }
           });
-          pending.push(self);
-        } else if (self.inStatus === SignalStatus.CONNECTING) {
-          pending.push(self);
-        } else if (self.inStatus === SignalStatus.CONNECTED) {
 
+        } catch (e) {
+          logger.error(e);
+          self.disconnect();
+          return false;
         }
-        // end of if
 
-      } catch (e) {
-        logger.error(e);
-        self.disconnect();
-        return false;
+        // tell StateMachine to defer next state until we call transition
+        return StateMachine.ASYNC;
+      },
+      onleaveconnected:  function(event, from, to) {
+        logger.log('FSM', "LEAVE   STATE: connected");
+        var self = this;
+
+        if (event === 'authenticate') {
+
+          // set callback for auth message
+          function responseHandler(e) {
+            var response = JSON.parse(e.data);
+            if (response.cmd === 'signal:auth') {
+              self.socket.removeEventListener('message', responseHandler);
+              // received response of auth
+              if (response['data']['success'] && (response['data']['success'] === true)) {
+//                self.triggerEvent(SignalStatus.AUTHENTICATED);
+                self.transition();
+              } else {
+                self.transition().cancel();
+              }
+            }
+          }
+
+          this.socket.addEventListener('message', responseHandler);
+          self.sendAuthentication();
+          return StateMachine.ASYNC;
+        } else {
+          return true;
+        }
+      },
+      onleaveauthenticated: function(event, from, to) {
+        logger.log('FSM', "LEAVE   STATE: authenticated");
+      },
+
+      onconnected: function(event, from, to) {
+        logger.log('FSM', "ENTER   STATE: connected");
+      },
+      ondisconnected: function(event, from, to) {
+        logger.log('FSM', "ENTER   STATE: disconnected");
+      },
+      onauthenticated: function(event, from, to) {
+        logger.log('FSM', "ENTER   STATE: authenticated");
+      },
+
+      onstartup: function(event, from, to) { logger.log('FSM', "FINISH  EVENT: startup!"); },
+      // onconnect = on after connect event
+      onconnect: function(event, from, to) {
+        logger.log('FSM', "FINISH  EVENT: connect!");
+        if (this.is('connected')) {
+          this.triggerEvent(SignalEvent.CONNECTED);
+          // now start authenticate event
+          this.authenticate();
+        }
+      },
+      ondisconnect: function(event, from, to) {
+        logger.log('FSM', "FINISH  EVENT: disconnect!");
+        if (this.is('disconnected')) {
+          this.triggerEvent(SignalEvent.DISCONNECTED);
+        }
+      },
+      onauthenticate: function(event, from, to) {
+        logger.log('FSM', "FINISH  EVENT: authenticate!");
+        if (this.is('authenticated')) {
+          this.triggerEvent(SignalEvent.AUTHENTICATED);
+        }
+      },
+
+      onchangestate: function(event, from, to) {
+        logger.log('FSM', "CHANGED STATE: " + from + " to " + to);
+      },
+
+      //------------------ end of events ------------------
+
+      triggerEvent: function (status, peer) {
+        var eventInfo = {}, i;
+        if (peer) {
+          eventInfo.peer = peer;
+          this.peers.push(peer);
+        } else {
+          this.status = status;
+          this.inStatus = status;
+          if (status === SignalStatus.DISCONNECTED) {
+            for (i = 0; i < this.peers.length; i += 1) {
+              this.peers[i].parallel.triggerEvent(PeerStatus.DISCONNECTED);
+              this.peers[i].triggerEvent(PeerStatus.DISCONNECTED);
+            }
+          }
+        }
+        // can not use this.emitter.emit , why ?
+        // next line is ok
+        // (this.emitter.emit.bind(this))(status, eventInfo, this.callback);
+        this.emit(status, eventInfo, this.callback);
+      },
+
+      triggerEventWithData: function (evt, data, peer) {
+        var eventInfo = {}, i;
+        if (data) {
+          eventInfo.data = data;
+        }
+        if (peer) {
+          eventInfo.peer = peer;
+          this.peers.push(peer);
+        } else {
+          this.status = status;
+          this.inStatus = status;
+          if (status === SignalStatus.DISCONNECTED) {
+            for (i = 0; i < this.peers.length; i += 1) {
+              this.peers[i].parallel.triggerEvent(PeerStatus.DISCONNECTED);
+              this.peers[i].triggerEvent(PeerStatus.DISCONNECTED);
+            }
+          }
+        }
+        // can not use this.emitter.emit , why ?
+        // next line is ok
+        // (this.emitter.emit.bind(this))(status, eventInfo, this.callback);
+        this.emit(status, eventInfo, this.callback);
+      },
+
+      // private function
+      send: function (cmd, data, waitForResponse) {
+        var self = this;
+
+        if (!self.connected()) {
+          throw new Error('Not connected to server, current status: ' + self.inStatus);
+          return false;
+        }
+
+        if (!data || !_.isObject(data) || _.isEmpty(data)) {
+          throw new Error('Data is not an object/empty!');
+          return false;
+  //        deferred.reject('Data is not an object/empty!');
+  //        return deferred.promise;
+        }
+
+        if (!cmd) {
+          throw new Error('Command is not defined!');
+          return false;
+  //        deferred.reject('Command is not defined!');
+  //        return deferred.promise;
+        }
+
+        // add cmd to data
+        data.cmd = cmd;
+
+        // add auth token
+        data.authToken = settings.authToken;
+
+        //send data to websocket as String
+        this.socket.send(JSON.stringify(data));
+        logger.log(JSON.stringify(data));
+
+        // If we need to wait for the answer
+
+        if (waitForResponse && (typeof waitForResponse === 'function')) {
+          var responseHandler = waitForResponse;
+          this.socket.addEventListener('message', responseHandler);
+          // No need to wait
+        } else
+        if (waitForResponse && (typeof waitForResponse === 'boolean')) {
+
+          function responseHandler(e) {
+            var response = JSON.parse(e.data);
+            if (response.cmd === cmd) {
+              self.socket.removeEventListener('message', responseHandler);
+  //            deferred.resolve(response.data);
+              return response.data;
+            }
+          }
+
+          this.socket.addEventListener('message', responseHandler);
+          return true;
+        } else {
+          return true;
+        }
+
+        return true;
+      },
+
+      sendAuthentication: function () {
+        var self = this;
+        return this.send('signal:auth', { uuid: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs }, false);
+      },
+
+      sendPeerOffer: function (targetPeerUuid, offer) {
+        return this.send('peer:offer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, ips: location }, false);
+      },
+
+      sendPeerAnswer: function (targetPeerUuid, answer) {
+        return this.send('peer:answer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, answer: answer }, false);
+      },
+
+      sendPeerCandidate: function (targetPeerUuid, candidate) {
+        return this.send('peer:candidate', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, candidate: candidate }, false);
+      },
+
+      getAllRelatedPeers: function () {
+        return this.send('peer:list', { apiKey: settings.apiKey }, true);
+      },
+
+      messageHandler: function (e) {
+        var self = this;
+        var data = JSON.parse(e.data), cmd = data.cmd;
+
+        logger.log('Server ' + this.id, 'Received', data);
+
+        switch (cmd.toLowerCase()) {
+          case 'peer:offer':
+            this.emit('peer:offer', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, offer: data.data.offer, location: data.data.location });
+            break;
+          case 'peer:answer':
+            this.emit('peer:answer', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, answer: data.data.answer });
+            break;
+          case 'peer:candidate':
+            this.emit('peer:candidate', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, candidate: data.data.candidate });
+            break;
+//          case 'signal:auth':
+//            // received response of auth
+//            if (data['data']['success'] && (data['data']['success'] === true)) {
+//              self.triggerEvent(SignalStatus.AUTHENTICATED);
+//            }
+//            break;
+          case 'peer:list':
+            if (data['data']['success'] && (data['data']['success'] === true)) {
+              if (data['data']['peers']) {
+                var pls = data['data']['peers'];
+                self.triggerEventWithData(SignalEvent.PEERLIST, pls);
+              }
+
+            }
+            break;
+        }
+      },
+
+      serialize: function () {
+        return {
+          host: this.host,
+          isSecure: this.isSecure,
+          port: this.port
+        };
+      },
+
+      getStatus: function () {
+        return this.current;
+      },
+
+      saveIPs: function (ip) {
+        var self = this;
+        self.localIPs.push(ip);
       }
+    };
 
-      return true;
-    }; // end of connect function
+    StateMachine.create({
+      target: SignalSession.prototype,
+      error: function(eventName, from, to, args, errorCode, errorMessage) {
+        return 'event ' + eventName + ' was naughty :- ' + errorMessage;
+      },
+      events: [
+        { name: 'startup', from: 'none', to: 'disconnected' },
+        { name: 'connect', from: 'disconnected', to: 'connected' },
+        { name: 'authenticate', from: 'connected',  to: 'authenticated' },
+        { name: 'disconnect', from: 'connected', to: 'disconnected' },
+        { name: 'disconnect', from: 'authenticated', to: 'disconnected' }
+      ]
+    });
+
+    /**
+     * @method connect
+     * @return {Promise}
+     */
+//    SignalSession.prototype.connect = function () {
+//      if (this.fsm.can('connect')) {
+//        this.fsm.connect();
+//      }
+//    }; // end of connect function
 
     /**
      * @method authenticate
      * @return {Promise}
      */
-    SignalSession.prototype.authenticate = function () {
-      var self = this;
-      self.triggerEvent(SignalStatus.AUTHENTICATING);
-      return this.sendAuthentication();
-    };
+//    SignalSession.prototype.authenticate = function () {
+//      var self = this;
+//      self.triggerEvent(SignalStatus.AUTHENTICATING);
+//      return this.sendAuthentication();
+//    };
 
-    SignalSession.prototype.disconnect = function () {
-      var self = this;
-      this.inStatus = SignalStatus.DISCONNECTED;
-      this.socket = null;
-      setTimeout(function () {
-        self.triggerEvent(SignalStatus.DISCONNECTED);
-      }, 300);
-      return this;
-    };
-
-    SignalSession.prototype.send = function (cmd, data, waitForResponse) {
-      var self = this;
-//      var deferred = Q.defer();
-
-      if (!self.connected()) {
-//        deferred.reject('Not connected to server!');
-        throw new Error('Not connected to server, current status: ' + self.inStatus);
-        return false;
-      }
-
-      if (!data || !_.isObject(data) || _.isEmpty(data)) {
-        throw new Error('Data is not an object/empty!');
-        return false;
-//        deferred.reject('Data is not an object/empty!');
-//        return deferred.promise;
-      }
-
-      if (!cmd) {
-        throw new Error('Command is not defined!');
-        return false;
-//        deferred.reject('Command is not defined!');
-//        return deferred.promise;
-      }
-
-      // add cmd to data
-      data.cmd = cmd;
-
-      // add auth token
-      data.authToken = settings.authToken;
-
-      //send data to websocket as String
-      this.socket.send(JSON.stringify(data));
-      logger.log(JSON.stringify(data));
-
-      // If we need to wait for the answer
-
-      if (waitForResponse && (typeof waitForResponse === 'function')) {
-        var responseHandler = waitForResponse;
-        this.socket.addEventListener('message', responseHandler);
-        // No need to wait
-      } else
-      if (waitForResponse && (typeof waitForResponse === 'boolean')) {
-
-        function responseHandler(e) {
-          var response = JSON.parse(e.data);
-          if (response.cmd === cmd) {
-            self.socket.removeEventListener('message', responseHandler);
-//            deferred.resolve(response.data);
-            return response.data;
-          }
-        }
-
-        this.socket.addEventListener('message', responseHandler);
-        return true;
-      } else {
-        return true;
-      }
-
-      return true;
-    };
-
-    SignalSession.prototype.sendAuthentication = function () {
-      var self = this;
-      return this.send('signal:auth', { uuid: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs }, false);
-    };
-
-    SignalSession.prototype.sendPeerOffer = function (targetPeerUuid, offer) {
-      return this.send('peer:offer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, ips: location }, false);
-    };
-
-    SignalSession.prototype.sendPeerAnswer = function (targetPeerUuid, answer) {
-      return this.send('peer:answer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, answer: answer }, false);
-    };
-
-    SignalSession.prototype.sendPeerCandidate = function (targetPeerUuid, candidate) {
-      return this.send('peer:candidate', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, candidate: candidate }, false);
-    };
-
-    SignalSession.prototype.getAllRelatedPeers = function () {
-      return this.send('peer:list', { apiKey: settings.apiKey }, true);
-    };
-
-    SignalSession.prototype.messageHandler = function (e) {
-      var self = this;
-      var data = JSON.parse(e.data), cmd = data.cmd;
-
-      logger.log('Server ' + this.id, 'Received', data);
-
-      switch (cmd.toLowerCase()) {
-        case 'peer:offer':
-          this.emit('peer:offer', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, offer: data.data.offer, location: data.data.location });
-          break;
-        case 'peer:answer':
-          this.emit('peer:answer', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, answer: data.data.answer });
-          break;
-        case 'peer:candidate':
-          this.emit('peer:candidate', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, candidate: data.data.candidate });
-          break;
-        case 'signal:auth':
-          // received response of auth
-          if (data['data']['success'] && (data['data']['success'] === true)) {
-            self.triggerEvent(SignalStatus.AUTHENTICATED);
-          }
-          break;
-      }
-    };
-
-    SignalSession.prototype.serialize = function () {
-      return {
-        host: this.host,
-        isSecure: this.isSecure,
-        port: this.port
-      };
-    };
-
-    SignalSession.prototype.getStatus = function () {
-      return this.status;
-    };
-
-    SignalSession.prototype.saveIPs = function (ip) {
-      var self = this;
-      self.localIPs.push(ip);
-    };
+//    SignalSession.prototype.disconnect = function () {
+//      var self = this;
+//      this.inStatus = SignalStatus.DISCONNECTED;
+//      this.socket = null;
+//      setTimeout(function () {
+//        self.triggerEvent(SignalStatus.DISCONNECTED);
+//      }, 300);
+//      return this;
+//    };
 
     return SignalSession;
   })();
@@ -1360,7 +1496,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       //var id = this.session.id;
       logger.log('Signal', 'Server ' + this.session.id, this.session.url, 'connected');
       logger.log('Signal', 'session_onConnected');
-      this.session.authenticate();
+      //this.session.authenticate();
     };
 
     App.prototype.session_onConnecting = function (event) {
@@ -1373,6 +1509,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
 
     App.prototype.session_onAuthenticated = function (event) {
       logger.log('Signal', 'session_onAuthenticated');
+      // get the peer list
+      this.session.send('peer:list', {uuid: this.settings.uuid});
     };
 
     App.prototype.session_onError = function (event) {
@@ -1424,11 +1562,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid) {
       this.session = this.createSession();
       // 2. set session callbacks
       if (this.session) {
-        this.session.on('signal:connected', this.session_onConnected.bind(this));
-        this.session.on('signal:connecting', this.session_onConnecting.bind(this));
-        this.session.on('signal:authenticating', this.session_onAuthenticating.bind(this));
-        this.session.on('signal:authenticated', this.session_onAuthenticated.bind(this));
-        this.session.on('signal:error', this.session_onError.bind(this));
+        this.session.on(SignalEvent.CONNECTED, this.session_onConnected.bind(this));
+        this.session.on(SignalEvent.BEFORECONNECT, this.session_onConnecting.bind(this));
+        this.session.on(SignalEvent.BEFOREAUTHENTICATE, this.session_onAuthenticating.bind(this));
+        this.session.on(SignalEvent.AUTHENTICATED, this.session_onAuthenticated.bind(this));
       }
       // 3. session connect
       // connect to signal server

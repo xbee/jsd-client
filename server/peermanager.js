@@ -11,7 +11,7 @@ var proto = PeerManager.prototype;
 proto.list = function () {
     //no need to transfer the socket object
     return _.map(this._peers, function (peer) {
-        return {id: peer.uuid, location: peer.location};
+        return {id: peer.uuid};
     });
 };
 

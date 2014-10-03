@@ -79,7 +79,7 @@ function messageHandler(socket, data) {
             break;
         case 'peer:list' :
             console.log('peer:list');
-            sendToPeer(socket, {cmd: 'peer:list', data: peers.list()});
+            sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.list(), success: true}});
             break;
         case 'peer:offer' :
             console.log('peer:offer');

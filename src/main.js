@@ -9,12 +9,15 @@ require.config({
         'observe-js': '../lib/observe-js/src/observe',
         'q': '../lib/q/q',
         'jquery': '../lib/jquery',
-        'sockjs': '../lib/sockjs/sockjs'
+        'sockjs': '../lib/sockjs/sockjs',
+        'evercookie': '../lib/evercookie/js/evercookie',
+        'state-machine': '../lib/javascript-state-machine/state-machine',
+        'fingerprint': '../lib/fingerprintjs/fingerprint'
     },
     shim: {}
 });
 
-define(['app'], function (jsd) {
+define(['app', 'fingerprint'], function (jsd, fp) {
 
     try {
       var app = new jsd.App();
@@ -22,6 +25,7 @@ define(['app'], function (jsd) {
       app.init();
       app.start();
 
+      window.fingerprint = fp;
       window.jsdapp = app;
       window.jsd = jsd;
 

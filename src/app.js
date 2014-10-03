@@ -115,7 +115,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       }
 
       if (msgAmount >= MAX_MESSAGES) {
-        output.innerHTML = '';
+        if (htmlLogging)
+          output.innerHTML = '';
         console.clear();
         msgAmount = 0;
       }
@@ -125,7 +126,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
           dataAsString = _.clone(data);
 
       //Console
-      console[type].apply(console, [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data));
+      if (consoleLogging) {
+        console[type].apply(console, [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data));
+      }
 
       //DOM
       if (htmlLogging) {
@@ -230,6 +233,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
     };
   })();
   if (_debuging) {
+    //logger.enable();
     exports.logger = logger;
   }
 
@@ -248,23 +252,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
      * @see http://en.wikipedia.org/wiki/Universally_unique_identifier
      */
     var generate = function () {
-//            var self = this;
-//            if (typeof self.test === 'undefined') {
-//                console.log('can not access private field');
-//            } else {
-//                console.log(self.test);
-//            }
-//            if (typeof self.abc === 'undefined') {
-//                console.log('can not access private field2');
-//            } else {
-//                console.log(self.abc);
-//            }
-//            if (typeof xyz === 'undefined') {
-//                console.log('can not access private field3');
-//            } else {
-//                console.log(xyz); // will enter this
-//            }
-
       return nuuid.v4();
     };
 
@@ -351,47 +338,73 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
    *  get all of local ip address
    */
   var enumLocalIPs = function (ctx, cb) {
-    var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-    if (!RTCPeerConnection)
-      return false;
-    var addrs = Object.create(null);
-    addrs['0.0.0.0'] = false;
-    var addAddress = function (newAddr) {
-      if (newAddr in addrs)
-        return;
-      addrs[newAddr] = true;
-      cb.apply(ctx, [newAddr]);
-    };
-    var grepSDP = function (sdp) {
-      sdp.split('\r\n').forEach(function (line) {
-        if (~line.indexOf('a=candidate')) {
-          var parts = line.split(' '), addr = parts[4], type = parts[7];
-          if (type === 'host')
+    try {
+      var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+      if (!RTCPeerConnection)
+        return false;
+      var iceEnded = false;
+      var addrs = Object.create(null);
+      addrs['0.0.0.0'] = false;
+      var addAddress = function (newAddr) {
+        if (newAddr in addrs)
+          return;
+        addrs[newAddr] = true;
+      };
+      var grepSDP = function (sdp) {
+        sdp.split('\r\n').forEach(function (line) {
+          if (~line.indexOf('a=candidate')) {
+            var parts = line.split(' '), addr = parts[4], type = parts[7];
+            if (type === 'host')
+              addAddress(addr);
+          } else if (~line.indexOf('c=')) {
+            var parts = line.split(' '), addr = parts[2];
             addAddress(addr);
-        } else if (~line.indexOf('c=')) {
-          var parts = line.split(' '), addr = parts[2];
-          addAddress(addr);
-        }
-      });
-    };
+          }
+        });
+      };
 
-    // typescript do not support polyfill
-    var rtc = new RTCPeerConnection({iceServers: []});
-    if (window.mozRTCPeerConnection) {
-      rtc.createDataChannel('', { reliable: false });
+      // typescript do not support polyfill
+      var rtc = new RTCPeerConnection({iceServers: []});
+      if (window.mozRTCPeerConnection) {
+        rtc.createDataChannel('', { reliable: false });
+      }
+      // for chrome: many times
+      // for firefox: evt.candidate will be null
+      rtc.onicecandidate = function (evt) {
+        // for chrome: when offline, it will be called for ever until online
+        // and the candidate is null,
+        if (evt.candidate) {
+          logger.log('EnumIPs', 'onicecandidate: ', evt.candidate);
+          grepSDP(evt.candidate.candidate);
+        } else {
+          // for chrome, if there is no network,
+          // it will be called many times , so we insure just one call
+          if (!iceEnded) {
+            // here we knew it is time to call callback
+            var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
+//          var xs = displayAddrs.join(', ');
+//          logger.log('EnumIPs', 'addrs: ', xs);
+            if (displayAddrs) {
+              cb.apply(ctx, [displayAddrs.sort()]);
+              iceEnded = true;
+              rtc.onicecandidate = null;
+              rtc = null;
+            }
+          }
+        }
+
+      };
+      rtc.createOffer(function (offerDesc) {
+        logger.log('EnumIPs', 'createOffer: ', offerDesc.sdp);
+        grepSDP(offerDesc.sdp);
+        rtc.setLocalDescription(offerDesc);
+      }, function (e) {
+        logger.error('EnumIPs', 'createOffer failed: ', e);
+      });
+    } catch (e) {
+      logger.error('EnumIPs', 'failed for: ', e);
+      return false;
     }
-    rtc.onicecandidate = function (evt) {
-      if (evt.candidate)
-        grepSDP(evt.candidate.candidate);
-    };
-    rtc.createOffer(function (offerDesc) {
-      grepSDP(offerDesc.sdp);
-      rtc.setLocalDescription(offerDesc);
-    }, function (e) {
-    });
-//        setTimeout(function () {
-//
-//        }, 50);
     return true;
   };
   if (_debuging) {
@@ -458,12 +471,16 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
       // for fsm to initialize
       this.startup();
-      enumLocalIPs(_self, _self.saveIPs);
+
     };
 
     SignalSession.prototype = {
       //------------------ begin of events ------------------
-      onbeforestartup: function(event, from, to) { logger.log('FSM', "START   EVENT: startup!"); },
+      onbeforestartup: function(event, from, to) {
+        var self = this;
+        logger.log('FSM', "START   EVENT: startup!");
+        enumLocalIPs(self, self.saveIPs);
+      },
       onbeforeconnect: function(event, from, to) {
         logger.log('FSM', "START   EVENT: connect!");
         this.triggerEvent(SignalEvent.BEFORECONNECT);
@@ -671,30 +688,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         this.socket.send(JSON.stringify(data));
         logger.log(JSON.stringify(data));
 
-        // If we need to wait for the answer
-
-        if (waitForResponse && (typeof waitForResponse === 'function')) {
-          var responseHandler = waitForResponse;
-          this.socket.addEventListener('message', responseHandler);
-          // No need to wait
-        } else
-        if (waitForResponse && (typeof waitForResponse === 'boolean')) {
-
-          function responseHandler(e) {
-            var response = JSON.parse(e.data);
-            if (response.cmd === cmd) {
-              self.socket.removeEventListener('message', responseHandler);
-  //            deferred.resolve(response.data);
-              return response.data;
-            }
-          }
-
-          this.socket.addEventListener('message', responseHandler);
-          return true;
-        } else {
-          return true;
-        }
-
         return true;
       },
 
@@ -735,21 +728,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
           case 'peer:candidate':
             this.emit('peer:candidate', { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, candidate: data.data.candidate });
             break;
-//          case 'signal:auth':
-//            // received response of auth
-//            if (data['data']['success'] && (data['data']['success'] === true)) {
-//              self.triggerEvent(SignalStatus.AUTHENTICATED);
-//            }
-//            break;
-          case 'peer:list':
-            if (data['data']['success'] && (data['data']['success'] === true)) {
-              if (data['data']['peers']) {
-                var pls = data['data']['peers'];
-                self.triggerEventWithData(SignalEvent.PEERLIST, pls);
-              }
-
-            }
-            break;
         }
       },
 
@@ -765,9 +743,15 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         return this.current;
       },
 
-      saveIPs: function (ip) {
+      saveIPs: function (ips) {
         var self = this;
-        self.localIPs.push(ip);
+        self.localIPs = ips;
+        logger.log('EnumIPs', 'all addr: ', ips);
+      },
+
+      // connect to peer
+      createPeer: function(peerId) {
+        return new PeerSession(this);
       }
     };
 
@@ -784,26 +768,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         { name: 'disconnect', from: 'authenticated', to: 'disconnected' }
       ]
     });
-
-    /**
-     * @method connect
-     * @return {Promise}
-     */
-//    SignalSession.prototype.connect = function () {
-//      if (this.fsm.can('connect')) {
-//        this.fsm.connect();
-//      }
-//    }; // end of connect function
-
-    /**
-     * @method authenticate
-     * @return {Promise}
-     */
-//    SignalSession.prototype.authenticate = function () {
-//      var self = this;
-//      self.triggerEvent(SignalStatus.AUTHENTICATING);
-//      return this.sendAuthentication();
-//    };
 
 //    SignalSession.prototype.disconnect = function () {
 //      var self = this;
@@ -887,7 +851,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       //    offAny: (fn: Function) => events.EventEmitter;
       //    removeAllListeners: (type: string[]) => events.EventEmitter;
 //            this._ee = new events.EventEmitter();
-      var _self = this;
 
       this.id = config.id;
       if (server)
@@ -1509,12 +1472,25 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
     App.prototype.session_onAuthenticated = function (event) {
       logger.log('Signal', 'session_onAuthenticated');
+      var self = this;
+
+      function peerlistHandler(e) {
+        var response = JSON.parse(e.data);
+        if (response.cmd === 'peer:list') {
+          self.session.socket.removeEventListener('message', peerlistHandler);
+          // received response of auth
+          if (data['data']['success'] && (data['data']['success'] === true)) {
+            if (data['data']['peers']) {
+              var pls = data['data']['peers'];
+              // handle the peer list datas
+            }
+          }
+        }
+      }
+
+      this.session.socket.addEventListener('message', peerlistHandler);
       // get the peer list
       this.session.send('peer:list', {uuid: this.settings.uuid});
-    };
-
-    App.prototype.session_onError = function (event) {
-      logger.log('Signal', 'session_onError');
     };
 
     App.prototype.createSession = function () {

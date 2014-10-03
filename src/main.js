@@ -20,6 +20,7 @@ require.config({
 define(['app', 'fingerprint'], function (jsd, fp) {
 
     try {
+      var logger = jsd.logger;
       var app = new jsd.App();
 
       app.init();

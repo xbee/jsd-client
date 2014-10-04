@@ -9,7 +9,7 @@ define(['require',
       'state-machine',
       'fingerprint',
       'observe-js'],
-function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine, fp) {
+function (require, exports, module, _, Q, EventEmitter2, nuuid, ec, StateMachine, fp) {
 
   var _debuging = true;
 
@@ -339,6 +339,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
    */
   var enumLocalIPs = function (ctx, cb) {
     try {
+      if (!window.navigator.onLine) {
+        return false;
+      }
       var RTCPeerConnection = window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
       if (!RTCPeerConnection)
         return false;
@@ -373,7 +376,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       rtc.onicecandidate = function (evt) {
         // for chrome: when offline, it will be called for ever until online
         // and the candidate is null,
-        if (evt.candidate) {
+        if (evt.candidate !== null) {
           logger.log('EnumIPs', 'onicecandidate: ', evt.candidate);
           grepSDP(evt.candidate.candidate);
         } else {
@@ -387,10 +390,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
             if (displayAddrs) {
               cb.apply(ctx, [displayAddrs.sort()]);
               iceEnded = true;
-              rtc.onicecandidate = null;
-              rtc = null;
             }
           }
+          rtc.onicecandidate = null;
+          rtc = null;
         }
 
       };
@@ -411,12 +414,14 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
     exports.enumLocalIPs = enumLocalIPs;
   }
 
-  SignalStatus = {};
+  CMD = {};
+  CMD.AUTH = 'signal:auth';
+  CMD.LIST = 'peer:list';
 //  SignalStatus.CONNECTING = 'signal:connecting';
-  SignalStatus.DISCONNECTED = 'signal:disconnected';
-  SignalStatus.CONNECTED = 'signal:connected';
-  SignalStatus.AUTHENTICATED = 'signal:authenticated';
-  SignalStatus.INCOMINGCALL = 'signal:incomingCall';
+//  SignalStatus.DISCONNECTED = 'signal:disconnected';
+//  SignalStatus.CONNECTED = 'signal:connected';
+//  SignalStatus.AUTHENTICATED = 'signal:authenticated';
+//  SignalStatus.INCOMINGCALL = 'signal:incomingCall';
 
   SignalEvent = {};
   SignalEvent.CONNECTED = 'signal:onenterconnected';
@@ -427,8 +432,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
   SignalEvent.CONNECTING = 'signal:connecting';
   SignalEvent.AUTHENTICATING = 'signal:authenticating';
   SignalEvent.ERROR = 'signal:error';
-  SignalEvent.PEERLIST = 'peer:list';
-
 
   PeerStatus = {};
   PeerStatus.CONNECTING = 'signal:connecting';
@@ -452,8 +455,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       //this.isConnected = false;
       this.localIPs = [];
       this.peers = [];
-//      this.status = SignalStatus.DISCONNECTED;
-//      this.inStatus = SignalStatus.DISCONNECTED;
 
       this.emitter = new EventEmitter2({
         wildcard: true, // should the event emitter use wildcards.
@@ -478,27 +479,26 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       //------------------ begin of events ------------------
       onbeforestartup: function(event, from, to) {
         var self = this;
-        logger.log('FSM', "START   EVENT: startup!");
+        logger.log('Signal-FSM', "START   EVENT: startup!");
         enumLocalIPs(self, self.saveIPs);
       },
       onbeforeconnect: function(event, from, to) {
-        logger.log('FSM', "START   EVENT: connect!");
+        logger.log('Signal-FSM', "START   EVENT: connect!");
         this.triggerEvent(SignalEvent.BEFORECONNECT);
       },
       onbeforedisconnect: function(event, from, to) {
-        logger.log('FSM', "START   EVENT: disconnect!");
+        logger.log('Signal-FSM', "START   EVENT: disconnect!");
       },
       onbeforeauthenticate: function(event, from, to) {
-        logger.log('FSM', "START   EVENT: authenticate!");
+        logger.log('Signal-FSM', "START   EVENT: authenticate!");
         this.triggerEvent(SignalEvent.BEFOREAUTHENTICATE);
       },
 
       onleavedisconnected: function(event, from, to) {
-        logger.log('FSM', "LEAVE   STATE: disconnected");
+        logger.log('Signal-FSM', "LEAVE   STATE: disconnected");
         var self = this;
 
         try {
-//          self.triggerEvent(SignalStatus.CONNECTING);
           var url = (self.isSecure ? 'wss' : 'ws') + '://' + self.host + ':' + self.port;
           self.socket = new WebSocket(url, null, { debug: true, devel: true });
           self.url = url;
@@ -506,8 +506,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
           //add listeners
           this.socket.addEventListener('message', this.messageHandler.bind(this));
           this.socket.addEventListener('open', function (ev) {
-            // self.inStatus = SignalStatus.CONNECTED;
-            // self.triggerEvent(SignalStatus.CONNECTED);
             // enter connected state
             // NOTE: If you decide to cancel the ASYNC event, you can call fsm.transition.cancel();
             self.transition();
@@ -515,7 +513,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
           this.socket.addEventListener('error', function (e) {
             logger.log('Server ' + self.id, self.url, 'error: ', e.code + ' : ' + e.reason);
-            // self.triggerEvent(SignalStatus.ERROR);
             self.disconnect();
           });
 
@@ -540,7 +537,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         return StateMachine.ASYNC;
       },
       onleaveconnected:  function(event, from, to) {
-        logger.log('FSM', "LEAVE   STATE: connected");
+        logger.log('Signal-FSM', "LEAVE   STATE: connected");
         var self = this;
 
         if (event === 'authenticate') {
@@ -548,11 +545,15 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
           // set callback for auth message
           function responseHandler(e) {
             var response = JSON.parse(e.data);
-            if (response.cmd === 'signal:auth') {
+            if (response.cmd === CMD.AUTH) {
               self.socket.removeEventListener('message', responseHandler);
               // received response of auth
               if (response['data']['success'] && (response['data']['success'] === true)) {
-//                self.triggerEvent(SignalStatus.AUTHENTICATED);
+                // get the authToken
+                if (response['data']['authToken']) {
+                  logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
+                  settings.authToken = response['data']['authToken'];
+                }
                 self.transition();
               } else {
                 self.transition().cancel();
@@ -568,23 +569,23 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         }
       },
       onleaveauthenticated: function(event, from, to) {
-        logger.log('FSM', "LEAVE   STATE: authenticated");
+        logger.log('Signal-FSM', "LEAVE   STATE: authenticated");
       },
 
       onconnected: function(event, from, to) {
-        logger.log('FSM', "ENTER   STATE: connected");
+        logger.log('Signal-FSM', "ENTER   STATE: connected");
       },
       ondisconnected: function(event, from, to) {
-        logger.log('FSM', "ENTER   STATE: disconnected");
+        logger.log('Signal-FSM', "ENTER   STATE: disconnected");
       },
       onauthenticated: function(event, from, to) {
-        logger.log('FSM', "ENTER   STATE: authenticated");
+        logger.log('Signal-FSM', "ENTER   STATE: authenticated");
       },
 
-      onstartup: function(event, from, to) { logger.log('FSM', "FINISH  EVENT: startup!"); },
+      onstartup: function(event, from, to) { logger.log('Signal-FSM', "FINISH  EVENT: startup!"); },
       // onconnect = on after connect event
       onconnect: function(event, from, to) {
-        logger.log('FSM', "FINISH  EVENT: connect!");
+        logger.log('Signal-FSM', "FINISH  EVENT: connect!");
         if (this.is('connected')) {
           this.triggerEvent(SignalEvent.CONNECTED);
           // now start authenticate event
@@ -592,20 +593,24 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         }
       },
       ondisconnect: function(event, from, to) {
-        logger.log('FSM', "FINISH  EVENT: disconnect!");
+        var self = this;
+        logger.log('Signal-FSM', "FINISH  EVENT: disconnect!");
         if (this.is('disconnected')) {
-          this.triggerEvent(SignalEvent.DISCONNECTED);
+          this.socket = null;
+          setTimeout(function () {
+            self.triggerEvent(SignalEvent.DISCONNECTED);
+          }, 300);
         }
       },
       onauthenticate: function(event, from, to) {
-        logger.log('FSM', "FINISH  EVENT: authenticate!");
+        logger.log('Signal-FSM', "FINISH  EVENT: authenticate!");
         if (this.is('authenticated')) {
           this.triggerEvent(SignalEvent.AUTHENTICATED);
         }
       },
 
       onchangestate: function(event, from, to) {
-        logger.log('FSM', "CHANGED STATE: " + from + " to " + to);
+        logger.log('Signal-FSM', "CHANGED STATE: " + from + " to " + to);
       },
 
       //------------------ end of events ------------------
@@ -616,9 +621,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
           eventInfo.peer = peer;
           this.peers.push(peer);
         } else {
-          this.status = status;
-          this.inStatus = status;
-          if (status === SignalStatus.DISCONNECTED) {
+          if (this.is('disconnected')) {
             for (i = 0; i < this.peers.length; i += 1) {
               this.peers[i].parallel.triggerEvent(PeerStatus.DISCONNECTED);
               this.peers[i].triggerEvent(PeerStatus.DISCONNECTED);
@@ -640,9 +643,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
           eventInfo.peer = peer;
           this.peers.push(peer);
         } else {
-          this.status = status;
-          this.inStatus = status;
-          if (status === SignalStatus.DISCONNECTED) {
+          if (this.is('disconnected')) {
             for (i = 0; i < this.peers.length; i += 1) {
               this.peers[i].parallel.triggerEvent(PeerStatus.DISCONNECTED);
               this.peers[i].triggerEvent(PeerStatus.DISCONNECTED);
@@ -659,21 +660,18 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       send: function (cmd, data, waitForResponse) {
         var self = this;
 
-        if (!self.connected()) {
+        if (!self.is('connected') && !self.is('authenticated')) {
           throw new Error('Not connected to server, current status: ' + self.inStatus);
-          return false;
         }
 
         if (!data || !_.isObject(data) || _.isEmpty(data)) {
           throw new Error('Data is not an object/empty!');
-          return false;
   //        deferred.reject('Data is not an object/empty!');
   //        return deferred.promise;
         }
 
         if (!cmd) {
           throw new Error('Command is not defined!');
-          return false;
   //        deferred.reject('Command is not defined!');
   //        return deferred.promise;
         }
@@ -693,23 +691,23 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
       sendAuthentication: function () {
         var self = this;
-        return this.send('signal:auth', { uuid: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs }, false);
+        return this.send(CMD.AUTH, { uuid: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs });
       },
 
       sendPeerOffer: function (targetPeerUuid, offer) {
-        return this.send('peer:offer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, ips: location }, false);
+        return this.send('peer:offer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer, ips: location });
       },
 
       sendPeerAnswer: function (targetPeerUuid, answer) {
-        return this.send('peer:answer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, answer: answer }, false);
+        return this.send('peer:answer', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, answer: answer });
       },
 
       sendPeerCandidate: function (targetPeerUuid, candidate) {
-        return this.send('peer:candidate', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, candidate: candidate }, false);
+        return this.send('peer:candidate', { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, candidate: candidate });
       },
 
       getAllRelatedPeers: function () {
-        return this.send('peer:list', { apiKey: settings.apiKey }, true);
+        return this.send(CMD.LIST, { apiKey: settings.apiKey }, true);
       },
 
       messageHandler: function (e) {
@@ -751,7 +749,11 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
       // connect to peer
       createPeer: function(peerId) {
-        return new PeerSession(this);
+        return new PeerSession(this, peerId);
+      },
+
+      createPeerManager: function() {
+        return new PeerSessionManager();
       }
     };
 
@@ -769,22 +771,13 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       ]
     });
 
-//    SignalSession.prototype.disconnect = function () {
-//      var self = this;
-//      this.inStatus = SignalStatus.DISCONNECTED;
-//      this.socket = null;
-//      setTimeout(function () {
-//        self.triggerEvent(SignalStatus.DISCONNECTED);
-//      }, 300);
-//      return this;
-//    };
-
     return SignalSession;
   })();
   // call exampel: var singnal = new jsd.SignalSession();
   exports.SignalSession = SignalSession;
 
-  var TIMEOUT_WAIT_TIME = 10000, QUEUE_RETRY_TIME = 75, ICE_SERVER_SETTINGS = {
+  var TIMEOUT_WAIT_TIME = 10000, QUEUE_RETRY_TIME = 75;
+  var ICE_SERVER_SETTINGS = {
     iceServers: [
       {
         url: 'stun:stun.l.google.com:19302'
@@ -808,9 +801,20 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
   var channelConstraint;
 
+  // Handle vendor prefixes
+  if (window.webkitRTCPeerConnection) {
+    RTCPeerConnection = webkitRTCPeerConnection;
+    RTCIceCandidate = window.RTCIceCandidate;
+    RTCSessionDescription = window.RTCSessionDescription;
+  } else if (window.mozRTCPeerConnection) {
+    RTCPeerConnection = mozRTCPeerConnection;
+    RTCIceCandidate = mozRTCIceCandidate;
+    RTCSessionDescription = mozRTCSessionDescription;
+  }
+
   var PeerSession = (function () {
-    function PeerSession(server, config) {
-      this._self = this;
+    function PeerSession(server, peerId) {
+      var _self = this;
       /**
        * @property connection
        * @type {RTCPeerCpnnection}
@@ -847,32 +851,29 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
        * @type {Array}
        */
       this.syncTimers = [];
-      //    onAny: (fn: Function) => events.EventEmitter;
-      //    offAny: (fn: Function) => events.EventEmitter;
-      //    removeAllListeners: (type: string[]) => events.EventEmitter;
-//            this._ee = new events.EventEmitter();
 
-      this.id = config.id;
+      this.id = peerId;
       if (server)
         this.server = server;
 
-      this._ee = new EventEmitter2({
+      this.emitter = new EventEmitter2({
         wildcard: true, // should the event emitter use wildcards.
         delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
         newListener: false, // if you want to emit the newListener event set to true.
         maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
       });
-
-      this.on = this._ee.on;
-      this.off = this._ee.removeListener;
-      this.onAny = this._ee.onAny;
-      this.offAny = this._ee.offAny;
-      this.emit = this._ee.emit;
+      // emitter.emit(event, [arg1], [arg2], [...])
+      this.emit = this.emitter.emit;
+      this.on = this.emitter.on;
+      this.off = this.emitter.removeListener;
+      this.onAny = this.emitter.onAny;
+      this.offAny = this.emitter.offAny;
+      this.removeAllListeners = this.emitter.removeAllListeners;
 
       // Protocol switch SRTP(=default) or SCTP
       if (settings.protocol.toLowerCase() === 'sctp') {
         this.protocol = 'sctp';
-        logger.log('Peer ' + _self.id, 'Using SCTP');
+        logger.log('Peer', _self.id, 'Using SCTP');
 
         connectionConstraint = {
           optional: [
@@ -891,7 +892,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         };
       } else {
         this.protocol = 'srtp';
-        logger.log('Peer ' + _self.id, 'Using SRTP');
+        logger.log('Peer', _self.id, 'Using SRTP');
       }
     }
 
@@ -902,10 +903,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
     PeerSession.prototype.timerCompleteHandler = function (e) {
       var _self = this;
       if (!this.isConnected) {
-        this.timeout = Date.now();
-        this.emit('peer:timeout', _self);
+        _self.timeout = Date.now();
+        _self.emit('peer:timeout', _self);
       } else
-        this.timeout = undefined;
+        _self.timeout = undefined;
     };
 
     /* Event Handler Start */
@@ -920,7 +921,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
     PeerSession.prototype.dataChannelHandler = function (e) {
       var _self = this;
-      logger.log('Peer ' + _self.id, 'Received remote DataChannel');
+      logger.log('Peer', _self.id, 'Received remote DataChannel');
 
       _self.channel = e.channel;
 
@@ -935,9 +936,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
       // Everything is fine
       if (_self.connection.iceConnectionState === 'connected' && _self.connection.iceGatheringState === 'complete') {
-        logger.log('Peer ' + _self.id, 'Connection established');
+        logger.log('Peer', _self.id, 'Connection established');
       } else if (_self.connection.iceConnectionState === 'disconnected') {
-        logger.log('Peer ' + _self.id, 'Connection closed');
+        logger.log('Peer', _self.id, 'Connection closed');
 
         _self.isConnected = false;
         _self.emit('peer:disconnect', _self);
@@ -946,7 +947,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
     PeerSession.prototype.negotiationNeededHandler = function (e) {
       var _self = this;
-      logger.log('Peer ' + _self.id, 'Negotiation needed');
+      logger.log('Peer', _self.id, 'Negotiation needed');
 
       //2. Alice creates an offer (an SDP session description) with the RTCPeerConnection createOffer() method.
       _self.connection.createOffer(function (sessionDescription) {
@@ -954,9 +955,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         _self.connection.setLocalDescription(sessionDescription);
 
         //4. Alice stringifies the offer and uses a signaling mechanism to send it to Eve.
-        _self.server.sendPeerOffer(_self.uuid, sessionDescription);
+        _self.server.sendPeerOffer(_self.id, sessionDescription);
       }, function (err) {
-        logger.error('Peer ' + _self.id, err, 'Was using', _self.protocol, 'protocol.');
+        logger.error('Peer', _self.id, err, 'Was using', _self.protocol, 'protocol.');
       }, connectionConstraint);
     };
 
@@ -965,7 +966,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
     PeerSession.prototype.channel_ErrorHandler = function (e) {
       var _self = this;
-      logger.log('Peer ' + _self.id, 'Channel has an error', e);
+      logger.log('Peer', _self.id, 'Channel has an error', e);
     };
 
     PeerSession.prototype.channel_MessageHandler = function (e) {
@@ -980,7 +981,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
         try {
           msg = JSON.parse(e.data);
         } catch (err) {
-          logger.error('Peer ' + _self.id, 'Error parsing msg:', e.data);
+          logger.error('Peer', _self.id, 'Error parsing msg:', e.data);
         }
       }
 
@@ -997,7 +998,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
     PeerSession.prototype.channel_CloseHandler = function (e) {
       var _self = this;
-      logger.log('Peer ' + _self.id, 'DataChannel is closed', e);
+      logger.log('Peer', _self.id, 'DataChannel is closed', e);
       _self.isConnected = false;
       _self.emit('peer:disconnect', _self);
     };
@@ -1015,21 +1016,21 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       this.isSource = true;
       this.isTarget = false;
 
-      logger.log('Peer ' + _self.id, 'Creating connection');
+      logger.log('Peer', _self.id, 'Creating connection');
 
       //1.Alice creates an RTCPeerConnection object.
       _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
 
       //I. Alice creates an RTCPeerConnection object with an onicecandidate handler.
       //Add listeners to connection
-      _self.connection.ondatachannel = this.dataChannelHandler;
-      _self.connection.onicecandidate = this.iceCandidateHandler;
-      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler;
-      _self.connection.onnegotiationneeded = this.negotiationNeededHandler;
-      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler;
+      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
+      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
+      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
+      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
+      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
 
       // Start timeout countdown
-      _.delay(this.timerCompleteHandler, TIMEOUT_WAIT_TIME);
+      _.delay(this.timerCompleteHandler.bind(this), TIMEOUT_WAIT_TIME);
 
       try {
         // Create  data-channel
@@ -1037,6 +1038,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       } catch (e) {
         // If an error occured here, there is a problem about the connection,
         // so lets do a timeout and maybe retry later
+        logger.log('Peer', 'error:', e);
         this.isConnected = false;
         this.timerCompleteHandler(null);
         deferred.reject();
@@ -1062,11 +1064,11 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
       var signal = this.server;
 
       _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
-      _self.connection.ondatachannel = this.dataChannelHandler;
-      _self.connection.onicecandidate = this.iceCandidateHandler;
-      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler;
-      _self.connection.onnegotiationneeded = this.negotiationNeededHandler;
-      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler;
+      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
+      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
+      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
+      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
+      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
 
       this.connection = _self.connection;
 
@@ -1210,7 +1212,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
   var MAX_RANDOM_ASSESSMENT_DELAY_TIME = 150;
 
   var PeerSessionManager = (function () {
-    function PeerSessionManager() {
+    function PeerSessionManager(node) {
+      this._node = node;
       this._peers = [];
     }
 
@@ -1476,13 +1479,14 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
       function peerlistHandler(e) {
         var response = JSON.parse(e.data);
-        if (response.cmd === 'peer:list') {
+        if (response.cmd === CMD.LIST) {
           self.session.socket.removeEventListener('message', peerlistHandler);
           // received response of auth
-          if (data['data']['success'] && (data['data']['success'] === true)) {
-            if (data['data']['peers']) {
-              var pls = data['data']['peers'];
+          if (response['data']['success'] && (response['data']['success'] === true)) {
+            if (response['data']['peers']) {
+              var pls = response['data']['peers'];
               // handle the peer list datas
+              console.info('peers: ', JSON.stringify(pls));
             }
           }
         }
@@ -1490,7 +1494,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
 
       this.session.socket.addEventListener('message', peerlistHandler);
       // get the peer list
-      this.session.send('peer:list', {uuid: this.settings.uuid});
+      this.session.send(CMD.LIST, {uuid: self.settings.uuid});
     };
 
     App.prototype.createSession = function () {
@@ -1565,6 +1569,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, ev, StateMachine
     return App;
   })();
   exports.App = App;
+
+  exports.evercookie = ec;
 
   return module.exports;
 });

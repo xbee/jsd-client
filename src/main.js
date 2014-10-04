@@ -10,6 +10,7 @@ require.config({
         'q': '../lib/q/q',
         'jquery': '../lib/jquery',
         'sockjs': '../lib/sockjs/sockjs',
+        'swfobject': '../lib/evercookie/js/swfobject-2.2.min',
         'evercookie': '../lib/evercookie/js/evercookie',
         'state-machine': '../lib/javascript-state-machine/state-machine',
         'fingerprint': '../lib/fingerprintjs/fingerprint'
@@ -17,7 +18,7 @@ require.config({
     shim: {}
 });
 
-define(['app', 'fingerprint'], function (jsd, fp) {
+define(['app', 'fingerprint', 'evercookie'], function (jsd, fp, ec) {
 
     try {
       var logger = jsd.logger;
@@ -27,6 +28,7 @@ define(['app', 'fingerprint'], function (jsd, fp) {
       app.start();
 
       window.fingerprint = fp;
+      window.evercookie = ec;
       window.jsdapp = app;
       window.jsd = jsd;
 

@@ -6,6 +6,10 @@
 
 var _ = require('underscore');
 var peers = require('./peermanager');
+var crypto = require('crypto');
+// sign with default (HMAC SHA256)
+var jwt = require('jsonwebtoken');
+var tokenSecret = 'c7d182da589$b011d79%22ee5@c_18*8(553)5f@!85ea~3_301-2ceb2345b09f7';
 //var WebSocket = require('ws');
 //var ws = new WebSocket('ws://localhost:3081');
 
@@ -65,13 +69,17 @@ function messageHandler(socket, data) {
           console.log('signal:auth');
 
             //TODO Test if peers authToken matches
+            // uuid + apiKey + datetime + random
+
+            var token = jwt.sign(data, tokenSecret, { expiresInMinutes: 60*72 });
             var success = peers.add({
                 ips: data.ips,
                 socket: socket,
-                uuid: data.uuid
+                uuid: data.uuid,
+                token: token
             });
 
-            sendToPeer(socket, {cmd: 'signal:auth', data: {success: success}});
+            sendToPeer(socket, {cmd: 'signal:auth', data: {success: success, authToken: token}});
 
             //https://github.com/einaros/ws/blob/master/lib/ErrorCodes.js
             if (!success) socket.close(1008, 'Missing auth-credentials or already registered.');
@@ -79,24 +87,64 @@ function messageHandler(socket, data) {
             break;
         case 'peer:list' :
             console.log('peer:list');
-            sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.list(), success: true}});
+            // verify a token symmetric
+            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
+              // console.log(decoded.foo) // bar
+              if (err) {
+                /*
+                 err = {
+                 name: 'TokenExpiredError',
+                 message: 'jwt expired',
+                 expiredAt: 1408621000
+                 }
+                 */
+                logger.log('Signal', err);
+                sendToPeer(socket, {cmd: 'peer:list', data: {error: err, success: false}});
+              } else {
+                sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.list(), success: true}});
+              }
+            });
             break;
         case 'peer:offer' :
             console.log('peer:offer');
-            peer = peers.getPeerByUuid(data.targetPeerUuid);
-            //swap data.targetUuid <-> data.uuid
-            sendToPeer(peer.socket, {cmd: 'peer:offer', data: {targetPeerUuid: data.uuid, offer: data.offer, location: data.location}});
+            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
+              // console.log(decoded.foo) // bar
+              if (err) {
+                logger.log('Signal', err);
+                sendToPeer(socket, {cmd: 'peer:offer', data: {error: err, success: false}});
+              } else {
+                peer = peers.getPeerByUuid(data.targetPeerUuid);
+                //swap data.targetUuid <-> data.uuid
+                sendToPeer(peer.socket, {cmd: 'peer:offer', data: {targetPeerUuid: data.uuid, offer: data.offer, location: data.location}});
+              }
+            });
             break;
         case 'peer:answer' :
             console.log('peer:answer');
-            peer = peers.getPeerByUuid(data.targetPeerUuid);
-            //swap data.targetUuid <-> data.uuid
-            sendToPeer(peer.socket, {cmd: 'peer:answer', data: {targetPeerUuid: data.uuid, answer: data.answer}});
+            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
+              // console.log(decoded.foo) // bar
+              if (err) {
+                logger.log('Signal', err);
+                sendToPeer(socket, {cmd: 'peer:answer', data: {error: err, success: false}});
+              } else {
+                peer = peers.getPeerByUuid(data.targetPeerUuid);
+                //swap data.targetUuid <-> data.uuid
+                sendToPeer(peer.socket, {cmd: 'peer:answer', data: {targetPeerUuid: data.uuid, answer: data.answer}});
+              }
+            });
             break;
         case 'peer:candidate' :
             console.log('peer:candidate');
-            peer = peers.getPeerByUuid(data.targetPeerUuid);
-            sendToPeer(peer.socket, {cmd: 'peer:candidate', data: {targetPeerUuid: data.uuid, candidate: data.candidate}});
+            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
+              // console.log(decoded.foo) // bar
+              if (err) {
+                logger.log('Signal', err);
+                sendToPeer(socket, {cmd: 'peer:candidate', data: {error: err, success: false}});
+              } else {
+                peer = peers.getPeerByUuid(data.targetPeerUuid);
+                sendToPeer(peer.socket, {cmd: 'peer:candidate', data: {targetPeerUuid: data.uuid, candidate: data.candidate}});
+              }
+            });
             break;
         default:
             console.log(data);

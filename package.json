@@ -46,6 +46,7 @@
     "deamdify": "^0.1.1",
     "deglobalify": "^0.2.0",
     "eventemitter2": "^0.4.14",
+    "jsonwebtoken": "^1.1.2",
     "lodash": "^2.4.1",
     "node-uuid": "^1.4.1",
     "observe-js": "^0.1.0",

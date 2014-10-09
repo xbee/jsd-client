@@ -350,14 +350,25 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       };
 
       var ds = new Date();
-      var fp = new fingerprint({hasher: my_hasher});
+      var fp = new fingerprint();
       var bid = fp.get();
 
-      var seed = getRandomInt(100, 100000);
-      var sid = fp.murmurhash3_32_gc(ds.toString(), 32);
+      var sid = getRandomInt(100, 1000);
+//      var sid = fp.murmurhash3_32_gc(ds.toString(), seed);
 //      this.bid = bid;
 
       return String(sid)+'.'+String(bid);
+    };
+
+    var getFingerPrint = function() {
+      var my_hasher = function(value, seed) {
+        return CryptoJS.SHA1(value).toString(CryptoJS.enc.Hex);
+      };
+
+      //var fp = new fingerprint({hasher: my_hasher});
+      var fp = new fingerprint();
+      var bid = fp.get();
+      return bid;
     };
 
     /**
@@ -383,6 +394,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     };
     this._format = new RegExp('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i');
     return {
+      getBid: getFingerPrint,
       getUid: getUid,
       generate: generate,
       isValid: this.isValid
@@ -443,6 +455,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       },
       syncInterval: 3600000, //1h
       apiKey: '1c69f278739ed7653f5a0f2d8ca51c0e41100492',
+      _xb: Uuid.getBid(),
       uuid: Uuid.getUid() //everyone will know (public)
     });
 
@@ -559,9 +572,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   PeerEvent.CONNECTING = 'peer:connecting';
   PeerEvent.HOLD = 'peer:hold';
   PeerEvent.UNHOLD = 'peer:unhold';
-  PeerEvent.REJECTED = 'peer:rejected';
-  PeerEvent.CONNECTED = 'peer:connected';
-  PeerEvent.DISCONNECTED = 'peer:disconnected';
+  PeerEvent.REJECT = 'peer:reject';
+  PeerEvent.CONNECT = 'peer:connect';
+  PeerEvent.DISCONNECT = 'peer:disconnect';
+  PeerEvent.MESSAGE = 'peer:message';
   PeerEvent.ADDSTREAM = 'stream:add';
 
   var SignalSession = (function () {
@@ -595,6 +609,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       this.on(CMD.OFFER, this.peerOfferHandler.bind(this));
       this.on(CMD.ANSWER, this.peerAnswerHandler.bind(this));
       this.on(CMD.CANDIDATE, this.peerCandidateHandler.bind(this));
+
+      this.on(PeerEvent.CONNECT, this.peerConnectedHandler.bind(this));
+      this.on(PeerEvent.DISCONNECT, this.peerDisconnectHandler.bind(this));
+      this.on(PeerEvent.MESSAGE, this.peerMessageHandler.bind(this));
 
       this.peers = this.createPeerManager();
       // for fsm to initialize
@@ -759,8 +777,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         } else {
           if (this.is('disconnected')) {
             for (i = 0; i < this.peers.length; i += 1) {
-              this.peers[i].parallel.triggerEvent(PeerEvent.DISCONNECTED);
-              this.peers[i].triggerEvent(PeerEvent.DISCONNECTED);
+              this.peers[i].parallel.triggerEvent(PeerEvent.DISCONNECT);
+              this.peers[i].triggerEvent(PeerEvent.DISCONNECT);
             }
           }
         }
@@ -780,14 +798,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
         if (!data || !_.isObject(data) || _.isEmpty(data)) {
           throw new Error('Data is not an object/empty!');
-  //        deferred.reject('Data is not an object/empty!');
-  //        return deferred.promise;
         }
 
         if (!cmd) {
           throw new Error('Command is not defined!');
-  //        deferred.reject('Command is not defined!');
-  //        return deferred.promise;
         }
 
         // add cmd to data
@@ -973,7 +987,33 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       peerTimeoutHandler: function(e) {
         logger.log('Peer ' + e.peerId, 'Time-out occured trying to connect!');
         this.peerDisconnectHandler(e);
+      },
+
+      /**
+       * Event-Handler, gets called when a Peer receives a message.
+       *
+       * @param {Object} e
+       */
+      peerMessageHandler: function(e) {
+        logger.log('Peer '+e.target.id, 'Received', e.type);
+
+        if (!e || !e.type) {
+          logger.log('Network', 'Peer-message without type received');
+          return;
+        }
+        // Seems to be a master-message
+        if (e.data && e.data.message && e.data.signature) {
+//          masterMessageHandler(e);
+        }
+        else {
+          // Message is still valid? Or has expired? Without data will always be valid
+          if (!e.data || e.data.timestamp + project.network.broadcast.messageTtl < Date.now()) {
+            // Pass-through events, that will be caught by mediator
+            module.emit(e.type, e);
+          }
+        }
       }
+
     };
 
     StateMachine.create({
@@ -1035,6 +1075,147 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   }
 
   var PeerSession = (function () {
+
+    var uuid = settings.uuid;
+
+    function setChannelEvents(channel, config) {
+      channel.binaryType = 'arraybuffer';
+      channel.onmessage = function(event) {
+        config.ondata(event.data);
+      };
+      channel.onopen = function() {
+        config.onopen();
+      };
+
+      channel.onerror = function(e) {
+        console.error('channel.onerror', JSON.stringify(e, null, '\t'));
+        config.onerror(e);
+      };
+
+      channel.onclose = function(e) {
+        console.warn('channel.onclose', JSON.stringify(e, null, '\t'));
+        config.onclose(e);
+      };
+    };
+
+    var dataChannelDict = {};
+    var offererDataChannel;
+
+    // Offer need external things: socket, uuid, channel handlers
+    var Offer = {
+      // createOffer is the constructor for Offer
+      createOffer: function(config) {
+        var peer = new RTCPeerConnection(iceServers, optionalArgument);
+
+        var self = this;
+        self.config = config;
+
+        peer.onicecandidate = function(event) {
+          if (event.candidate) {
+            config.onicecandidate(event.candidate);
+          } else {
+            // emit on end of candidate event
+          }
+        };
+
+        peer.onsignalingstatechange = function() {
+          console.log('onsignalingstatechange:', JSON.stringify({
+            iceGatheringState: peer.iceGatheringState,
+            signalingState: peer.signalingState
+          }));
+        };
+        peer.oniceconnectionstatechange = function() {
+          console.log('oniceconnectionstatechange:', JSON.stringify({
+            iceGatheringState: peer.iceGatheringState,
+            signalingState: peer.signalingState
+          }));
+        };
+
+        this.createDataChannel(peer);
+
+//      window.peer = peer;
+        peer.createOffer(function(sdp) {
+          peer.setLocalDescription(sdp);
+          config.onsdp(sdp);
+        }, onSdpError, offerAnswerConstraints);
+
+        this.peer = peer;
+
+        return this;
+      },
+      setRemoteDescription: function(sdp) {
+        this.peer.setRemoteDescription(new RTCSessionDescription(sdp));
+      },
+      addIceCandidate: function(candidate) {
+        this.peer.addIceCandidate(new RTCIceCandidate({
+          sdpMLineIndex: candidate.sdpMLineIndex,
+          candidate: candidate.candidate
+        }));
+      },
+      createDataChannel: function(peer) {
+        offererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
+        setChannelEvents(offererDataChannel, this.config);
+      }
+    };
+
+    var answererDataChannel;
+
+    var Answer = {
+      createAnswer: function(config) {
+        var peer = new RTCPeerConnection(iceServers, optionalArgument);
+
+        var self = this;
+        self.config = config;
+
+        peer.ondatachannel = function(event) {
+          answererDataChannel = event.channel;
+          setChannelEvents(answererDataChannel, config);
+        };
+
+        peer.onicecandidate = function(event) {
+          if (event.candidate)
+            config.onicecandidate(event.candidate);
+        };
+
+        peer.onsignalingstatechange = function() {
+          console.log('onsignalingstatechange:', JSON.stringify({
+            iceGatheringState: peer.iceGatheringState,
+            signalingState: peer.signalingState
+          }));
+        };
+        peer.oniceconnectionstatechange = function() {
+          console.log('oniceconnectionstatechange:', JSON.stringify({
+            iceGatheringState: peer.iceGatheringState,
+            signalingState: peer.signalingState
+          }));
+        };
+
+        peer.setRemoteDescription(new RTCSessionDescription(config.sdp));
+        peer.createAnswer(function(sdp) {
+          peer.setLocalDescription(sdp);
+          config.onsdp(sdp);
+        }, onSdpError, offerAnswerConstraints);
+
+        this.peer = peer;
+
+        return self;
+      },
+      addIceCandidate: function(candidate) {
+        this.peer.addIceCandidate(new RTCIceCandidate({
+          sdpMLineIndex: candidate.sdpMLineIndex,
+          candidate: candidate.candidate
+        }));
+      },
+      createDataChannel: function(peer) {
+        answererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
+        setChannelEvents(answererDataChannel, this.config);
+      }
+    };
+
+    function onSdpError(e) {
+      console.error(e);
+    }
+
     function PeerSession(server, peerId) {
       var _self = this;
       /**
@@ -1152,10 +1333,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       _self.channel = e.channel;
 
-      _self.channel.onclose = this.channel_CloseHandler;
-      _self.channel.onerror = this.channel_ErrorHandler;
-      _self.channel.onmessage = this.channel_MessageHandler;
-      _self.channel.onopen = this.channel_OpenHandler;
+      _self.channel.onclose = this.channel_CloseHandler.bind(this);
+      _self.channel.onerror = this.channel_ErrorHandler.bind(this);
+      _self.channel.onmessage = this.channel_MessageHandler.bind(this);
+      _self.channel.onopen = this.channel_OpenHandler.bind(this);
     };
 
     PeerSession.prototype.iceConnectionStateChangeHandler = function (e) {
@@ -1163,12 +1344,14 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       // Everything is fine
       if (_self.connection.iceConnectionState === 'connected' && _self.connection.iceGatheringState === 'complete') {
-        logger.log('Peer', _self.peerId, 'Connection established');
+        logger.log('Peer '+_self.peerId, 'Connection established');
+        _self.isConnected = true;
+
       } else if (_self.connection.iceConnectionState === 'disconnected') {
-        logger.log('Peer', _self.peerId, 'Connection closed');
+        logger.log('Peer '+_self.peerId, 'Connection closed');
 
         _self.isConnected = false;
-        _self.emit('peer:disconnect', _self);
+        _self.emit(PeerEvent.DISCONNECT, _self);
       }
     };
 
@@ -1186,9 +1369,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
     PeerSession.prototype.negotiationNeededHandler = function (e) {
       var _self = this;
-      logger.log('Peer', _self.peerId, 'Negotiation needed');
+      logger.log('Peer '+_self.peerId, 'Negotiation needed');
 
-      //2. Alice creates an offer (an SDP session description) with the RTCPeerConnection createOffer() method.
+      //2. Alice creates an offer (an SDP session description)
+      // with the RTCPeerConnection createOffer() method.
       _makeOffer(_self);
     };
 
@@ -1197,7 +1381,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
     PeerSession.prototype.channel_ErrorHandler = function (e) {
       var _self = this;
-      logger.log('Peer', _self.peerId, 'Channel has an error', e);
+      logger.log('Peer '+_self.peerId, 'Channel has an error', e);
     };
 
     PeerSession.prototype.channel_MessageHandler = function (e) {
@@ -1212,26 +1396,26 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         try {
           msg = JSON.parse(e.data);
         } catch (err) {
-          logger.error('Peer', _self.peerId, 'Error parsing msg:', e.data);
+          logger.error('Peer '+_self.peerId, 'Error parsing msg:', e.data);
         }
       }
 
-      _self.emit('peer:message', _.extend(msg, { target: _self }));
+      _self.emit(PeerEvent.MESSAGE, _.extend(msg, { target: _self }));
     };
 
     PeerSession.prototype.channel_OpenHandler = function (e) {
       var _self = this;
-      logger.log('Peer ' + _self.peerId, 'DataChannel is open');
+      logger.log('Peer '+_self.peerId, 'DataChannel is open');
 
       _self.isConnected = true;
-      _self.emit('peer:connect', _self);
+      _self.emit(PeerEvent.CONNECT, _self);
     };
 
     PeerSession.prototype.channel_CloseHandler = function (e) {
       var _self = this;
       logger.log('Peer', _self.peerId, 'DataChannel is closed', e);
       _self.isConnected = false;
-      _self.emit('peer:disconnect', _self);
+      _self.emit(PeerEvent.DISCONNECT, _self);
     };
 
     /* Event Handler END */
@@ -1247,7 +1431,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       this.isSource = true;
       this.isTarget = false;
 
-      logger.log('Peer', _self.peerId, 'Creating connection, offer');
+      logger.log('Peer '+_self.peerId, 'Creating connection, offer');
 
       //1.Alice creates an RTCPeerConnection object.
       _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
@@ -1755,6 +1939,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     };
 
     App.prototype.createSession = function () {
+      settings.uuid = Uuid.getUid();
       var session = new SignalSession(settings.uuid, settings.apiKey);
       return session;
     };
@@ -1819,8 +2004,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     return App;
   })();
   exports.App = App;
-
-//  exports.evercookie = ec;
 
   return module.exports;
 });

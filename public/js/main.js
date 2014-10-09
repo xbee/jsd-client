@@ -20,7 +20,8 @@ require.config({
     shim: {}
 });
 
-define(['app', 'fingerprint', 'sha1'], function (jsd, fingerprint, sha1) {
+define(['jquery', 'app', 'fingerprint', 'sha1'],
+function ($, jsd, fingerprint, sha1) {
 
     try {
       var logger = jsd.logger;
@@ -40,6 +41,16 @@ define(['app', 'fingerprint', 'sha1'], function (jsd, fingerprint, sha1) {
 
       window.peer = peer;
       window.createPeerConnection = createPeerConnection;
+
+      $('#uuid').val(app.settings.uuid);
+      $('#call').click(function () {
+        var target = $('#target').val();
+        if (target) {
+          window.createPeerConnection(target);
+        } else {
+          console.error('You need input the target id');
+        }
+      });
 //      var my_hasher = function(value, seed) {
 //        return CryptoJS.SHA1(value).toString(CryptoJS.enc.Hex);
 //      };

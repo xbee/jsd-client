@@ -4,8 +4,17 @@ block header
     script(data-main='js/main.js', src='lib/require.js')
 
 block content
-    #content
-    output#log
+    #content.content
+        label(for='uuid') Your UserName:
+        input#uuid(type='text')
+        br
+        label(for='target') Target UserName:
+        input#target(type='text', placeholder='Required')
+        br
+        button#start-signaler(disabled='') Start Signaler
+        button#call Call
+        hr
+        output#log
     script(type='text/javascript', src='lib/jquery.js')
     script(type='text/javascript', src='lib/clientjs/dist/client.min.js')
     script(type='text/javascript', src='lib/evercookie/js/evercookie.js')

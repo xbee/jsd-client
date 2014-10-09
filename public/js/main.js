@@ -29,6 +29,17 @@ define(['app', 'fingerprint', 'sha1'], function (jsd, fingerprint, sha1) {
       app.init();
       app.start();
 
+      var peer = null;
+      var createPeerConnection = function(peerid) {
+        peer = app.session.createPeer(peerid);
+        peer.isSource = true;
+        peer.isTarget = false;
+        app.session.peers.add(peer);
+        peer.createConnection();
+      };
+
+      window.peer = peer;
+      window.createPeerConnection = createPeerConnection;
 //      var my_hasher = function(value, seed) {
 //        return CryptoJS.SHA1(value).toString(CryptoJS.enc.Hex);
 //      };

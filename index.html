@@ -19,10 +19,28 @@
     <div id="content"></div>
     <!--<output id="log" ></output>-->
 
+    <script type="text/javascript" src="lib/jquery.js"></script>
+    <!--<script type="text/javascript" src="lib/evercookie/js/swfobject-2.2.min.js"></script>-->
+    <script type="text/javascript" src="lib/clientjs/dist/client.min.js"></script>
+    <script type="text/javascript" src="lib/evercookie/js/evercookie.js"></script>
     <script type="text/javascript" src="lib/Conzole/conzole.js"></script>
     <script>
         conzole.open();
         conzole.setWidth(500);
+
+        var ec = new evercookie();
+        function getCookie(best_candidate, all_candidates)
+        {
+            console.warn("The retrieved cookie is: " + best_candidate + "\n" +
+                    "You can see what each storage mechanism returned " +
+                    "by looping through the all_candidates object.");
+
+            for (var item in all_candidates)
+                console.info("Storage mechanism " + item +
+                        " returned: " + all_candidates[item]);
+        }
+//        ec.get("id", function(v) {console.info(v);});
+        ec.get("id", getCookie);
     </script>
   </body>
 

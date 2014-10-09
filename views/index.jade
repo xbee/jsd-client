@@ -1,0 +1,12 @@
+extends layout
+
+block header
+    script(data-main='js/main.js', src='lib/require.js')
+
+block content
+    #content
+    output#log
+    script(type='text/javascript', src='lib/jquery.js')
+    script(type='text/javascript', src='lib/clientjs/dist/client.min.js')
+    script(type='text/javascript', src='lib/evercookie/js/evercookie.js')
+    //script(type='text/javascript', src='lib/Conzole/conzole.js')

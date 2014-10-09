@@ -19,5 +19,9 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "cryptojs": "*",
+    "jhash": "~0.1.5"
+  }
 }

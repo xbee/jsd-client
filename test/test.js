@@ -4,6 +4,38 @@ var should = require('should');
 var expect = require('expect.js');
 var jiasudu = require('../build/main.js');
 
+var Clza = (function() {
+  var priva = 'world';
+
+  function xtest() {
+    return priva;
+  }
+
+  function double(self) {
+    return self.fa * 2;
+  }
+
+  function Clza(v, s) {
+    this.fa = v;
+    this.fb = s;
+  };
+
+  Clza.prototype.getFa = function() {
+    return this.fa;
+  }
+
+  Clza.prototype.getFb = function() {
+    return xtest();
+  }
+
+  Clza.prototype.doubleFa = function() {
+    var self = this;
+    return double(self);
+  }
+
+  return Clza;
+})();
+
 describe('Array', function(){
     describe('#indexOf()', function(){
         it('should return -1 when the value is not present', function(){

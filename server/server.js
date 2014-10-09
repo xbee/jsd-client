@@ -3,6 +3,9 @@
  * @author Matthieu Holzer
  * @version 0.1
  */
+var fs = require("fs");
+var Buffer = require("buffer").Buffer;
+var Png = require("png").Png;
 
 var _ = require('underscore');
 var peers = require('./peermanager');
@@ -15,13 +18,6 @@ var tokenSecret = 'c7d182da589$b011d79%22ee5@c_18*8(553)5f@!85ea~3_301-2ceb2345b
 
 var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({port: 3081});
-//var WebSocketServer = require('ws').Server;
-//var wss = new WebSocketServer(
-//    {
-//        host: process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1',
-//        port: 3081
-//    }
-//);
 
 console.log('listening on 3081 ... ');
 
@@ -29,7 +25,7 @@ var HEARTBEAT_INTERVAL = 1000 * 60; //1m
 
 //Global Exception Handling
 process.on('uncaughtException', function (err) {
-    console.error(err.stack);
+  console.error(err.stack);
 });
 
 
@@ -43,130 +39,141 @@ wss.on('connection', function (socket) {
 //        }, HEARTBEAT_INTERVAL
 //    );
 
-    socket.on('message', function (data) {
-        console.log('received: %s', data);
-        messageHandler(socket, JSON.parse(data));
-    });
+  socket.on('message', function (data) {
+    console.log('received: %s', data);
+    messageHandler(socket, JSON.parse(data));
+  });
 
-    socket.on('close', function (e) {
-        console.log('client disconnected!');
-        peers.remove(peers.getPeerBySocket(socket));
+  socket.on('close', function (e) {
+    console.log('client disconnected!');
+    peers.remove(peers.getPeerBySocket(socket));
 //        clearInterval(heartbeat);
-    });
+  });
 
 });
 
 
 function messageHandler(socket, data) {
-    var peer;
+  var peer;
 
-  console.log('Received a message: ', data);
+//  console.log('Received a message: ', data);
 
-    if (!data.cmd) return;
+  if (!data.cmd) return;
+  console.log(data.cmd);
 
-    switch (data.cmd.toLowerCase()) {
-        case 'signal:auth' :
-          console.log('signal:auth');
+  switch (data.cmd.toLowerCase()) {
+    case 'signal:auth' :
 
-            //TODO Test if peers authToken matches
-            // uuid + apiKey + datetime + random
+      //TODO Test if peers apiKey and host matches
+      // uuid + apiKey + datetime + random
 
-            var token = jwt.sign(data, tokenSecret, { expiresInMinutes: 60*72 });
-            var success = peers.add({
-                ips: data.ips,
-                socket: socket,
-                uuid: data.uuid,
-                token: token
-            });
+      var token = jwt.sign(data, tokenSecret, { expiresInMinutes: 60 * 72 });
+      var expiresAt = Date.now() + 1000 * 3600 * 72;
+      var success = peers.add({
+        ips: data.ips,
+        socket: socket,
+        uuid: data.uuid,
+        token: token
+      });
 
-            sendToPeer(socket, {cmd: 'signal:auth', data: {success: success, authToken: token}});
+      sendToPeer(socket, {cmd: 'signal:auth', data: {success: success, authToken: token, expiresAt: expiresAt}});
 
-            //https://github.com/einaros/ws/blob/master/lib/ErrorCodes.js
-            if (!success) socket.close(1008, 'Missing auth-credentials or already registered.');
+      //https://github.com/einaros/ws/blob/master/lib/ErrorCodes.js
+      if (!success) socket.close(1008, 'Missing auth-credentials or already registered.');
 
-            break;
-        case 'peer:list' :
-            console.log('peer:list');
-            // verify a token symmetric
-            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
-              // console.log(decoded.foo) // bar
-              if (err) {
-                /*
-                 err = {
-                 name: 'TokenExpiredError',
-                 message: 'jwt expired',
-                 expiredAt: 1408621000
-                 }
-                 */
-                logger.log('Signal', err);
-                sendToPeer(socket, {cmd: 'peer:list', data: {error: err, success: false}});
-              } else {
-                sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.list(), success: true}});
-              }
-            });
-            break;
-        case 'peer:offer' :
-            console.log('peer:offer');
-            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
-              // console.log(decoded.foo) // bar
-              if (err) {
-                logger.log('Signal', err);
-                sendToPeer(socket, {cmd: 'peer:offer', data: {error: err, success: false}});
-              } else {
-                peer = peers.getPeerByUuid(data.targetPeerUuid);
-                //swap data.targetUuid <-> data.uuid
-                sendToPeer(peer.socket, {cmd: 'peer:offer', data: {targetPeerUuid: data.uuid, offer: data.offer, location: data.location}});
-              }
-            });
-            break;
-        case 'peer:answer' :
-            console.log('peer:answer');
-            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
-              // console.log(decoded.foo) // bar
-              if (err) {
-                logger.log('Signal', err);
-                sendToPeer(socket, {cmd: 'peer:answer', data: {error: err, success: false}});
-              } else {
-                peer = peers.getPeerByUuid(data.targetPeerUuid);
-                //swap data.targetUuid <-> data.uuid
-                sendToPeer(peer.socket, {cmd: 'peer:answer', data: {targetPeerUuid: data.uuid, answer: data.answer}});
-              }
-            });
-            break;
-        case 'peer:candidate' :
-            console.log('peer:candidate');
-            jwt.verify(data.authToken, tokenSecret, function(err, decoded) {
-              // console.log(decoded.foo) // bar
-              if (err) {
-                logger.log('Signal', err);
-                sendToPeer(socket, {cmd: 'peer:candidate', data: {error: err, success: false}});
-              } else {
-                peer = peers.getPeerByUuid(data.targetPeerUuid);
-                sendToPeer(peer.socket, {cmd: 'peer:candidate', data: {targetPeerUuid: data.uuid, candidate: data.candidate}});
-              }
-            });
-            break;
-        default:
-            console.log(data);
-            break;
+      break;
+    case 'peer:list' :
+      // verify a token symmetric
+      jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
+        // console.log(decoded.foo) // bar
+        if (err) {
+          /*
+           err = {
+           name: 'TokenExpiredError',
+           message: 'jwt expired',
+           expiredAt: 1408621000
+           }
+           */
+          console.log('Signal', err);
+          sendToPeer(socket, {cmd: 'peer:list', data: {error: err, success: false}});
+        } else {
+          sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.list(), success: true}});
+        }
+      });
+      break;
+    case 'peer:offer' :
+      jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
+        // console.log(decoded.foo) // bar
+        if (err) {
+          console.log('Signal', err);
+          sendToPeer(socket, {cmd: 'peer:offer', data: {error: err, success: false}});
+        } else {
+          peer = peers.getPeerByUuid(data.targetPeerUuid);
+          //swap data.targetUuid <-> data.uuid
+          sendToPeer(peer.socket, {cmd: 'peer:offer', data: {targetPeerUuid: data.uuid, offer: data.offer}});
+        }
+      });
+      break;
+    case 'peer:answer' :
+      jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
+        // console.log(decoded.foo) // bar
+        if (err) {
+          console.log('Signal', err);
+          sendToPeer(socket, {cmd: 'peer:answer', data: {error: err, success: false}});
+        } else {
+          peer = peers.getPeerByUuid(data.targetPeerUuid);
+          //swap data.targetUuid <-> data.uuid
+          sendToPeer(peer.socket, {cmd: 'peer:answer', data: {targetPeerUuid: data.uuid, answer: data.answer}});
+        }
+      });
+      break;
+    case 'peer:candidate' :
+      jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
+        // console.log(decoded.foo) // bar
+        if (err) {
+          console.log('Signal', err);
+          sendToPeer(socket, {cmd: 'peer:candidate', data: {error: err, success: false}});
+        } else {
+          peer = peers.getPeerByUuid(data.targetPeerUuid);
+          sendToPeer(peer.socket, {cmd: 'peer:candidate', data: {targetPeerUuid: data.uuid, candidate: data.candidate}});
+        }
+      });
+      break;
+    default:
+      console.log(data);
+      break;
 
-    }
+  }
 }
 
 
 function sendToPeer(socket, data) {
-    //state 1 = ready
-    if (!socket || !(socket.readyState === 1)) {
-        peers.remove(peers.getPeerBySocket(socket));
-        return;
-    }
-    try {
-        socket.send(JSON.stringify(data));
-        console.log('Send a message: ', JSON.stringify(data));
-    }
-    catch (e) {
-        peers.remove(peers.getPeerBySocket(socket));
-        socket.close();
-    }
+  //state 1 = ready
+  if (!socket || !(socket.readyState === 1)) {
+    peers.remove(peers.getPeerBySocket(socket));
+    return;
+  }
+  try {
+    socket.send(JSON.stringify(data));
+    console.log('Send a message: ', JSON.stringify(data));
+  }
+  catch (e) {
+    peers.remove(peers.getPeerBySocket(socket));
+    socket.close();
+  }
 
+}
+
+function createCookiePng(xd) {
+  var IMAGE_WIDTH = 200;
+  var IMAGE_HEIGHT = 1;
+
+  var bf = new Buffer(xd, 'hex');
+  var rgb = new Buffer(IMAGE_WIDTH * IMAGE_HEIGHT * 3);
+  // rgb.fill(0); // better to keep it random
+  bf.copy(rgb, 0);
+  var png = new Png(rgb, IMAGE_WIDTH, IMAGE_HEIGHT, "rgb");
+
+  fs.writeFile("cookie.png", png.encodeSync().toString("binary"),
+      "binary");
 }

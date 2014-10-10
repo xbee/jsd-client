@@ -465,6 +465,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     exports.settings = settings;
   }
 
+  // a module global variable
+  var juid = settings.uuid;
+
   /*
    *  get all of local ip address
    */
@@ -548,9 +551,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   CMD = {};
   CMD.AUTH = 'signal:auth';
   CMD.LIST = 'peer:list';
+  CMD.PARTICIPANT = 'peer:participant';
   CMD.OFFER = 'peer:offer';
   CMD.ANSWER = 'peer:answer';
+  CMD.SDP = 'peer:sdp'; // include offer and answer
   CMD.CANDIDATE = 'peer:candidate';
+
 
 //  SignalStatus.CONNECTING = 'signal:connecting';
 //  SignalStatus.DISCONNECTED = 'signal:disconnected';
@@ -580,17 +586,17 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
   var SignalSession = (function () {
 
-    function SignalSession(uuid, apikey, config, callback) {
+    function SignalSession() {
       var _self = this;
       this.host = settings.signalServer.host;
       this.port = settings.signalServer.port;
       this.isSecure = settings.signalServer.isSecure;
-      this.uuid = uuid;
-      this.callback = callback; // useless
+      this.uuid = settings.uuid;
       this.socket = null;
       //this.isConnected = false;
       this.localIPs = [];
       this.peers = null;
+      this.psm = null;
 
       this.emitter = new EventEmitter2({
         wildcard: true, // should the event emitter use wildcards.
@@ -606,19 +612,59 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       this.offAny = this.emitter.offAny;
       this.removeAllListeners = this.emitter.removeAllListeners;
 
-      this.on(CMD.OFFER, this.peerOfferHandler.bind(this));
-      this.on(CMD.ANSWER, this.peerAnswerHandler.bind(this));
-      this.on(CMD.CANDIDATE, this.peerCandidateHandler.bind(this));
+      //this.on(CMD.OFFER, this.peerOfferHandler.bind(this));
+      //this.on(CMD.ANSWER, this.peerAnswerHandler.bind(this));
+      //this.on(CMD.CANDIDATE, this.peerCandidateHandler.bind(this));
 
-      this.on(PeerEvent.CONNECT, this.peerConnectedHandler.bind(this));
-      this.on(PeerEvent.DISCONNECT, this.peerDisconnectHandler.bind(this));
-      this.on(PeerEvent.MESSAGE, this.peerMessageHandler.bind(this));
+      //this.on(PeerEvent.CONNECT, this.peerConnectedHandler.bind(this));
+      //this.on(PeerEvent.DISCONNECT, this.peerDisconnectHandler.bind(this));
+      //this.on(PeerEvent.MESSAGE, this.peerMessageHandler.bind(this));
 
-      this.peers = this.createPeerManager();
+      var socket = this.socket;
+      var self = this;
+      // it is passed over Offer/Answer objects for reusability
+      this.events = {
+        // rtcpeerconnection events
+        onsdp: function (peerId, sdp) {
+          self.send(CMD.SDP,
+              {
+                from: settings.uuid,
+                sdp: sdp, // {type: 'offer', data: sdp-content}
+                to: peerId
+              }
+          );
+        },
+        onicecandidate: function(peerId, candidate) {
+          self.send(CMD.CANDIDATE,
+            {
+              from: settings.uuid,
+              candidate: candidate,
+              to: peerId
+            }
+          );
+        },
+        // rtcdatachannel events
+        ondata: function(data) {
+          self.ondata(data);
+        },
+        onopen: function() {
+          self.peerConnectedHandler();
+        },
+        onclose: function(e) {
+          if (self.peerDisconnectHandler) self.peerDisconnectHandler(e);
+        },
+        onerror: function(e) {
+          if (self.onerror) self.onerror(e);
+        }
+      };
+
+      this.psm = this.createPeerManager();
       // for fsm to initialize
       this.startup();
 
     };
+
+    var root = this.psm;
 
     SignalSession.prototype = {
       //------------------ begin of events ------------------
@@ -711,7 +757,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           // need to check if token have existed
 //          var isExisted = ((settings.authToken === null) || (settings.tokenExpiresAt <= Date.now()))
 //                          ? false : true;
-          var isExisted = false
+          var isExisted = false;
           if (isExisted) {
             return true;
           } else {
@@ -767,7 +813,34 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         logger.log('Signal', "CHANGED STATE: " + from + " to " + to);
       },
 
+      // if someone shared SDP
+      // message include: from, to, sdp.type, sdp.sdp
+      onsdp: function(message) {
+        var sdp = message.sdp;
+        var from = message.from;
+
+        if (sdp.type === 'offer') {
+          this.psm._peers[message.from] = Answer.createAnswer(from, sdp, this.events);
+        }
+
+        if (sdp.type === 'answer') {
+          this.psm._peers[message.from].setRemoteDescription(sdp);
+        }
+      },
+
       //------------------ end of events ------------------
+
+      acceptPartitipantRequest: function(data) {
+        var from = data.from;
+        if (data.to && (data.to === settings.uuid)) {
+          // TODO: need to judge can we create new offer
+          logger.log('Peer '+settings.uuid, 'Received invite from ', data.from);
+          // create the offer
+          if (from) {
+            this.psm._peers[from] = Offer.createOffer(from, this.events);
+          }
+        }
+      },
 
       triggerEvent: function (status, peer) {
         var eventInfo = {}, i;
@@ -776,20 +849,21 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           this.peers.push(peer);
         } else {
           if (this.is('disconnected')) {
-            for (i = 0; i < this.peers.length; i += 1) {
-              this.peers[i].parallel.triggerEvent(PeerEvent.DISCONNECT);
-              this.peers[i].triggerEvent(PeerEvent.DISCONNECT);
-            }
+            // TODO: need to do something
+//            for (i = 0; i < this.peers.length; i += 1) {
+//              this.peers[i].parallel.triggerEvent(PeerEvent.DISCONNECT);
+//              this.peers[i].triggerEvent(PeerEvent.DISCONNECT);
+//            }
           }
         }
         // can not use this.emitter.emit , why ?
         // next line is ok
         // (this.emitter.emit.bind(this))(status, eventInfo, this.callback);
-        this.emit(status, eventInfo, this.callback);
+        this.emit(status, eventInfo);
       },
 
       // private function
-      send: function (cmd, data, waitForResponse) {
+      send: function (cmd, data) {
         var self = this;
 
         if (!self.is('connected') && !self.is('authenticated')) {
@@ -819,23 +893,27 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       sendAuthentication: function () {
         var self = this;
-        return this.send(CMD.AUTH, { uuid: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs, host: window.location.host });
+        return this.send(CMD.AUTH, { from: settings.uuid, apiKey: settings.apiKey, ips: self.localIPs, host: window.location.host });
       },
 
       sendPeerOffer: function (targetPeerUuid, offer) {
-        return this.send(CMD.OFFER, { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, offer: offer });
+        return this.send(CMD.OFFER, { from: settings.uuid, to: targetPeerUuid, offer: offer });
       },
 
       sendPeerAnswer: function (targetPeerUuid, answer) {
-        return this.send(CMD.ANSWER, { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, answer: answer });
+        return this.send(CMD.ANSWER, { from: settings.uuid, to: targetPeerUuid, answer: answer });
       },
 
-      sendPeerCandidate: function (targetPeerUuid, candidate) {
-        return this.send(CMD.CANDIDATE, { uuid: settings.uuid, targetPeerUuid: targetPeerUuid, candidate: candidate });
+      sendPeerCandidate: function (target, candidate) {
+        return this.send(CMD.CANDIDATE, { from: settings.uuid, to: target, candidate: candidate });
+      },
+
+      sendParticipantRequest: function(target) {
+        return this.send(CMD.PARTICIPANT, { from: settings.uuid, to: target });
       },
 
       getAllRelatedPeers: function () {
-        return this.send(CMD.LIST, { uuid: settings.uuid });
+        return this.send(CMD.LIST, { from: settings.uuid });
       },
 
       messageHandler: function (e) {
@@ -846,13 +924,21 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
         switch (cmd.toLowerCase()) {
           case CMD.OFFER:
-            this.emit(CMD.OFFER, { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, offer: data.data.offer });
+            this.emit(CMD.OFFER, { from: self.uuid, to: data.data.to, offer: data.data.offer });
             break;
           case CMD.ANSWER:
-            this.emit(CMD.ANSWER, { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, answer: data.data.answer });
+            this.emit(CMD.ANSWER, { from: self.uuid, to: data.data.to, answer: data.data.answer });
             break;
           case CMD.CANDIDATE:
-            this.emit(CMD.CANDIDATE, { nodeUuid: self.uuid, targetPeerUuid: data.data.targetPeerUuid, candidate: data.data.candidate });
+            this.emit(CMD.CANDIDATE, { from: self.uuid, to: data.data.to, candidate: data.data.candidate });
+            break;
+          case CMD.SDP:
+            //this.emit(CMD.SDP, { from: self.uuid, to: data.data.to, sdp: data.data.sdp });
+            this.onsdp(data.data); // include: from, to, sdp.type, sdp.sdp
+            break;
+          case CMD.PARTICIPANT:
+            this.acceptPartitipantRequest(data.data);
+            //this.emit(CMD.PARTICIPANT, { from: self.uuid, to: data.data.to });
             break;
         }
       },
@@ -897,15 +983,15 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         logger.log('Peer '+this.uuid, 'Received offer: ', data);
 
         var self = this;
-        var peer = self.peers.getPeerByUuid(data.targetPeerUuid);
+        var peer = self.peers.getPeerByUuid(data.to);
 
         if (!peer) {
-          peer = this.createPeer(data.targetPeerUuid);
+          peer = this.createPeer(data.to);
           peer.isSource = false;
           peer.isTarget = true;
 
           self.peers.add(peer);
-          //peer = self.peers.getPeerByUuid(data.targetPeerUuid);
+          //peer = self.peers.getPeerByUuid(data.to);
         }
 
         peer.answerOffer(data);
@@ -920,7 +1006,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        */
       peerAnswerHandler: function(data) {
         logger.log('Peer '+this.uuid, 'Received answer: ', data);
-        var peer = this.peers.getPeerByUuid(data.targetPeerUuid);
+        var peer = this.peers.getPeerByUuid(data.to);
         if (!peer) {
           logger.error('Signal '+this.uuid, 'Unknown peer answer: ', data);
           return;
@@ -938,7 +1024,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        */
       peerCandidateHandler: function(data) {
         logger.info('Peer '+this.uuid, 'Received candidate: ', data);
-        var peer = this.peers.getPeerByUuid(data.targetPeerUuid);
+        var peer = this.peers.getPeerByUuid(data.to);
         if (!peer) {
           logger.error('Signal '+this.uuid, 'Unknown peer candidate: ', data);
           return;
@@ -953,8 +1039,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        * @method peerConnectedHandler
        * @param {Peer} peer
        */
-      peerConnectedHandler: function(peer) {
-        logger.info('Peer '+this.uuid, 'Peer connection established: ', peer);
+      peerConnectedHandler: function() {
+        logger.info('Peer '+this.uuid, 'Peer connection established.');
         // peer.synchronize();
 
       },
@@ -1047,6 +1133,20 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     ]
   };
 
+  var optionalArgument = {
+    optional: [{
+      DtlsSrtpKeyAgreement: true
+    }]
+  };
+
+  var offerAnswerConstraints = {
+    optional: [],
+    mandatory: {
+      OfferToReceiveAudio: false,
+      OfferToReceiveVideo: false
+    }
+  };
+
   var connectionConstraint = {
     optional: [
       { RtpDataChannels: true },
@@ -1076,147 +1176,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
   var PeerSession = (function () {
 
-    var uuid = settings.uuid;
-
-    function setChannelEvents(channel, config) {
-      channel.binaryType = 'arraybuffer';
-      channel.onmessage = function(event) {
-        config.ondata(event.data);
-      };
-      channel.onopen = function() {
-        config.onopen();
-      };
-
-      channel.onerror = function(e) {
-        console.error('channel.onerror', JSON.stringify(e, null, '\t'));
-        config.onerror(e);
-      };
-
-      channel.onclose = function(e) {
-        console.warn('channel.onclose', JSON.stringify(e, null, '\t'));
-        config.onclose(e);
-      };
-    };
-
-    var dataChannelDict = {};
-    var offererDataChannel;
-
-    // Offer need external things: socket, uuid, channel handlers
-    var Offer = {
-      // createOffer is the constructor for Offer
-      createOffer: function(config) {
-        var peer = new RTCPeerConnection(iceServers, optionalArgument);
-
-        var self = this;
-        self.config = config;
-
-        peer.onicecandidate = function(event) {
-          if (event.candidate) {
-            config.onicecandidate(event.candidate);
-          } else {
-            // emit on end of candidate event
-          }
-        };
-
-        peer.onsignalingstatechange = function() {
-          console.log('onsignalingstatechange:', JSON.stringify({
-            iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState
-          }));
-        };
-        peer.oniceconnectionstatechange = function() {
-          console.log('oniceconnectionstatechange:', JSON.stringify({
-            iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState
-          }));
-        };
-
-        this.createDataChannel(peer);
-
-//      window.peer = peer;
-        peer.createOffer(function(sdp) {
-          peer.setLocalDescription(sdp);
-          config.onsdp(sdp);
-        }, onSdpError, offerAnswerConstraints);
-
-        this.peer = peer;
-
-        return this;
-      },
-      setRemoteDescription: function(sdp) {
-        this.peer.setRemoteDescription(new RTCSessionDescription(sdp));
-      },
-      addIceCandidate: function(candidate) {
-        this.peer.addIceCandidate(new RTCIceCandidate({
-          sdpMLineIndex: candidate.sdpMLineIndex,
-          candidate: candidate.candidate
-        }));
-      },
-      createDataChannel: function(peer) {
-        offererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
-        setChannelEvents(offererDataChannel, this.config);
-      }
-    };
-
-    var answererDataChannel;
-
-    var Answer = {
-      createAnswer: function(config) {
-        var peer = new RTCPeerConnection(iceServers, optionalArgument);
-
-        var self = this;
-        self.config = config;
-
-        peer.ondatachannel = function(event) {
-          answererDataChannel = event.channel;
-          setChannelEvents(answererDataChannel, config);
-        };
-
-        peer.onicecandidate = function(event) {
-          if (event.candidate)
-            config.onicecandidate(event.candidate);
-        };
-
-        peer.onsignalingstatechange = function() {
-          console.log('onsignalingstatechange:', JSON.stringify({
-            iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState
-          }));
-        };
-        peer.oniceconnectionstatechange = function() {
-          console.log('oniceconnectionstatechange:', JSON.stringify({
-            iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState
-          }));
-        };
-
-        peer.setRemoteDescription(new RTCSessionDescription(config.sdp));
-        peer.createAnswer(function(sdp) {
-          peer.setLocalDescription(sdp);
-          config.onsdp(sdp);
-        }, onSdpError, offerAnswerConstraints);
-
-        this.peer = peer;
-
-        return self;
-      },
-      addIceCandidate: function(candidate) {
-        this.peer.addIceCandidate(new RTCIceCandidate({
-          sdpMLineIndex: candidate.sdpMLineIndex,
-          candidate: candidate.candidate
-        }));
-      },
-      createDataChannel: function(peer) {
-        answererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
-        setChannelEvents(answererDataChannel, this.config);
-      }
-    };
-
-    function onSdpError(e) {
-      console.error(e);
-    }
-
     function PeerSession(server, peerId) {
+
       var _self = this;
       /**
        * @property connection
@@ -1255,6 +1216,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        */
       this.syncTimers = [];
 
+      // peerId not equals uuid, it should be auto increment int
       if (peerId) {
         this.peerId = peerId;
         this.uuid = this.peerId;
@@ -1632,13 +1594,158 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   })();
   exports.PeerSession = PeerSession;
 
+  function setChannelEvents(channel, config) {
+    channel.binaryType = 'arraybuffer';
+    channel.onmessage = function(event) {
+      config.ondata(event.data);
+    };
+    channel.onopen = function() {
+      config.onopen();
+    };
+
+    channel.onerror = function(e) {
+      console.error('channel.onerror', JSON.stringify(e, null, '\t'));
+      config.onerror(e);
+    };
+
+    channel.onclose = function(e) {
+      console.warn('channel.onclose', JSON.stringify(e, null, '\t'));
+      config.onclose(e);
+    };
+  };
+
+  var dataChannelDict = {};
+  var offererDataChannel;
+
+  // Offer need external things: socket, uuid, channel handlers
+  var Offer = {
+    // createOffer is the constructor for Offer
+    createOffer: function(peerId, config) {
+      var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
+
+      var self = this;
+      self.config = config;
+
+      // this means we get local candidate
+      // so need to send it to peer
+      peer.onicecandidate = function(event) {
+        if (event.candidate) {
+          config.onicecandidate(peerId, event.candidate.candidate);
+        } else {
+          // emit on end of candidate event
+        }
+      };
+
+      peer.onsignalingstatechange = function() {
+        console.log('onsignalingstatechange:', JSON.stringify({
+          iceGatheringState: peer.iceGatheringState,
+          signalingState: peer.signalingState
+        }));
+      };
+      peer.oniceconnectionstatechange = function() {
+        console.log('oniceconnectionstatechange:', JSON.stringify({
+          iceGatheringState: peer.iceGatheringState,
+          signalingState: peer.signalingState
+        }));
+      };
+
+      this.createDataChannel(peer);
+
+//      window.peer = peer;
+      peer.createOffer(function(sdp) {
+        peer.setLocalDescription(sdp);
+        config.onsdp(peerId, sdp);
+      }, onSdpError, offerAnswerConstraints);
+
+      this.peer = peer;
+
+      return this;
+    },
+    setRemoteDescription: function(sdp) {
+      this.peer.setRemoteDescription(new RTCSessionDescription(sdp));
+    },
+    addIceCandidate: function(candidate) {
+      this.peer.addIceCandidate(new RTCIceCandidate({
+        sdpMLineIndex: candidate.sdpMLineIndex,
+        candidate: candidate.candidate
+      }));
+    },
+    createDataChannel: function(peer) {
+      offererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
+      setChannelEvents(offererDataChannel, this.config);
+    }
+  };
+
+  var answererDataChannel;
+
+  var Answer = {
+    createAnswer: function(peerId, offer, config) {
+      var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
+
+      var self = this;
+      self.config = config;
+
+      peer.ondatachannel = function(event) {
+        answererDataChannel = event.channel;
+        setChannelEvents(answererDataChannel, config);
+      };
+
+      peer.onicecandidate = function(event) {
+        if (event.candidate)
+          config.onicecandidate(peerId, event.candidate);
+      };
+
+      peer.onsignalingstatechange = function() {
+        console.log('onsignalingstatechange:', JSON.stringify({
+          iceGatheringState: peer.iceGatheringState,
+          signalingState: peer.signalingState
+        }));
+      };
+      peer.oniceconnectionstatechange = function() {
+        console.log('oniceconnectionstatechange:', JSON.stringify({
+          iceGatheringState: peer.iceGatheringState,
+          signalingState: peer.signalingState
+        }));
+      };
+
+      peer.setRemoteDescription(new RTCSessionDescription(offer));
+      peer.createAnswer(function(sdp) {
+        peer.setLocalDescription(sdp);
+        config.onsdp(peerId, sdp);
+      }, onSdpError, offerAnswerConstraints);
+
+      this.peer = peer;
+
+      return self;
+    },
+    addIceCandidate: function(candidate) {
+      this.peer.addIceCandidate(new RTCIceCandidate({
+        sdpMLineIndex: candidate.sdpMLineIndex,
+        candidate: candidate.candidate
+      }));
+    },
+    createDataChannel: function(peer) {
+      answererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
+      setChannelEvents(answererDataChannel, this.config);
+    }
+  };
+
+  function onSdpError(e) {
+    console.error(e);
+  }
+
   var TIMEOUT_RETRY_TIME = 60000;
   var MAX_RANDOM_ASSESSMENT_DELAY_TIME = 150;
 
   var PeerSessionManager = (function () {
     function PeerSessionManager(node) {
-      this._node = node;
-      this._peers = [];
+      if (!node) {
+        this._signaler = new SignalSession();
+      } else {
+        this._signaler = node;
+      }
+      // index is peer's id : peerId
+      this._peers = {};
     }
 
     /**
@@ -1646,8 +1753,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
      * @param peer
      */
     PeerSessionManager.prototype.add = function (peer) {
-      if (!this.getPeerByUuid(peer.uuid)) {
-        this._peers.push(peer);
+      if (!this.getPeerByUuid(peer.peerId)) {
+        this._peers[peer.peerId] = peer;
       }
     };
 
@@ -1664,7 +1771,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       _.each(peers, function (peer) {
         // Never connect to null or self
-        if (!peer || peer.uuid === settings.uuid)
+        if (!peer || peer.peerId === settings.uuid)
           return;
 
         // No need to connect if already connected
@@ -1920,12 +2027,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     App.prototype.session_onOffer = function(event) {
       logger.log('Peer '+this.settings.uuid, 'Received offer, need to answer', event);
       // add peer to peers
-      //event.nodeUuid
+      //event.from
 //      this.session.peers.add(peer);
-      var peer = this.session.peers.getPeerByUuid(event.targetPeerUuid);
+      var peer = this.session.peers.getPeerByUuid(event.to);
       if (!peer) {
         // does not exists, so we add it
-        peer = this.session.createPeer(event.targetPeerUuid);
+        peer = this.session.createPeer(event.to);
         peer.isSource = false;
         peer.isTarget = true;
         this.session.peers.add(peer);
@@ -1939,12 +2046,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     };
 
     App.prototype.createSession = function () {
-      settings.uuid = Uuid.getUid();
       var session = new SignalSession(settings.uuid, settings.apiKey);
       return session;
     };
 
     App.prototype.init = function () {
+      settings.uuid = Uuid.getUid();
       logger.log('Signal', 'Uuid', settings.uuid);
 
       try {

@@ -32,11 +32,12 @@ function ($, jsd, fingerprint, sha1) {
 
       var peer = null;
       var createPeerConnection = function(peerid) {
-        peer = app.session.createPeer(peerid);
-        peer.isSource = true;
-        peer.isTarget = false;
-        app.session.peers.add(peer);
-        peer.createConnection();
+        app.session.sendParticipantRequest(peerid);
+//        peer = app.session.createPeer(peerid);
+//        peer.isSource = true;
+//        peer.isTarget = false;
+//        app.session.peers.add(peer);
+//        peer.createConnection();
       };
 
       window.peer = peer;

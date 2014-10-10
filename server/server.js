@@ -65,14 +65,14 @@ function messageHandler(socket, data) {
     case 'signal:auth' :
 
       //TODO Test if peers apiKey and host matches
-      // uuid + apiKey + datetime + random
+      // from + apiKey + datetime + random
 
       var token = jwt.sign(data, tokenSecret, { expiresInMinutes: 60 * 72 });
       var expiresAt = Date.now() + 1000 * 3600 * 72;
       var success = peers.add({
         ips: data.ips,
         socket: socket,
-        uuid: data.uuid,
+        uuid: data.from,
         token: token
       });
 
@@ -101,6 +101,32 @@ function messageHandler(socket, data) {
         }
       });
       break;
+    case 'peer:sdp':
+      jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
+        // console.log(decoded.foo) // bar
+        if (err) {
+          console.log('Signal', err);
+          sendToPeer(socket, {
+            cmd: 'peer:sdp',
+            data: {
+              error: err,
+              success: false
+            }
+          });
+        } else {
+          peer = peers.getPeerByUuid(data.to);
+          //do not need to swap data.to <-> data.from !!!
+          sendToPeer(peer.socket, {
+            cmd: 'peer:sdp',
+            data: {
+              to: data.to,
+              from: data.from,
+              sdp: data.sdp
+            }
+          });
+        }
+      });
+      break;
     case 'peer:offer' :
       jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
         // console.log(decoded.foo) // bar
@@ -108,9 +134,9 @@ function messageHandler(socket, data) {
           console.log('Signal', err);
           sendToPeer(socket, {cmd: 'peer:offer', data: {error: err, success: false}});
         } else {
-          peer = peers.getPeerByUuid(data.targetPeerUuid);
-          //swap data.targetUuid <-> data.uuid
-          sendToPeer(peer.socket, {cmd: 'peer:offer', data: {targetPeerUuid: data.uuid, offer: data.offer}});
+          peer = peers.getPeerByUuid(data.to);
+          //swap data.to <-> data.from
+          sendToPeer(peer.socket, {cmd: 'peer:offer', data: {to: data.from, offer: data.offer}});
         }
       });
       break;
@@ -121,9 +147,15 @@ function messageHandler(socket, data) {
           console.log('Signal', err);
           sendToPeer(socket, {cmd: 'peer:answer', data: {error: err, success: false}});
         } else {
-          peer = peers.getPeerByUuid(data.targetPeerUuid);
-          //swap data.targetUuid <-> data.uuid
-          sendToPeer(peer.socket, {cmd: 'peer:answer', data: {targetPeerUuid: data.uuid, answer: data.answer}});
+          peer = peers.getPeerByUuid(data.to);
+          //swap data.to <-> data.from
+          sendToPeer(peer.socket, {
+            cmd: 'peer:answer',
+            data: {
+              to: data.from,
+              answer: data.answer
+            }
+          });
         }
       });
       break;
@@ -132,10 +164,35 @@ function messageHandler(socket, data) {
         // console.log(decoded.foo) // bar
         if (err) {
           console.log('Signal', err);
-          sendToPeer(socket, {cmd: 'peer:candidate', data: {error: err, success: false}});
+          sendToPeer(socket, {
+            cmd: 'peer:candidate',
+            data: {
+              error: err,
+              success: false
+            }
+          });
         } else {
-          peer = peers.getPeerByUuid(data.targetPeerUuid);
-          sendToPeer(peer.socket, {cmd: 'peer:candidate', data: {targetPeerUuid: data.uuid, candidate: data.candidate}});
+          peer = peers.getPeerByUuid(data.to);
+          sendToPeer(peer.socket, {
+            cmd: 'peer:candidate',
+            data: {
+              to: data.to,
+              from: data.from,
+              candidate: data.candidate.candidate
+            }
+          });
+        }
+      });
+      break;
+    case 'peer:participant':
+      jwt.verify(data.authToken, tokenSecret, function (err, decoded) {
+        // console.log(decoded.foo) // bar
+        if (err) {
+          console.log('Signal', err);
+          sendToPeer(socket, {cmd: 'peer:participant', data: {error: err, success: false}});
+        } else {
+          peer = peers.getPeerByUuid(data.to);
+          sendToPeer(peer.socket, {cmd: 'peer:participant', data: {to: data.to, from: data.from}});
         }
       });
       break;

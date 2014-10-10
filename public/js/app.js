@@ -923,12 +923,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         logger.log('Signal ' + this.uuid, 'Received', data.cmd, data.data);
 
         switch (cmd.toLowerCase()) {
-          case CMD.OFFER:
-            this.emit(CMD.OFFER, { from: self.uuid, to: data.data.to, offer: data.data.offer });
-            break;
-          case CMD.ANSWER:
-            this.emit(CMD.ANSWER, { from: self.uuid, to: data.data.to, answer: data.data.answer });
-            break;
+//          case CMD.OFFER:
+//            this.emit(CMD.OFFER, { from: self.uuid, to: data.data.to, offer: data.data.offer });
+//            break;
+//          case CMD.ANSWER:
+//            this.emit(CMD.ANSWER, { from: self.uuid, to: data.data.to, answer: data.data.answer });
+//            break;
           case CMD.CANDIDATE:
             this.emit(CMD.CANDIDATE, { from: self.uuid, to: data.data.to, candidate: data.data.candidate });
             break;
@@ -1040,7 +1040,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        * @param {Peer} peer
        */
       peerConnectedHandler: function() {
-        logger.info('Peer '+this.uuid, 'Peer connection established.');
+        logger.info('Channel '+this.uuid, 'Peer connection established.');
         // peer.synchronize();
 
       },
@@ -1054,7 +1054,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        * @param {Object} e
        */
       peerDisconnectHandler: function(e) {
-        logger.info('Peer ' + e.peerId, 'Peer disconnected: ', e);
+        logger.info('Channel', 'Channel disconnected: ', e);
 
         // Need for more connected peers?
         if (this.peers.getConnectedPeers().length < this.settings.maxPeers) {
@@ -1513,6 +1513,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       }
       var _self = this;
 
+      _self.channel = answererDataChannel || offererDataChannel;
       var jsonString;
 
       if (!_self.isConnected || _self.channel.readyState !== 'open') {
@@ -1604,12 +1605,12 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     };
 
     channel.onerror = function(e) {
-      console.error('channel.onerror', JSON.stringify(e, null, '\t'));
+      logger.error('channel.onerror', JSON.stringify(e, null, '\t'));
       config.onerror(e);
     };
 
     channel.onclose = function(e) {
-      console.warn('channel.onclose', JSON.stringify(e, null, '\t'));
+      logger.warn('channel.onclose', JSON.stringify(e, null, '\t'));
       config.onclose(e);
     };
   };

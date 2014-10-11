@@ -1,0 +1,8 @@
+UID: 5c40
+Type: bug
+Priority: 0
+Title: firefox: storeSettingsToLocalStorage not working good
+Added: 2014-10-11_08-12-11.130
+Author: xman
+
+firefox: storeSettingsToLocalStorage 没有正确工作，数据没有保存到localStorage ， 很可能是ObjectObserver没有工作

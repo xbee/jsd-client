@@ -1,0 +1,8 @@
+UID: 0a1a
+Type: bug
+Priority: 0
+Title: chrome fire 1008 error from offline to online
+Added: 2014-10-11_07-58-20.857
+Author: xman
+
+"离线后恢复在线，chrome会产生1008错误：disconnected error: 1008 : Missing auth-credentials or already registered."

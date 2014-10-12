@@ -514,20 +514,23 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           logger.log('EnumIPs', 'onicecandidate: ', evt.candidate);
           grepSDP(evt.candidate.candidate);
         } else {
-          // for chrome, if there is no network,
-          // it will be called many times , so we insure just one call
-          if (!iceEnded) {
-            // here we knew it is time to call callback
-            var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
+          // TODO: need more test to check the state
+          if (rtc.iceGatheringState === 'complete') {
+            // for chrome, if there is no network,
+            // it will be called many times , so we insure just one call
+            if (!iceEnded) {
+              // here we knew it is time to call callback
+              var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
 //          var xs = displayAddrs.join(', ');
 //          logger.log('EnumIPs', 'addrs: ', xs);
-            if (displayAddrs) {
-              cb.apply(ctx, [displayAddrs.sort()]);
-              iceEnded = true;
+              if (displayAddrs) {
+                cb.apply(ctx, [displayAddrs.sort()]);
+                iceEnded = true;
+              }
             }
+            rtc.onicecandidate = null;
+            rtc = null;
           }
-          rtc.onicecandidate = null;
-          rtc = null;
         }
 
       };
@@ -645,7 +648,11 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         },
         // rtcdatachannel events
         ondata: function(data) {
-          self.ondata(data);
+          if (self.ondata) {
+            self.ondata(data);
+          } else {
+            logger.log('Channel', 'Received data: ', data);
+          }
         },
         onopen: function() {
           self.peerConnectedHandler();
@@ -1056,6 +1063,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       peerDisconnectHandler: function(e) {
         logger.info('Channel', 'Channel disconnected: ', e);
 
+        // BUG: TypeError: this.peers is null
         // Need for more connected peers?
         if (this.peers.getConnectedPeers().length < this.settings.maxPeers) {
           this.peers.connectToNeighbourPeers();
@@ -1625,7 +1633,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
 
       var self = this;
+      self.type = 'offer';
       self.config = config;
+      self.peerId = peerId;
 
       // this means we get local candidate
       // so need to send it to peer
@@ -1634,23 +1644,30 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           config.onicecandidate(peerId, event.candidate.candidate);
         } else {
           // emit on end of candidate event
+          logger.log('Offer', 'end of candidate', JSON.stringify({
+            iceGatheringState: peer.iceGatheringState,
+            signalingState: peer.signalingState,
+            iceConnectionState: peer.iceConnectionState
+          }));
         }
       };
 
       peer.onsignalingstatechange = function() {
-        console.log('onsignalingstatechange:', JSON.stringify({
+        logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
           iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState
+          signalingState: peer.signalingState,
+          iceConnectionState: peer.iceConnectionState
         }));
       };
       peer.oniceconnectionstatechange = function() {
-        console.log('oniceconnectionstatechange:', JSON.stringify({
+        logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
           iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState
+          signalingState: peer.signalingState,
+          iceConnectionState: peer.iceConnectionState
         }));
       };
 
-      this.createDataChannel(peer);
+      self.createDataChannel(peer);
 
 //      window.peer = peer;
       peer.createOffer(function(sdp) {
@@ -1658,9 +1675,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         config.onsdp(peerId, sdp);
       }, onSdpError, offerAnswerConstraints);
 
-      this.peer = peer;
+      self.peer = peer;
+      self.channel = offererDataChannel;
 
-      return this;
+      return self;
     },
     setRemoteDescription: function(sdp) {
       this.peer.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -1674,6 +1692,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     createDataChannel: function(peer) {
       offererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
       setChannelEvents(offererDataChannel, this.config);
+      return offererDataChannel;
     }
   };
 
@@ -1685,27 +1704,40 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       var self = this;
       self.config = config;
+      self.type = 'answer';
+      self.peerId = peerId;
 
       peer.ondatachannel = function(event) {
         answererDataChannel = event.channel;
         setChannelEvents(answererDataChannel, config);
+        self.channel = answererDataChannel;
       };
 
       peer.onicecandidate = function(event) {
-        if (event.candidate)
+        if (event.candidate) {
           config.onicecandidate(peerId, event.candidate);
+        } else {
+          logger.log('Answer', 'end of candidate', JSON.stringify({
+            iceGatheringState: peer.iceGatheringState,
+            signalingState: peer.signalingState,
+            iceConnectionState: peer.iceConnectionState
+          }));
+        }
+
       };
 
       peer.onsignalingstatechange = function() {
-        console.log('onsignalingstatechange:', JSON.stringify({
+        logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
           iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState
+          signalingState: peer.signalingState,
+          iceConnectionState: peer.iceConnectionState
         }));
       };
       peer.oniceconnectionstatechange = function() {
-        console.log('oniceconnectionstatechange:', JSON.stringify({
+        logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
           iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState
+          signalingState: peer.signalingState,
+          iceConnectionState: peer.iceConnectionState
         }));
       };
 
@@ -1715,7 +1747,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         config.onsdp(peerId, sdp);
       }, onSdpError, offerAnswerConstraints);
 
-      this.peer = peer;
+      self.peer = peer;
+      //self.channel = answererDataChannel;
 
       return self;
     },

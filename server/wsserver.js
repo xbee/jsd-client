@@ -66,13 +66,17 @@ function messageHandler(socket, data) {
 
       //TODO Test if peers apiKey and host matches
       // from + apiKey + datetime + random
+      var client = socket._socket.remoteAddress+':'+socket._socket.remotePort;
+      console.log('Client from: ', client);
 
       var token = jwt.sign(data, tokenSecret, { expiresInMinutes: 60 * 72 });
       var expiresAt = Date.now() + 1000 * 3600 * 72;
       var success = peers.add({
+        eip: socket._socket.remoteAddress,
         ips: data.ips,
         socket: socket,
         uuid: data.from,
+        host: data.host,
         token: token
       });
 

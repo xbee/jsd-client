@@ -473,7 +473,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   /*
    *  get all of local ip address
    */
-  var enumLocalIPs = function (ctx, cb) {
+  var detectLocalIPs = function (ctx, cb) {
     try {
       if (!window.navigator.onLine) {
         return false;
@@ -550,7 +550,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     return true;
   };
   if (_debuging) {
-    exports.enumLocalIPs = enumLocalIPs;
+    exports.detectLocalIPs = detectLocalIPs;
   }
 
   CMD = {};
@@ -571,6 +571,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
   SignalEvent = {};
   SignalEvent.CONNECTED = 'signal:onenterconnected';
+  SignalEvent.DETECTED = 'signal:onenterdetected';
   SignalEvent.DISCONNECTED = 'signal:onenterdisconnected';
   SignalEvent.AUTHENTICATED = 'signal:onenterauthenticated';
   SignalEvent.BEFORECONNECT = 'signal:onbeforeconnect';
@@ -602,6 +603,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       this.localIPs = [];
       this.peers = null;
       this.psm = null;
+      this.fileBufferReader = new FileBufferReader();
 
       this.emitter = new EventEmitter2({
         wildcard: true, // should the event emitter use wildcards.
@@ -653,29 +655,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           if (self.ondata) {
             self.ondata(data);
           } else {
-            if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
-              // array buffers are passed using WebRTC data channels
-              // need to convert data back into JavaScript objects
-
-              self.fileBufferReader.convertToObject(chunk, function(object) {
-                self.ondata(object);
-              });
-              return;
-            }
-
-            // if target user requested next chunk
-            if(chunk.readyForNextChunk) {
-              fileBufferReader.getNextChunk(chunk.uuid, getNextChunkCallback);
-              return;
-            }
-
-            // if chunk is received
-            fileBufferReader.addChunk(chunk, function(promptNextChunk) {
-              // request next chunk
-              peerConnection.send(promptNextChunk);
-            });
-
-//            logger.log('Channel', 'Received data: ', data);
+            logger.log('Channel', 'Received data: ', data);
           }
         },
         onopen: function() {
@@ -700,13 +680,14 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     SignalSession.prototype = {
       //------------------ begin of events ------------------
       onbeforestartup: function(event, from, to) {
-        var self = this;
         logger.log('Signal', "START   EVENT: startup!");
-        enumLocalIPs(self, self.saveIPs);
       },
       onbeforeconnect: function(event, from, to) {
         logger.log('Signal', "START   EVENT: connect!");
         this.triggerEvent(SignalEvent.BEFORECONNECT);
+      },
+      onbeforedetect: function(event, from, to) {
+        logger.log('Signal', "START   EVENT: detect!");
       },
       onbeforedisconnect: function(event, from, to) {
         logger.log('Signal', "START   EVENT: disconnect!");
@@ -762,42 +743,47 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         logger.log('Signal', "LEAVE   STATE: connected");
         var self = this;
 
-        if (event === 'authenticate') {
+        // start to detect local ips
+        function Detected(ips) {
+          // save ips
+          self.localIPs = ips;
+          logger.log('Detected', 'all addr: ', ips);
+          self.transition();
+        }
 
-          // set callback for auth message
-          function responseHandler(e) {
-            var response = JSON.parse(e.data);
-            if (response.cmd === CMD.AUTH) {
-              self.socket.removeEventListener('message', responseHandler);
-              // received response of auth
-              if (response['data']['success'] && (response['data']['success'] === true)) {
-                // get the authToken
-                if (response['data']['authToken']) {
-                  logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
-                  settings.authToken = response['data']['authToken'];
-                  settings.tokenExpiresAt = parseInt(response['data']['expiresAt']);
-                }
-                self.transition();
-              } else {
-                self.transition().cancel();
+        detectLocalIPs(self, Detected);
+        return StateMachine.ASYNC;
+      },
+      onleavedetected: function(event, from, to) {
+        logger.log('Signal', "LEAVE   STATE: detected");
+        var self = this;
+
+        // set callback for auth message
+        function responseHandler(e) {
+          var response = JSON.parse(e.data);
+          if (response.cmd === CMD.AUTH) {
+            self.socket.removeEventListener('message', responseHandler);
+            // received response of auth
+            if (response['data']['success'] && (response['data']['success'] === true)) {
+              // get the authToken
+              if (response['data']['authToken']) {
+                logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
+                settings.authToken = response['data']['authToken'];
+                settings.tokenExpiresAt = parseInt(response['data']['expiresAt']);
               }
+              self.transition();
+            } else {
+              self.transition().cancel();
             }
           }
+        }
 
-          this.socket.addEventListener('message', responseHandler);
-          // need to check if token have existed
+        self.socket.addEventListener('message', responseHandler);
+        // need to check if token have existed
 //          var isExisted = ((settings.authToken === null) || (settings.tokenExpiresAt <= Date.now()))
 //                          ? false : true;
-          var isExisted = false;
-          if (isExisted) {
-            return true;
-          } else {
-            self.sendAuthentication();
-            return StateMachine.ASYNC;
-          }
-        } else {
-          return true;
-        }
+        self.sendAuthentication();
+        return StateMachine.ASYNC;
       },
       onleaveauthenticated: function(event, from, to) {
         logger.log('Signal', "LEAVE   STATE: authenticated");
@@ -806,6 +792,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       onconnected: function(event, from, to) {
         logger.log('Signal', "ENTER   STATE: connected");
       },
+      ondetected: function(event, from, to) {
+        logger.log('Signal', "ENTER   STATE: detected");
+      },
       ondisconnected: function(event, from, to) {
         logger.log('Signal', "ENTER   STATE: disconnected");
       },
@@ -813,12 +802,23 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         logger.log('Signal', "ENTER   STATE: authenticated");
       },
 
-      onstartup: function(event, from, to) { logger.log('Signal', "FINISH  EVENT: startup!"); },
+      onstartup: function(event, from, to) {
+        logger.log('Signal', "FINISH  EVENT: startup!");
+      },
       // onconnect = on after connect event
       onconnect: function(event, from, to) {
         logger.log('Signal', "FINISH  EVENT: connect!");
         if (this.is('connected')) {
           this.triggerEvent(SignalEvent.CONNECTED);
+          // now start detect event
+          this.detect();
+        }
+      },
+      // on after detect event
+      ondetect: function(event, from, to) {
+        logger.log('Signal', "FINISH  EVENT: detect!");
+        if (this.is('detected')) {
+          this.triggerEvent(SignalEvent.DETECTED);
           // now start authenticate event
           this.authenticate();
         }
@@ -859,6 +859,35 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         }
       },
 
+      ondata: function(event) {
+        var self = this;
+        var chunk = event.data;
+
+        if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
+          // array buffers are passed using WebRTC data channels
+          // need to convert data back into JavaScript objects
+
+          self.fileBufferReader.convertToObject(chunk, function(object) {
+            self.ondata({
+              data: object
+            });
+          });
+          return;
+        }
+
+        // if target user requested next chunk
+        if(chunk.readyForNextChunk) {
+          self.fileBufferReader.getNextChunk(chunk.uuid, getNextChunkCallback);
+          return;
+        }
+
+        // if chunk is received
+        self.fileBufferReader.addChunk(chunk, function(promptNextChunk) {
+          // request next chunk
+          peerConnection.send(promptNextChunk);
+        });
+      },
+
       //------------------ end of events ------------------
 
       acceptPartitipantRequest: function(data) {
@@ -897,29 +926,34 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       send: function (cmd, data) {
         var self = this;
 
-        if (!self.is('connected') && !self.is('authenticated')) {
-          throw new Error('Not connected to server, current status: ' + self.inStatus);
+        try {
+          if (!self.is('connected') && !self.is('authenticated') && !self.is('detected')) {
+            throw new Error('Not connected to server, current status: ' + self.inStatus);
+          }
+
+          if (!data || !_.isObject(data) || _.isEmpty(data)) {
+            throw new Error('Data is not an object/empty!');
+          }
+
+          if (!cmd) {
+            throw new Error('Command is not defined!');
+          }
+
+          // add cmd to data
+          data.cmd = cmd;
+
+          // add auth token
+          data.authToken = settings.authToken;
+
+          //send data to websocket as String
+          this.socket.send(JSON.stringify(data));
+          logger.log('Signal ' + this.uuid, 'Sent ', data.cmd, data);
+
+          return true;
+        } catch (e) {
+          logger.error(e);
+          return false;
         }
-
-        if (!data || !_.isObject(data) || _.isEmpty(data)) {
-          throw new Error('Data is not an object/empty!');
-        }
-
-        if (!cmd) {
-          throw new Error('Command is not defined!');
-        }
-
-        // add cmd to data
-        data.cmd = cmd;
-
-        // add auth token
-        data.authToken = settings.authToken;
-
-        //send data to websocket as String
-        this.socket.send(JSON.stringify(data));
-        logger.log('Signal ' + this.uuid, 'Sent ', data.cmd, data);
-
-        return true;
       },
 
       sendAuthentication: function () {
@@ -1142,9 +1176,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       events: [
         { name: 'startup', from: 'none', to: 'disconnected' },
         { name: 'connect', from: 'disconnected', to: 'connected' },
-        { name: 'authenticate', from: 'connected',  to: 'authenticated' },
-        { name: 'disconnect', from: 'connected', to: 'disconnected' },
-        { name: 'disconnect', from: 'authenticated', to: 'disconnected' }
+        { name: 'detect',  from: 'connected', to: 'detected' },
+        { name: 'authenticate', from: 'detected',  to: 'authenticated' },
+        { name: 'disconnect', from: ['connected', 'detected', 'authenticated'], to: 'disconnected' }
       ]
     });
 

@@ -15,6 +15,9 @@ proto.list = function () {
     });
 };
 
+// A.eip === B.eip means same LAN
+//
+
 proto.add = function(peer) {
     //missing values?
     if (!peer.socket || !peer.uuid || !peer.token) return false;

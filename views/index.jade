@@ -12,10 +12,16 @@ block content
         input#target(type='text', placeholder='Required')
         br
         button#start-signaler(disabled='') Start Signaler
-        button#call Call
+        button#call(style='margin-left:10px;') Call
+        button#select-file(style='margin-left:10px;') Select File
+        br
+        div.example
+            #drop_zone Drop files here
+            output#list.output-panel
         hr
         output#log
     script(type='text/javascript', src='lib/jquery.js')
     script(type='text/javascript', src='lib/clientjs/dist/client.min.js')
     script(type='text/javascript', src='lib/evercookie/js/evercookie.js')
     //script(type='text/javascript', src='lib/Conzole/conzole.js')
+    script(type='text/javascript', src='js/ui.js')

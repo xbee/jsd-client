@@ -8,8 +8,9 @@ define(['require',
       'state-machine',
       'fingerprint',
       'sha1',
+      'fbr',
       'observe-js'],
-function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fingerprint, sha1) {
+function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fingerprint, sha1, fbr) {
 
   var _debuging = true;
 
@@ -175,7 +176,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
     var MAX_MESSAGES = 100;
 
-    var output = document.getElementsByTagName('output')[0],
+    var output = document.getElementById('log'),
         htmlLogging = true,
         consoleLogging = true,
         msgAmount = 0;
@@ -235,7 +236,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           }
         });
 
-        output.innerHTML += getPrettyTimeStamp() + ' ' + '<strong style="color:red">' + origin + '</strong> : ' + dataAsString.join(' ') + '<br/>';
+        // output.innerHTML += getPrettyTimeStamp() + ' ' + '<strong style="color:red">' + origin + '</strong> : ' + dataAsString.join(' ') + '<br/>';
+        output.innerHTML = getPrettyTimeStamp() + ' ' + '<strong style="color:red">' + origin + '</strong> : ' + dataAsString.join(' ') + '<br/>' + output.innerHTML;
 
       }
       msgAmount++;
@@ -651,7 +653,29 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           if (self.ondata) {
             self.ondata(data);
           } else {
-            logger.log('Channel', 'Received data: ', data);
+            if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
+              // array buffers are passed using WebRTC data channels
+              // need to convert data back into JavaScript objects
+
+              self.fileBufferReader.convertToObject(chunk, function(object) {
+                self.ondata(object);
+              });
+              return;
+            }
+
+            // if target user requested next chunk
+            if(chunk.readyForNextChunk) {
+              fileBufferReader.getNextChunk(chunk.uuid, getNextChunkCallback);
+              return;
+            }
+
+            // if chunk is received
+            fileBufferReader.addChunk(chunk, function(promptNextChunk) {
+              // request next chunk
+              peerConnection.send(promptNextChunk);
+            });
+
+//            logger.log('Channel', 'Received data: ', data);
           }
         },
         onopen: function() {
@@ -1636,6 +1660,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       self.type = 'offer';
       self.config = config;
       self.peerId = peerId;
+      self.fileBufferReader = new FileBufferReader();
 
       // this means we get local candidate
       // so need to send it to peer
@@ -1706,6 +1731,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       self.config = config;
       self.type = 'answer';
       self.peerId = peerId;
+      self.fileBufferReader = new FileBufferReader();
 
       peer.ondatachannel = function(event) {
         answererDataChannel = event.channel;

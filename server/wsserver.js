@@ -101,7 +101,8 @@ function messageHandler(socket, data) {
           console.log('Signal', err);
           sendToPeer(socket, {cmd: 'peer:list', data: {error: err, success: false}});
         } else {
-          sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.list(), success: true}});
+          peer = peers.getPeerByUuid(data.from);
+          sendToPeer(socket, {cmd: 'peer:list', data: {peers: peers.filter(peer), success: true}});
         }
       });
       break;
@@ -219,6 +220,7 @@ function sendToPeer(socket, data) {
     console.log('Send a message: ', JSON.stringify(data));
   }
   catch (e) {
+    console.error(e);
     peers.remove(peers.getPeerBySocket(socket));
     socket.close();
   }

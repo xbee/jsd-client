@@ -2115,7 +2115,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       this.session.socket.addEventListener('message', peerlistHandler);
       // get the peer list
-      this.session.send(CMD.LIST, {uuid: self.settings.uuid});
+      this.session.getAllRelatedPeers();
     };
 
     App.prototype.session_onOffer = function(event) {

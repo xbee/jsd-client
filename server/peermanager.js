@@ -20,7 +20,9 @@ proto.list = function () {
 proto.filter = function(other) {
   //no need to transfer the socket object
   var results = _.map(this._peers, function(peer) {
-    if ((peer.eip === other.eip) && (peer.uuid !== other.uuid)) {
+    if ((peer.eip === other.eip) &&
+        (peer.uuid !== other.uuid) &&
+        (peer.host === other.host)) {
       return {id: peer.uuid};
     }
   });

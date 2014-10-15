@@ -1726,7 +1726,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         }));
       };
 
-      self.createDataChannel(peer);
+      self.channel = self.createDataChannel(peer);
 
 //      window.peer = peer;
       peer.createOffer(function(sdp) {
@@ -1735,7 +1735,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       }, onSdpError, offerAnswerConstraints);
 
       self.peer = peer;
-      self.channel = offererDataChannel;
 
       return self;
     },
@@ -1749,9 +1748,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       }));
     },
     createDataChannel: function(peer) {
-      offererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
-      setChannelEvents(offererDataChannel, this.config);
-      return offererDataChannel;
+      var chan = (this.peer || peer).createDataChannel('channel', dataChannelDict);
+      setChannelEvents(chan, this.config);
+      return chan;
     }
   };
 
@@ -1768,9 +1767,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       self.fileBufferReader = new FileBufferReader();
 
       peer.ondatachannel = function(event) {
-        answererDataChannel = event.channel;
-        setChannelEvents(answererDataChannel, config);
-        self.channel = answererDataChannel;
+        self.channel = event.channel;
+        setChannelEvents(self.channel, config);
       };
 
       peer.onicecandidate = function(event) {
@@ -1819,8 +1817,9 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       }));
     },
     createDataChannel: function(peer) {
-      answererDataChannel = (this.peer || peer).createDataChannel('channel', dataChannelDict);
-      setChannelEvents(answererDataChannel, this.config);
+      var chan = (this.peer || peer).createDataChannel('channel', dataChannelDict);
+      setChannelEvents(chan, this.config);
+      return chan;
     }
   };
 

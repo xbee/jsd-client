@@ -24,6 +24,9 @@ require.config({
 define(['jquery', 'app', 'fingerprint', 'sha1', 'binarize', 'fbr'],
 function ($, jsd, fingerprint, sha1, binarize, fbr) {
 
+  var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
+  var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+
     try {
       var logger = jsd.logger;
       var app = new jsd.App();
@@ -55,6 +58,15 @@ function ($, jsd, fingerprint, sha1, binarize, fbr) {
           window.createPeerConnection(target);
         } else {
           console.error('You need input the target id');
+        }
+      });
+      var objectURL = undefined;
+      $('#loadfile').click(function () {
+        if (!objectURL) {
+          var url = 'http://localhost:8081/images/1.jpg';
+          load_binary_resource(url, function(b) {
+            objectURL = URL.createObjectURL(b);
+          });
         }
       });
 //      var my_hasher = function(value, seed) {
@@ -187,6 +199,25 @@ function ($, jsd, fingerprint, sha1, binarize, fbr) {
         // sending using WebRTC data channels
         peer.channel.send(nextChunk);
       };
+
+      function load_binary_resource(url, callback) {
+        //deferred = Q.defer;
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", url, true);
+        // oReq.setRequestHeader('Range', 'bytes=100-200');
+        oReq.responseType = "blob";
+
+        var blob;
+        oReq.onload = function(oEvent) {
+          blob = oReq.response;
+          // do something with blob
+          callback(blob);
+        };
+
+        oReq.send();
+      };
+
+
     } catch(ex) {
         console.log(ex.stack);
     }

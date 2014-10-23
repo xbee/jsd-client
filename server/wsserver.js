@@ -5,7 +5,7 @@
  */
 var fs = require("fs");
 var Buffer = require("buffer").Buffer;
-var Png = require("png").Png;
+//var Png = require("png").Png;
 
 var _ = require('underscore');
 var peers = require('./peermanager');
@@ -227,16 +227,16 @@ function sendToPeer(socket, data) {
 
 }
 
-function createCookiePng(xd) {
-  var IMAGE_WIDTH = 200;
-  var IMAGE_HEIGHT = 1;
-
-  var bf = new Buffer(xd, 'hex');
-  var rgb = new Buffer(IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-  // rgb.fill(0); // better to keep it random
-  bf.copy(rgb, 0);
-  var png = new Png(rgb, IMAGE_WIDTH, IMAGE_HEIGHT, "rgb");
-
-  fs.writeFile("cookie.png", png.encodeSync().toString("binary"),
-      "binary");
-}
+//function createCookiePng(xd) {
+//  var IMAGE_WIDTH = 200;
+//  var IMAGE_HEIGHT = 1;
+//
+//  var bf = new Buffer(xd, 'hex');
+//  var rgb = new Buffer(IMAGE_WIDTH * IMAGE_HEIGHT * 3);
+//  // rgb.fill(0); // better to keep it random
+//  bf.copy(rgb, 0);
+//  var png = new Png(rgb, IMAGE_WIDTH, IMAGE_HEIGHT, "rgb");
+//
+//  fs.writeFile("cookie.png", png.encodeSync().toString("binary"),
+//      "binary");
+//}

@@ -851,7 +851,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         var from = message.from;
 
         if (sdp.type === 'offer') {
-          this.psm._peers[message.from] = Answer.createAnswer(from, sdp, this.events);
+          this.psm._peers[message.from] = new Answer(from, sdp, this.events);
         }
 
         if (sdp.type === 'answer') {
@@ -897,7 +897,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           logger.log('Peer '+settings.uuid, 'Received invite from ', data.from);
           // create the offer
           if (from) {
-            this.psm._peers[from] = Offer.createOffer(from, this.events);
+            this.psm._peers[from] = new Offer(from, this.events);
           }
         }
       },
@@ -1261,21 +1261,21 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
        * @default false
        * @type {Boolean}
        */
-      this.isConnected = false;
+      // this.isConnected = false;
       /**
        * Whether this peer is the initiator of a connection
        * @property isSource
        * @default false
        * @type {Boolean}
        */
-      this.isSource = false;
+      // this.isSource = false;
       /**
        * Whether this peer is the initiator of a connection
        * @property isTarget
        * @default false
        * @type {Boolean}
        */
-      this.isTarget = false;
+      // this.isTarget = false;
       /**
        * List of timers for synchronization
        * @type {Array}
@@ -1453,90 +1453,90 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
      * @method createConnection
      * @return {Promise}
      */
-    PeerSession.prototype.createConnection = function () {
-      var _self = this;
-      var deferred = Q.defer;
-      this.isSource = true;
-      this.isTarget = false;
-
-      logger.log('Peer '+_self.peerId, 'Creating connection, offer');
-
-      //1.Alice creates an RTCPeerConnection object.
-      _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
-
-      //I. Alice creates an RTCPeerConnection object with an onicecandidate handler.
-      //Add listeners to connection
-      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
-      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
-      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
-      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
-      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
-
-      // Start timeout countdown
-      _.delay(this.timerCompleteHandler.bind(this), TIMEOUT_WAIT_TIME);
-
-      try {
-        // Create  data-channel
-        _self.channel = _self.connection.createDataChannel('Jiasudu', channelConstraint);
-
-        if (webrtcDetectedBrowser==='firefox') {
-          _makeOffer(_self);
-        }
-      } catch (e) {
-        // If an error occured here, there is a problem about the connection,
-        // so lets do a timeout and maybe retry later
-        logger.log('Peer', 'error:', e);
-        this.isConnected = false;
-        this.timerCompleteHandler(null);
-        deferred.reject();
-      }
-
-      // Add listeners to channel
-      _self.channel.onclose = this.channel_CloseHandler;
-      _self.channel.onerror = this.channel_ErrorHandler;
-      _self.channel.onmessage = this.channel_MessageHandler;
-      _self.channel.onopen = this.channel_OpenHandler;
-      return deferred.promise;
-    };
+//    PeerSession.prototype.createConnection = function () {
+//      var _self = this;
+//      var deferred = Q.defer;
+//      this.isSource = true;
+//      this.isTarget = false;
+//
+//      logger.log('Peer '+_self.peerId, 'Creating connection, offer');
+//
+//      //1.Alice creates an RTCPeerConnection object.
+//      _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
+//
+//      //I. Alice creates an RTCPeerConnection object with an onicecandidate handler.
+//      //Add listeners to connection
+//      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
+//      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
+//      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
+//      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
+//      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
+//
+//      // Start timeout countdown
+//      _.delay(this.timerCompleteHandler.bind(this), TIMEOUT_WAIT_TIME);
+//
+//      try {
+//        // Create  data-channel
+//        _self.channel = _self.connection.createDataChannel('Jiasudu', channelConstraint);
+//
+//        if (webrtcDetectedBrowser==='firefox') {
+//          _makeOffer(_self);
+//        }
+//      } catch (e) {
+//        // If an error occured here, there is a problem about the connection,
+//        // so lets do a timeout and maybe retry later
+//        logger.log('Peer', 'error:', e);
+//        this.isConnected = false;
+//        this.timerCompleteHandler(null);
+//        deferred.reject();
+//      }
+//
+//      // Add listeners to channel
+//      _self.channel.onclose = this.channel_CloseHandler;
+//      _self.channel.onerror = this.channel_ErrorHandler;
+//      _self.channel.onmessage = this.channel_MessageHandler;
+//      _self.channel.onopen = this.channel_OpenHandler;
+//      return deferred.promise;
+//    };
 
     /**
      * @method answerOffer
      * @param data
      * @return {Promise}
      */
-    PeerSession.prototype.answerOffer = function (data) {
-      var _self = this;
-      var uuid = this.peerId;
-      var deferred = Q.defer;
-      var signal = this.server;
-
-      logger.log('Signal ' + _self.peerId, 'Answer Offer');
-
-      _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
-      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
-      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
-      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
-      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
-      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
-
-      this.connection = _self.connection;
-
-      //5. Eve calls setRemoteDescription() with Alice's offer, so that her RTCPeerConnection knows about Alice's setup.
-      _self.connection.setRemoteDescription(new RTCSessionDescription(data.offer), function () {
-        //6. Eve calls createAnswer(), and the success callback for this is passed a local session description: Eve's answer.
-        _self.connection.createAnswer(function (sessionDescription) {
-          //7. Eve sets her answer as the local description by calling setLocalDescription().
-          _self.connection.setLocalDescription(sessionDescription);
-
-          //8. Eve then uses the signaling mechanism to send her stringified answer back to Alice.
-          _self.server.sendPeerAnswer(uuid, sessionDescription);
-        }, function (err) {
-          logger.log(err);
-        }, connectionConstraint);
-      });
-
-      return deferred.promise;
-    };
+//    PeerSession.prototype.answerOffer = function (data) {
+//      var _self = this;
+//      var uuid = this.peerId;
+//      var deferred = Q.defer;
+//      var signal = this.server;
+//
+//      logger.log('Signal ' + _self.peerId, 'Answer Offer');
+//
+//      _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
+//      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
+//      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
+//      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
+//      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
+//      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
+//
+//      this.connection = _self.connection;
+//
+//      //5. Eve calls setRemoteDescription() with Alice's offer, so that her RTCPeerConnection knows about Alice's setup.
+//      _self.connection.setRemoteDescription(new RTCSessionDescription(data.offer), function () {
+//        //6. Eve calls createAnswer(), and the success callback for this is passed a local session description: Eve's answer.
+//        _self.connection.createAnswer(function (sessionDescription) {
+//          //7. Eve sets her answer as the local description by calling setLocalDescription().
+//          _self.connection.setLocalDescription(sessionDescription);
+//
+//          //8. Eve then uses the signaling mechanism to send her stringified answer back to Alice.
+//          _self.server.sendPeerAnswer(uuid, sessionDescription);
+//        }, function (err) {
+//          logger.log(err);
+//        }, connectionConstraint);
+//      });
+//
+//      return deferred.promise;
+//    };
 
     /**
      * Accept a WebRTC-Connection
@@ -1544,27 +1544,27 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
      * @method acceptConnection
      * @param data
      */
-    PeerSession.prototype.acceptConnection = function (data) {
-      var _self = this;
-      this.isTarget = true;
-      this.isSource = false;
-
-      logger.log('Peer', _self.peerId, 'Accept connection');
-
-      //9. Alice sets Eve's answer as the remote session description using setRemoteDescription().
-      _self.connection.setRemoteDescription(new RTCSessionDescription(data.answer));
-    };
+//    PeerSession.prototype.acceptConnection = function (data) {
+//      var _self = this;
+//      this.isTarget = true;
+//      this.isSource = false;
+//
+//      logger.log('Peer', _self.peerId, 'Accept connection');
+//
+//      //9. Alice sets Eve's answer as the remote session description using setRemoteDescription().
+//      _self.connection.setRemoteDescription(new RTCSessionDescription(data.answer));
+//    };
 
     /**
      * Add candidate info to connection
      * @method addCandidate
      * @param data
      */
-    PeerSession.prototype.addCandidate = function (data) {
-      var _self = this;
-      logger.log('Peer', _self.peerId, 'Add candidate');
-      _self.connection.addIceCandidate(new RTCIceCandidate(data.candidate));
-    };
+//    PeerSession.prototype.addCandidate = function (data) {
+//      var _self = this;
+//      logger.log('Peer', _self.peerId, 'Add candidate');
+//      _self.connection.addIceCandidate(new RTCIceCandidate(data.candidate));
+//    };
 
     /**
      * Send data via a WebRTC-Channel to a peer
@@ -1579,7 +1579,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       }
       var _self = this;
 
-      _self.channel = answererDataChannel || offererDataChannel;
+//      _self.channel = answererDataChannel || offererDataChannel;
       var jsonString;
 
       if (!_self.isConnected || _self.channel.readyState !== 'open') {
@@ -1684,60 +1684,62 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   var dataChannelDict = {};
   var offererDataChannel;
 
-  // Offer need external things: socket, uuid, channel handlers
-  var Offer = {
-    // createOffer is the constructor for Offer
-    createOffer: function(peerId, config) {
-      var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
+  function Offer(peerId, config) {
+    PeerSession.call(this);
 
-      var self = this;
-      self.type = 'offer';
-      self.config = config;
-      self.peerId = peerId;
-      self.fileBufferReader = new FileBufferReader();
+    var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
 
-      // this means we get local candidate
-      // so need to send it to peer
-      peer.onicecandidate = function(event) {
-        if (event.candidate) {
-          config.onicecandidate(peerId, event.candidate.candidate);
-        } else {
-          // emit on end of candidate event
-          logger.log('Offer', 'end of candidate', JSON.stringify({
-            iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState,
-            iceConnectionState: peer.iceConnectionState
-          }));
-        }
-      };
+    var self = this;
+    self.type = 'offer';
+    self.config = config;
+    self.peerId = peerId;
+    self.fileBufferReader = new FileBufferReader();
 
-      peer.onsignalingstatechange = function() {
-        logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
+    // this means we get local candidate
+    // so need to send it to peer
+    peer.onicecandidate = function(event) {
+      if (event.candidate) {
+        config.onicecandidate(peerId, event.candidate.candidate);
+      } else {
+        // emit on end of candidate event
+        logger.log('Offer', 'end of candidate', JSON.stringify({
           iceGatheringState: peer.iceGatheringState,
           signalingState: peer.signalingState,
           iceConnectionState: peer.iceConnectionState
         }));
-      };
-      peer.oniceconnectionstatechange = function() {
-        logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
-          iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState,
-          iceConnectionState: peer.iceConnectionState
-        }));
-      };
+      }
+    };
 
-      self.channel = self.createDataChannel(peer);
+    peer.onsignalingstatechange = function() {
+      logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
+        iceGatheringState: peer.iceGatheringState,
+        signalingState: peer.signalingState,
+        iceConnectionState: peer.iceConnectionState
+      }));
+    };
+    peer.oniceconnectionstatechange = function() {
+      logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
+        iceGatheringState: peer.iceGatheringState,
+        signalingState: peer.signalingState,
+        iceConnectionState: peer.iceConnectionState
+      }));
+    };
+
+    self.channel = self.createDataChannel(peer);
 
 //      window.peer = peer;
-      peer.createOffer(function(sdp) {
-        peer.setLocalDescription(sdp);
-        config.onsdp(peerId, sdp);
-      }, onSdpError, offerAnswerConstraints);
+    peer.createOffer(function(sdp) {
+      peer.setLocalDescription(sdp);
+      config.onsdp(peerId, sdp);
+    }, onSdpError, offerAnswerConstraints);
 
-      self.peer = peer;
+    self.peer = peer;
 
-      return self;
-    },
+//    return self;
+  };
+
+  Offer.prototype = _.create(PeerSession.prototype, {
+    constructor: Offer,
     setRemoteDescription: function(sdp) {
       this.peer.setRemoteDescription(new RTCSessionDescription(sdp));
     },
@@ -1752,64 +1754,67 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       setChannelEvents(chan, this.config);
       return chan;
     }
+  });
+  exports.Offer = Offer;
+
+  function Answer(peerId, offer, config) {
+    var Parent = PeerSession;
+    Parent.call(this);
+
+    var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
+
+    var self = this;
+    self.config = config;
+    self.type = 'answer';
+    self.peerId = peerId;
+    self.fileBufferReader = new FileBufferReader();
+
+    peer.ondatachannel = function(event) {
+      self.channel = event.channel;
+      setChannelEvents(self.channel, config);
+    };
+
+    peer.onicecandidate = function(event) {
+      if (event.candidate) {
+        config.onicecandidate(peerId, event.candidate);
+      } else {
+        logger.log('Answer', 'end of candidate', JSON.stringify({
+          iceGatheringState: peer.iceGatheringState,
+          signalingState: peer.signalingState,
+          iceConnectionState: peer.iceConnectionState
+        }));
+      }
+
+    };
+
+    peer.onsignalingstatechange = function() {
+      logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
+        iceGatheringState: peer.iceGatheringState,
+        signalingState: peer.signalingState,
+        iceConnectionState: peer.iceConnectionState
+      }));
+    };
+    peer.oniceconnectionstatechange = function() {
+      logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
+        iceGatheringState: peer.iceGatheringState,
+        signalingState: peer.signalingState,
+        iceConnectionState: peer.iceConnectionState
+      }));
+    };
+
+    peer.setRemoteDescription(new RTCSessionDescription(offer));
+    peer.createAnswer(function(sdp) {
+      peer.setLocalDescription(sdp);
+      config.onsdp(peerId, sdp);
+    }, onSdpError, offerAnswerConstraints);
+
+    self.peer = peer;
+
+//    return self;
   };
 
-  var answererDataChannel;
-
-  var Answer = {
-    createAnswer: function(peerId, offer, config) {
-      var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
-
-      var self = this;
-      self.config = config;
-      self.type = 'answer';
-      self.peerId = peerId;
-      self.fileBufferReader = new FileBufferReader();
-
-      peer.ondatachannel = function(event) {
-        self.channel = event.channel;
-        setChannelEvents(self.channel, config);
-      };
-
-      peer.onicecandidate = function(event) {
-        if (event.candidate) {
-          config.onicecandidate(peerId, event.candidate);
-        } else {
-          logger.log('Answer', 'end of candidate', JSON.stringify({
-            iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState,
-            iceConnectionState: peer.iceConnectionState
-          }));
-        }
-
-      };
-
-      peer.onsignalingstatechange = function() {
-        logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
-          iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState,
-          iceConnectionState: peer.iceConnectionState
-        }));
-      };
-      peer.oniceconnectionstatechange = function() {
-        logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
-          iceGatheringState: peer.iceGatheringState,
-          signalingState: peer.signalingState,
-          iceConnectionState: peer.iceConnectionState
-        }));
-      };
-
-      peer.setRemoteDescription(new RTCSessionDescription(offer));
-      peer.createAnswer(function(sdp) {
-        peer.setLocalDescription(sdp);
-        config.onsdp(peerId, sdp);
-      }, onSdpError, offerAnswerConstraints);
-
-      self.peer = peer;
-      //self.channel = answererDataChannel;
-
-      return self;
-    },
+  Answer.prototype = _.create(PeerSession.prototype, {
+    constructor: Answer,
     addIceCandidate: function(candidate) {
       this.peer.addIceCandidate(new RTCIceCandidate({
         sdpMLineIndex: candidate.sdpMLineIndex,
@@ -1821,7 +1826,8 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       setChannelEvents(chan, this.config);
       return chan;
     }
-  };
+  });
+  exports.Answer = Answer;
 
   function onSdpError(e) {
     console.error(e);

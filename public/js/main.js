@@ -16,9 +16,9 @@ require.config({
         'fingerprint': '../lib/fingerprintjs/fingerprint',
         'sha1': '../lib/cryptojs/rollups/sha1',
         'binarize': '../lib/binarize.js/src/binarize',
-        'fbr': './FileBufferReader'
-    },
-    shim: {}
+        'fbr': './FileBufferReader',
+        'utils': './utils'
+    }
 });
 
 define(['jquery', 'app', 'fingerprint', 'sha1', 'binarize', 'fbr'],
@@ -133,10 +133,10 @@ function ($, jsd, fingerprint, sha1, binarize, fbr) {
         evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
       }
 
-      // Setup the dnd listeners.
-      var dropZone = document.getElementById('drop_zone');
-      dropZone.addEventListener('dragover', handleDragOver, false);
-      dropZone.addEventListener('drop', handleFileSelect, false);
+      //// Setup the dnd listeners.
+      //var dropZone = document.getElementById('drop_zone');
+      //dropZone.addEventListener('dragover', handleDragOver, false);
+      //dropZone.addEventListener('drop', handleFileSelect, false);
 
       var progressHelper = {};
       var outputPanel = document.querySelector('.output-panel');

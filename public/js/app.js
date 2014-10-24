@@ -9,8 +9,9 @@ define(['require',
       'fingerprint',
       'sha1',
       'fbr',
-      'observe-js'],
-function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fingerprint, sha1, fbr) {
+      'observe-js',
+      'utils'],
+function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fingerprint, sha1, fbr, utils) {
 
   var _debuging = true;
 
@@ -41,129 +42,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   })();
   exports.MyObj = MyObj;
 
-  var utils = (function () {
-    this.sleep = function (milliseconds) {
-      var start = new Date().getTime();
-      for (var i = 0; i < 10000000; i++) {
-        if ((new Date().getTime() - start) > milliseconds) {
-          break;
-        }
-      }
-    };
-
-    this.bin2hex = function(s) {
-      var i = 0, l = bin.length, chr, hex = '';
-
-      for (i; i < l; ++i)
-      {
-        chr = bin.charCodeAt(i).toString(16);
-        hex += chr.length < 2 ? '0' + chr : chr;
-      }
-      return hex
-    };
-    // String.prototype
-    this.hex2bin = function(hex) {
-      var i = 0, l = this.length - 1, bytes = [];
-
-      for (i; i < l; i += 2) {
-        bytes.push(parseInt(this.substr(i, 2), 16))
-      }
-
-      return String.fromCharCode.apply(String, bytes);
-    };
-
-    this.dec2hex = function(i) {
-      return (i+0x10000).toString(16).substr(-4).toUpperCase();
-    };
-
-    this.rgb2hex = function(r,g,b) {
-      if (g !== undefined)
-        return Number(0x1000000 + r*0x10000 + g*0x100 + b).toString(16).substring(1);
-      else
-        return Number(0x1000000 + r[0]*0x10000 + r[1]*0x100 + r[2]).toString(16).substring(1);
-    };
-
-    this.toRGB = function (/* String */ color) {
-      // summary:
-      //	Converts a 6 digit Hexadecimal string value to an RGB integer array.
-      //      Important! input must be a 6 digit Hexadecimal string "bad" will
-      //      not convert correctly but "bbaadd" will. To keep the function as
-      //      light as possible there is no idiot-proofing, if you pass in bad
-      //      data I'm not fixing it for you :-)
-      //
-      // color: String
-      //      6 digit Hexadecimal string value
-      //
-      // returns: Array
-      //	An array containing the RGB integers in the following format [red, green, blue]
-      //
-      // example:
-      //	Convert the Hexadecimal value "c0ffee" (blue color) to RGB integers.
-      //      The variable "rgb" will be equal to [192, 255, 238]
-      //
-      //	var rgb = toRGB("c0ffee");
-
-      //convert string to base 16 number
-      var num = parseInt(color, 16);
-
-      //return the red, green and blue values as a new array
-      return [num >> 16, num >> 8 & 255, num & 255];
-    };
-
-    this.toHex = function (/* Number */ red, /* Number */ green, /* Number */ blue) {
-      // summary:
-      //	Converts 3 RGB integer values into a Hexadecimal string.
-      //      Important! input must be integers with a range of 0 to 255.
-      //      To keep the function as light as possible there is no idiot-proofing,
-      //      if you pass in bad data I'm not fixing it for you :-)
-      //
-      // red: Number
-      //	number ranging from 0 to 255 indicating the amount of red
-      // green: Number
-      //	number ranging from 0 to 255 indicating the amount of green
-      // blue: Number
-      //	number ranging from 0 to 255 indicating the amount of blue
-      //
-      // returns: String
-      //	6 digit Hexadecimal string value
-      //
-      // example:
-      //      Convert the RGB values [192, 255, 238] (blue color) to Hexadecimal string.
-      //      The variable "hex" will be equal to "c0ffee"
-      //
-      //      var hex = toHex(192, 255, 238);
-
-      //return 6 digit Hexadecimal string
-      return ((blue | green << 8 | red << 16) | 1 << 24).toString(16).slice(1);
-    };
-
-    // I create a function that statically binds the given
-    // method to the given instance.
-    this.bind = function (instance, method) {
-
-      // Create the parent function.
-      var invocation = function () {
-        return (
-            method.apply(instance, arguments)
-            );
-      };
-
-      // Return the invocation binding.
-      return ( invocation );
-
-    };
-
-    return {
-      hex2rgb: this.toRGB,
-      rgb2hex: this.toHex,
-      hex2bin: this.hex2bin,
-      bin2hex: this.bin2hex,
-      dec2hex: this.dec2hex,
-      sleep: this.sleep,
-      bind: this.bind
-    };
-  })();
-  exports.utils = utils;
 
   /**
    * @author Michael
@@ -171,7 +49,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
    * @module Logger
    * @class Logger
    */
-
   var logger = (function () {
 
     var MAX_MESSAGES = 100;
@@ -194,7 +71,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
           hours = current.getHours() < 10 ? ('0' + current.getHours()) : current.getHours(),
           minutes = current.getMinutes() < 10 ? ('0' + current.getMinutes()) : current.getMinutes(),
           seconds = current.getSeconds() < 10 ? ('0' + current.getSeconds()) : current.getSeconds();
-          mseconds = current.getMilliseconds() ;
+      mseconds = current.getMilliseconds() ;
 
       date.push(hours);
       date.push(minutes);
@@ -495,6 +372,10 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
             var parts = line.split(' '), addr = parts[4], type = parts[7];
             if (type === 'host')
               addAddress(addr);
+          } else if (~line.indexOf('candidate:')) {
+            var parts = line.split(' '), addr = parts[4], type = parts[7];
+            if (type === 'host')
+              addAddress(addr);
           } else if (~line.indexOf('c=')) {
             var parts = line.split(' '), addr = parts[2];
             addAddress(addr);
@@ -513,7 +394,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
         // for chrome: when offline, it will be called for ever until online
         // and the candidate is null,
         if (evt.candidate !== null) {
-          logger.log('EnumIPs', 'onicecandidate: ', evt.candidate);
+          //logger.log('DetectIPs', 'onicecandidate: ', evt.candidate);
           grepSDP(evt.candidate.candidate);
         } else {
           // TODO: need more test to check the state
@@ -524,7 +405,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
               // here we knew it is time to call callback
               var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
 //          var xs = displayAddrs.join(', ');
-//          logger.log('EnumIPs', 'addrs: ', xs);
+//          logger.log('DetectIPs', 'addrs: ', xs);
               if (displayAddrs) {
                 cb.apply(ctx, [displayAddrs.sort()]);
                 iceEnded = true;
@@ -537,14 +418,14 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
 
       };
       rtc.createOffer(function (offerDesc) {
-        logger.log('EnumIPs', 'createOffer: ', offerDesc.sdp);
+        //logger.log('DetectIPs', 'createOffer: ', offerDesc.sdp);
         grepSDP(offerDesc.sdp);
         rtc.setLocalDescription(offerDesc);
       }, function (e) {
-        logger.error('EnumIPs', 'createOffer failed: ', e);
+        logger.error('DetectIPs', 'createOffer failed: ', e);
       });
     } catch (e) {
-      logger.error('EnumIPs', 'failed for: ', e);
+      logger.error('DetectIPs', 'failed for: ', e);
       return false;
     }
     return true;
@@ -1023,7 +904,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       saveIPs: function (ips) {
         var self = this;
         self.localIPs = ips;
-        logger.log('EnumIPs', 'all addr: ', ips);
+        logger.log('DetectIPs', 'all addr: ', ips);
       },
 
       // connect to peer
@@ -1446,125 +1327,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
       _self.emit(PeerEvent.DISCONNECT, _self);
     };
 
-    /* Event Handler END */
-    /**
-     * Create a WebRTC-Connection
-     *
-     * @method createConnection
-     * @return {Promise}
-     */
-//    PeerSession.prototype.createConnection = function () {
-//      var _self = this;
-//      var deferred = Q.defer;
-//      this.isSource = true;
-//      this.isTarget = false;
-//
-//      logger.log('Peer '+_self.peerId, 'Creating connection, offer');
-//
-//      //1.Alice creates an RTCPeerConnection object.
-//      _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
-//
-//      //I. Alice creates an RTCPeerConnection object with an onicecandidate handler.
-//      //Add listeners to connection
-//      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
-//      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
-//      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
-//      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
-//      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
-//
-//      // Start timeout countdown
-//      _.delay(this.timerCompleteHandler.bind(this), TIMEOUT_WAIT_TIME);
-//
-//      try {
-//        // Create  data-channel
-//        _self.channel = _self.connection.createDataChannel('Jiasudu', channelConstraint);
-//
-//        if (webrtcDetectedBrowser==='firefox') {
-//          _makeOffer(_self);
-//        }
-//      } catch (e) {
-//        // If an error occured here, there is a problem about the connection,
-//        // so lets do a timeout and maybe retry later
-//        logger.log('Peer', 'error:', e);
-//        this.isConnected = false;
-//        this.timerCompleteHandler(null);
-//        deferred.reject();
-//      }
-//
-//      // Add listeners to channel
-//      _self.channel.onclose = this.channel_CloseHandler;
-//      _self.channel.onerror = this.channel_ErrorHandler;
-//      _self.channel.onmessage = this.channel_MessageHandler;
-//      _self.channel.onopen = this.channel_OpenHandler;
-//      return deferred.promise;
-//    };
-
-    /**
-     * @method answerOffer
-     * @param data
-     * @return {Promise}
-     */
-//    PeerSession.prototype.answerOffer = function (data) {
-//      var _self = this;
-//      var uuid = this.peerId;
-//      var deferred = Q.defer;
-//      var signal = this.server;
-//
-//      logger.log('Signal ' + _self.peerId, 'Answer Offer');
-//
-//      _self.connection = new RTCPeerConnection(ICE_SERVER_SETTINGS, connectionConstraint);
-//      _self.connection.ondatachannel = this.dataChannelHandler.bind(this);
-//      _self.connection.onicecandidate = this.iceCandidateHandler.bind(this);
-//      _self.connection.oniceconnectionstatechange = this.iceConnectionStateChangeHandler.bind(this);
-//      _self.connection.onnegotiationneeded = this.negotiationNeededHandler.bind(this);
-//      _self.connection.onsignalingstatechange = this.signalingStateChangeHandler.bind(this);
-//
-//      this.connection = _self.connection;
-//
-//      //5. Eve calls setRemoteDescription() with Alice's offer, so that her RTCPeerConnection knows about Alice's setup.
-//      _self.connection.setRemoteDescription(new RTCSessionDescription(data.offer), function () {
-//        //6. Eve calls createAnswer(), and the success callback for this is passed a local session description: Eve's answer.
-//        _self.connection.createAnswer(function (sessionDescription) {
-//          //7. Eve sets her answer as the local description by calling setLocalDescription().
-//          _self.connection.setLocalDescription(sessionDescription);
-//
-//          //8. Eve then uses the signaling mechanism to send her stringified answer back to Alice.
-//          _self.server.sendPeerAnswer(uuid, sessionDescription);
-//        }, function (err) {
-//          logger.log(err);
-//        }, connectionConstraint);
-//      });
-//
-//      return deferred.promise;
-//    };
-
-    /**
-     * Accept a WebRTC-Connection
-     *
-     * @method acceptConnection
-     * @param data
-     */
-//    PeerSession.prototype.acceptConnection = function (data) {
-//      var _self = this;
-//      this.isTarget = true;
-//      this.isSource = false;
-//
-//      logger.log('Peer', _self.peerId, 'Accept connection');
-//
-//      //9. Alice sets Eve's answer as the remote session description using setRemoteDescription().
-//      _self.connection.setRemoteDescription(new RTCSessionDescription(data.answer));
-//    };
-
-    /**
-     * Add candidate info to connection
-     * @method addCandidate
-     * @param data
-     */
-//    PeerSession.prototype.addCandidate = function (data) {
-//      var _self = this;
-//      logger.log('Peer', _self.peerId, 'Add candidate');
-//      _self.connection.addIceCandidate(new RTCIceCandidate(data.candidate));
-//    };
 
     /**
      * Send data via a WebRTC-Channel to a peer
@@ -1682,7 +1444,6 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
   };
 
   var dataChannelDict = {};
-  var offererDataChannel;
 
   function Offer(peerId, config) {
     PeerSession.call(this);
@@ -2170,7 +1931,7 @@ function (require, exports, module, _, Q, EventEmitter2, nuuid, StateMachine, fi
     };
 
     /**
-     * Start muskepeer
+     * Start
      *
      * @method start
      * @chainable

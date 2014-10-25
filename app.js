@@ -1,3 +1,4 @@
+
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -26,14 +27,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/client.js', routes);
+app.use('/tracker.jpg', routes);
 app.use('/users', users);
-
-// add tracker [img] in router
-app.get('/tracker.jpg',function(req, res, next){
-    res.render('demo',{
-        tracker: res.locals.tracker // or use in jade directly
-    });
-});
 
 
 

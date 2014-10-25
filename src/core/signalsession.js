@@ -284,7 +284,7 @@ SignalEvent.ERROR = 'signal:error';
             var from = message.from;
 
             if (sdp.type === 'offer') {
-                this.psm._peers[message.from] = new Answer(from, sdp, this.events);
+                this.psm._peers[message.from] = new jsd.core.Answer(from, sdp, this.events);
             }
 
             if (sdp.type === 'answer') {
@@ -330,7 +330,7 @@ SignalEvent.ERROR = 'signal:error';
                 logger.log('Peer '+settings.uuid, 'Received invite from ', data.from);
                 // create the offer
                 if (from) {
-                    this.psm._peers[from] = new Offer(from, this.events);
+                    this.psm._peers[from] = new jsd.core.Offer(from, this.events);
                 }
             }
         },

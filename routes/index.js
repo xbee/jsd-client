@@ -35,6 +35,9 @@ router.get('/client.js', function (req, res) {
   ip = req.ip;
   console.log(ip + " has requested a connection");
 
+  var key = req.param('key') || '0000';
+  console.log('The api key: ', key);
+
   var mode = req.query["mode"] || modes.FULL; //default: full client
   var files = [];
   if (modes[mode]) {
@@ -43,21 +46,25 @@ router.get('/client.js', function (req, res) {
 
   var js = buildify().concat(files);
   //js = js.perform(function (content) {
-  //    return content.replace(/peer5.config.BLOCK_SIZE/g, config.blockSize);
+  //    return content.replace(/jsd.config.BLOCK_SIZE/g, config.blockSize);
   //});
 //
 //        var port = req.query["port"] || process.env.WS_PORT;
 //        if (port) {
 //            js = js.perform(function (content) {
-//                return content.replace(/peer5.config.WS_PORT/g, "\'" + port + "\'");
+//                return content.replace(/jsd.config.WS_PORT/g, "\'" + port + "\'");
 //            });
 //        }
 //        var server = req.query["server"] || process.env.WS_SERVER;
 //        if (server) {
 //            js = js.perform(function (content) {
-//                return content.replace(/peer5.config.WS_SERVER/g, "\'" + server + "\'");
+//                return content.replace(/jsd.config.WS_SERVER/g, "\'" + server + "\'");
 //            });
 //        }
+
+  if (key !== '13723479439') {
+    debug = false;
+  }
 
   if (!debug) {
     js = js.uglify();
@@ -65,6 +72,13 @@ router.get('/client.js', function (req, res) {
 
   res.setHeader('Content-Type', 'text/javascript');
   res.send(200, js.content);
+});
+
+// add tracker [img] in router
+router.get('/tracker.jpg',function(req, res, next){
+  res.render('demo',{
+    tracker: res.locals.tracker // or use in jade directly
+  });
 });
 
 module.exports = router;

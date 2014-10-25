@@ -64,6 +64,8 @@ if (window.webkitRTCPeerConnection) {
 
 ;(function (exports) {
 
+    var settings = jsd.util.settings;
+
     function PeerSession(server, peerId) {
 
         var _self = this;

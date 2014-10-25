@@ -2,6 +2,8 @@ var TIMEOUT_RETRY_TIME = 60000;
 var MAX_RANDOM_ASSESSMENT_DELAY_TIME = 150;
 
 (function (exports) {
+    var settings = jsd.util.settings;
+
     function PeerSessionManager(node) {
         if (!node) {
             this._signaler = new SignalSession();

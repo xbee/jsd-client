@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var etager = require('etager');
 
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
@@ -24,7 +25,17 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
+app.use('/client.js', routes);
 app.use('/users', users);
+
+// add tracker [img] in router
+app.get('/tracker.jpg',function(req, res, next){
+    res.render('demo',{
+        tracker: res.locals.tracker // or use in jade directly
+    });
+});
+
+
 
 // use as Express middleware
 app.use(etager.listen(function(uuid, request, firstaccess){
@@ -34,6 +45,8 @@ app.use(etager.listen(function(uuid, request, firstaccess){
     console.log('welcome back [' + uuid + ']');
   }
 }));
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -66,11 +79,6 @@ app.use(function(err, req, res, next) {
     });
 });
 
-// add tracker [img] in router
-app.get('/tracker.jpg',function(req, res, next){
-  res.render('demo',{
-    tracker: res.locals.tracker // or use in jade directly
-  });
-});
+
 
 module.exports = app;

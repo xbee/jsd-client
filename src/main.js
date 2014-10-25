@@ -54,8 +54,8 @@ define(['app', 'fingerprint', 'sha1'], function (jsd, fingerprint, sha1) {
        * @private
        * @method networkConnectivityStateChangeHandler
        * @param {Object} e
-       */
-      function networkConnectivityStateChangeHandler(e) {
+                                                               */
+                                                              function networkConnectivityStateChangeHandler(e) {
         if (e.type === 'online') {
           logger.log('Network', 'online!');
           logger.log('Network', 'try to reconnecting ...');

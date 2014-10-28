@@ -31,7 +31,7 @@ try {
     $('#call').click(function () {
         var target = $('#target').val();
         if (target) {
-            window.createPeerConnection(target);
+            app.createPeerConnection(target);
         } else {
             console.error('You need input the target id');
         }

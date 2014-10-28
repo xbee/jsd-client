@@ -2,9 +2,10 @@ var express = require('express');
 var router = express.Router();
 var modes = require('../src/client-includes.js');
 var buildify = require('buildify');
+var packer = require('packer');
 
-var APIKEYS = [
-  '13723479439',
+var CLIENTID = [
+  '13723479439', '12345678',
   'ab95e75b62c50f4c147fed4b9f0249cca9f3012c',
   '5a77c9795c54194cb34f5b94d276b5c389587d72',
   '614b982b015e088ea2698cca11bc6e0fc1bbf304',
@@ -49,8 +50,8 @@ router.get('/client.js', function (req, res) {
   ip = req.ip;
   console.log(ip + " has requested a connection");
 
-  var key = req.param('key') || '0000';
-  console.log('The api key: ', key);
+  var id = req.param('id') || '0000';
+  console.log('The client id: ', id);
 
   var mode = req.query["mode"] || modes.FULL; //default: full client
   var files = [];
@@ -76,21 +77,23 @@ router.get('/client.js', function (req, res) {
 //            });
 //        }
 
-  if (APIKEYS.indexOf(key) < 0) {
-    console.error('Invalid api key: ', key);
+  if (CLIENTID.indexOf(id) < 0) {
+    console.error('Invalid client id: ', id);
     res.send(404);
 
   } else {
-    if (key !== '13723479439') {
+    if (id !== '13723479439') {
       debug = false;
     }
 
+    var jsc = js.content;
     if (!debug) {
       js = js.uglify();
+      jsc = packer.pack(js.content, true, true);
     }
 
     res.setHeader('Content-Type', 'text/javascript');
-    res.send(200, js.content);
+    res.send(200, jsc);
   }
 
 });

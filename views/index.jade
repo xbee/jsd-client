@@ -5,25 +5,23 @@ block header
 
 block content
     #content.content
-        label(for='uuid') Your UserName:
+        label(for='uuid') Your Peer ID:
         input#uuid(type='text')
         br
-        label(for='target') Target UserName:
+        label(for='target') Connect to peer:
         input#target(type='text', placeholder='Required')
         br
         button#start-signaler(disabled='') Start Signaler
-        button#call(style='margin-left:10px;') Call
+        button#call(style='margin-left:10px;') Connect
         button#loadfile(style='margin-left:10px;') Load File
         button#select-file(style='margin-left:10px;') Select File
         br
-        //div.example
-        //    #drop_zone Drop files here
-        //    output#list.output-panel
+        div.example
+            #drop_zone Drag file here to send to active connections.
+            output#list.output-panel
         hr
         output#log
     script(type='text/javascript', src='lib/jquery.js')
-    //script(type='text/javascript', src='lib/clientjs/dist/client.min.js')
-    //script(type='text/javascript', src='lib/evercookie/js/evercookie.js')
     //script(type='text/javascript', src='lib/Conzole/conzole.js')
-    script(type='text/javascript', src='/client.js?key=13723479439')
+    script(type='text/javascript', src='/client.js?id=13723479439')
     script(type='text/javascript', src='js/ui.js')

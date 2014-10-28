@@ -13,6 +13,7 @@
         };
 
         var ds = new Date();
+        //var fp = new Fingerprint({hasher: my_hasher});
         var fp = new Fingerprint();
         var bid = fp.get();
 

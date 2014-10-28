@@ -115,9 +115,13 @@
         peer.answerOffer(event);
     };
 
-    App.prototype.createSession = function () {
+    App.prototype.createSignalSession = function () {
         var session = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
         return session;
+    };
+
+    App.prototype.createPeerConnection = function(peerid) {
+        this.session.sendParticipantRequest(peerid);
     };
 
     App.prototype.init = function () {
@@ -150,7 +154,7 @@
      */
     App.prototype.start = function (config) {
         // 1. create session
-        this.session = this.createSession();
+        this.session = this.createSignalSession();
         // 2. set session callbacks
         if (this.session) {
             this.session.on(SignalEvent.CONNECTED, this.session_onConnected.bind(this));

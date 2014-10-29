@@ -9,7 +9,7 @@ define(['app', 'jquery', 'lodash'], function(jsd, $, _) {
         });
 
         it('works for JSD', function() {
-            expect(jsd.App).toBeDefined();
+            expect(jsd.Client).toBeDefined();
             expect(jsd._debuging).toBeDefined();
             if (jsd._debuging) {
                 expect(jsd.Uuid).toBeDefined();

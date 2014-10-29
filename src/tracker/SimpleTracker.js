@@ -1,15 +1,14 @@
-require('../../core/util/logger.js');
-var ITracker = require('../../core/tracker/ITracker.js').ITracker;
-var protocol = require('../../core/protocol/ProtocolMessages');
-var uuid = require('../../core/util/uuid.js');
+//require('../../core/util/logger.js');
+var ITracker = require('./ITracker.js').ITracker;
+var protocol = require('../protocol/ProtocolMessages');
 var swarms = require('./Swarm.js');
 
 exports.SimpleTracker = ITracker.subClass({
-    name:'peer5.core.tracker.SimpleTracker',
+    name:'jsd.tracker.SimpleTracker',
     MAX_PEERS_MATCH:1,
     createSwarm:function (peerId, fileInfo, sender) {
         if (!fileInfo.swarmId) {
-            fileInfo.swarmId = uuid.shortId();
+            fileInfo.swarmId = jsd.util.shortId();
         }
 
         swarms.addSwarm(fileInfo.swarmId, fileInfo);

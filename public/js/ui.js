@@ -39,7 +39,29 @@ function handleFileSelect(evt) {
 
         // Read in the image file as a data URL.
         reader.readAsDataURL(f);
-    }
+
+        // to do some useful with fbr
+        var fileBufferReader = new FileBufferReader();
+
+        fileBufferReader.readAsArrayBuffer(f, function(uuid) {
+            // var file         = fileBufferReader.chunks[uuid];
+            // var listOfChunks = file.listOfChunks;
+
+            // get first chunk, and send using WebRTC data channels
+            // NEVER send chunks in loop; otherwise you'll face issues in slow networks
+            // remote peer should notify if it is ready for next chunk
+            fileBufferReader.getNextChunk(uuid, function(nextChunk, isLastChunk) {
+                if(isLastChunk) {
+                    alert('File Successfully sent.');
+                }
+                // sending using WebRTC data channels
+                // TODO: need to find the channel
+                var peerid = $('#target').val();
+                var dc = jsdapp.getDataChannelByPeerId(peerid);
+                dc.send(nextChunk);
+            });
+        });
+    } // end of for loop
     document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
     //document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
@@ -50,23 +72,6 @@ function handleDragOver(evt) {
     evt.preventDefault();
     evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 }
-
-function load_binary_resource(url, callback) {
-    //deferred = Q.defer;
-    var oReq = new XMLHttpRequest();
-    oReq.open("GET", url, true);
-    // oReq.setRequestHeader('Range', 'bytes=100-200');
-    oReq.responseType = "blob";
-
-    var blob;
-    oReq.onload = function(oEvent) {
-        blob = oReq.response;
-        // do something with blob
-        callback(blob);
-    };
-
-    oReq.send();
-};
 
 // Setup the dnd listeners.
 var dropZone = document.getElementById('drop_zone');

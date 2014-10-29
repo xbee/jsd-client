@@ -1,4 +1,5 @@
-(function () {
+(function (exports) {
+
     this.sleep = function (milliseconds) {
         var start = new Date().getTime();
         for (var i = 0; i < 10000000; i++) {
@@ -110,8 +111,51 @@
 
     };
 
+    exports.h2d = function(s) {
+
+        function add(x, y) {
+            var c = 0, r = [];
+            var x = x.split('').map(Number);
+            var y = y.split('').map(Number);
+            while(x.length || y.length) {
+                var s = (x.pop() || 0) + (y.pop() || 0) + c;
+                r.unshift(s < 10 ? s : s - 10);
+                c = s < 10 ? 0 : 1;
+            }
+            if(c) r.unshift(c);
+            return r.join('');
+        }
+
+        var dec = '0';
+        s.split('').forEach(function(chr) {
+            var n = parseInt(chr, 16);
+            for(var t = 8; t; t >>= 1) {
+                dec = add(dec, dec);
+                if(n & t) dec = add(dec, '1');
+            }
+        });
+        return dec;
+    };
+
     exports.d2h = function(d) {return d.toString(16);};
-    exports.h2d = function(h) {return parseInt(h,16);};
+    //exports.h2d = function(h) {return parseInt(h,16);};
+
+    exports.load_resource = function(url, callback) {
+        //deferred = Q.defer;
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", url, true);
+        // oReq.setRequestHeader('Range', 'bytes=100-200');
+        oReq.responseType = "blob";
+
+        var blob;
+        oReq.onload = function(oEvent) {
+            blob = oReq.response;
+            // do something with blob
+            callback(blob);
+        };
+
+        oReq.send();
+    };
 
     exports.hex2rgb = this.toRGB;
     exports.rgb2hex = this.toHex;

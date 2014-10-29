@@ -3,29 +3,24 @@
 try {
     var logger = jsd.util.logger;
 
-    var app = new jsd.App();
-    app.init();
+    var app = new jsd.Client();
     app.start();
 
     window.jsdapp = app;
     window.jsd = jsd;
 
     var peer = null;
-    var createPeerConnection = function(peerid) {
-        app.session.sendParticipantRequest(peerid);
-    };
 
     var getPeer = function() {
         var peerid = $('#target').val();
         if (peerid) {
-            return app.session.psm.getPeerByUuid(peerid);
+            return app.getPeerById(peerid);
         } else {
             return null;
         }
     };
 
     window.peer = peer;
-    window.createPeerConnection = createPeerConnection;
 
     $('#uuid').val(app.settings.uuid);
     $('#call').click(function () {
@@ -33,6 +28,7 @@ try {
         if (target) {
             app.createPeerConnection(target);
         } else {
+
             console.error('You need input the target id');
         }
     });
@@ -46,27 +42,6 @@ try {
         }
     });
 
-    /**
-     * Event-Handler, called when Network state changes
-     *
-     * @private
-     * @method networkConnectivityStateChangeHandler
-     * @param {Object} e
-     */
-    function networkConnectivityStateChangeHandler(e) {
-        if (e.type === 'online') {
-            logger.log('Network', 'online!');
-            logger.log('Network', 'try to reconnecting ...');
-            app.start();
-        }
-        else {
-            logger.warn('Network', 'offline!');
-            app.stop();
-        }
-    }
-
-    window.addEventListener('offline', networkConnectivityStateChangeHandler);
-    window.addEventListener('online', networkConnectivityStateChangeHandler);
 
 } catch(ex) {
     console.log(ex.stack);

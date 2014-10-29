@@ -2,26 +2,33 @@
 exports.FULL = 100;
 exports.NONE = 0;
 
+var srcPath = '/src/';
+
 // the order has importance!
-exports[exports.FULL] = [
-    '../src/util/namespaces.js',
-    '../src/util/lodash.js',
-    '../src/util/eventemitter2.js',
-    '../src/util/observe.js',
-    '../src/util/sha1.js',
-    '../src/util/fingerprint.js',
-    '../src/util/state-machine.js',
-    '../src/transport/sockjs.js',
-    '../src/data/FileBufferReader.js',
-    '../src/clientconfig.js',
-    '../src/util/logger.js',
-    '../src/util/myid.js',
-    '../src/settings.js',
-    '../src/util/detect.js',
-    '../src/core/signalsession.js',
-    '../src/core/peersession.js',
-    '../src/core/offeranswer.js',
-    '../src/core/peersessionmanager.js',
-    '../src/client.js',
-    '../src/bootstrap.js'
+var files = [
+    'util/namespaces.js',
+    'util/lodash.js',
+    'util/eventemitter2.js',
+    'util/observe.js',
+    'util/sha1.js',
+    'util/fingerprint.js',
+    'util/state-machine.js',
+    'transport/sockjs.js',
+    'data/FileBufferReader.js',
+    'clientconfig.js',
+    'util/logger.js',
+    'util/index.js',
+    'util/myid.js',
+    'settings.js',
+    'util/detect.js',
+    'core/signalsession.js',
+    'core/peersession.js',
+    'core/offeranswer.js',
+    'core/peersessionmanager.js',
+    'client.js',
+    'bootstrap.js'
 ];
+
+exports[exports.FULL] = files.map(function(fn) {
+   return srcPath + fn;
+});

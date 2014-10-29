@@ -34,7 +34,7 @@ SignalEvent.ERROR = 'signal:error';
         this.socket = null;
         //this.isConnected = false;
         this.localIPs = [];
-        this.peers = null;
+        //this.peers = null;
         this.psm = null;
         this.fileBufferReader = new FileBufferReader();
 
@@ -294,6 +294,7 @@ SignalEvent.ERROR = 'signal:error';
 
         ondata: function(event) {
             var self = this;
+            logger.log('ondata: ', event);
             var chunk = event.data;
 
             if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
@@ -317,6 +318,9 @@ SignalEvent.ERROR = 'signal:error';
             // if chunk is received
             self.fileBufferReader.addChunk(chunk, function(promptNextChunk) {
                 // request next chunk
+                // BUG: fix it
+                logger.log('promptNextChunk: ', promptNextChunk);
+                //logger.log('I am: ', self.channel.type);
                 peerConnection.send(promptNextChunk);
             });
         },
@@ -339,7 +343,7 @@ SignalEvent.ERROR = 'signal:error';
             var eventInfo = {}, i;
             if (peer) {
                 eventInfo.peer = peer;
-                this.peers.push(peer);
+                //this.psm.push(peer);
             } else {
                 if (this.is('disconnected')) {
                     // TODO: need to do something
@@ -504,7 +508,7 @@ SignalEvent.ERROR = 'signal:error';
          */
         peerAnswerHandler: function(data) {
             logger.log('Peer '+this.uuid, 'Received answer: ', data);
-            var peer = this.peers.getPeerByUuid(data.to);
+            var peer = this.psm.getPeerByUuid(data.to);
             if (!peer) {
                 logger.error('Signal '+this.uuid, 'Unknown peer answer: ', data);
                 return;
@@ -522,7 +526,7 @@ SignalEvent.ERROR = 'signal:error';
          */
         peerCandidateHandler: function(data) {
             logger.info('Peer '+this.uuid, 'Received candidate: ', data);
-            var peer = this.peers.getPeerByUuid(data.to);
+            var peer = this.psm.getPeerByUuid(data.to);
             if (!peer) {
                 logger.error('Signal '+this.uuid, 'Unknown peer candidate: ', data);
                 return;
@@ -556,8 +560,8 @@ SignalEvent.ERROR = 'signal:error';
 
             // BUG: TypeError: this.peers is null
             // Need for more connected peers?
-            if (this.peers.getConnectedPeers().length < this.settings.maxPeers) {
-                this.peers.connectToNeighbourPeers();
+            if (this.psm.getConnectedPeers().length < this.settings.maxPeers) {
+                this.psm.connectToNeighbourPeers();
             }
         },
 

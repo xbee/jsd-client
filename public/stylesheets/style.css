@@ -46,6 +46,14 @@ input {
     font-size: 1.3em;
     width: 800px;
 }
+select {
+    border: 2px solid #d9d9d9;
+    border-radius: 2px;
+    font-size: 1.3em;
+    width: 806px;
+    padding: 2px;
+    margin-bottom: 5px;
+}
 label {
     display: inline-block;
     width: 20%;
@@ -72,4 +80,11 @@ label {
     height: 75px;
     border: 1px solid #000;
     margin: 10px 5px 0 0;
+}
+
+.place_holder{
+    color: gray;
+}
+option{
+    color: #000000;
 }

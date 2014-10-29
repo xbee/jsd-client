@@ -3,7 +3,7 @@
     function setChannelEvents(channel, config) {
         channel.binaryType = 'arraybuffer';
         channel.onmessage = function(event) {
-            config.ondata(event.data);
+            config.ondata(event);
         };
         channel.onopen = function() {
             config.onopen();

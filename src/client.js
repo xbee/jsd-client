@@ -130,7 +130,16 @@
     Client.prototype.start = function (config) {
         // 1. create session
         this.session = this.createSignalSession();
-        // 2. session connect
+        // 2. set session callbacks
+        // TODO: need to removed to bootstrap.js
+        if (this.session) {
+            //this.session.on(SignalEvent.CONNECTED, this.session_onConnected.bind(this));
+            //this.session.on(SignalEvent.BEFORECONNECT, this.session_onConnecting.bind(this));
+            //this.session.on(SignalEvent.BEFOREAUTHENTICATE, this.session_onAuthenticating.bind(this));
+            this.session.on(SignalEvent.AUTHENTICATED, this.session_onAuthenticated.bind(this));
+            //this.session.on(CMD.OFFER, this.session_onOffer.bind(this));
+        }
+        // 3. session connect
         // connect to signal server
         this.session.connect();
 
@@ -147,6 +156,41 @@
         this.session.disconnect();
         return this;
 
+    };
+
+    //
+    // ----------------- event handlers ----------------------
+    //
+    // TODO: need to removed to api caller code
+    Client.prototype.session_onAuthenticated = function (event) {
+        logger.log('Signal', 'session_onAuthenticated');
+        var self = this;
+
+        function peerlistHandler(e) {
+            var response = JSON.parse(e.data);
+            if (response.cmd === CMD.LIST) {
+                self.session.socket.removeEventListener('message', peerlistHandler);
+                // received response of auth
+                if (response['data']['success'] && (response['data']['success'] === true)) {
+                    if (response['data']['peers']) {
+                        var pls = response['data']['peers'];
+                        logger.log('Signal', 'peers: ', JSON.stringify(pls));
+                        // handle the peer list datas
+                        for (x in pls) {
+                            $('#target').append($('<option>', {
+                                value: pls[x].id,
+                                text: pls[x].id
+                            }));
+                        }
+
+                    }
+                }
+            }
+        }
+
+        this.session.socket.addEventListener('message', peerlistHandler);
+        // get the peer list
+        this.session.getAllRelatedPeers();
     };
 
     exports.Client = Client;

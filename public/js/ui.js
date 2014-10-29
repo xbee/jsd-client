@@ -58,7 +58,11 @@ function handleFileSelect(evt) {
                 // TODO: need to find the channel
                 var peerid = $('#target').val();
                 var dc = jsdapp.getDataChannelByPeerId(peerid);
-                dc.send(nextChunk);
+                if (dc) {
+                    dc.send(nextChunk);
+                } else {
+                    logger.error('Send file failed: dc is null');
+                }
             });
         });
     } // end of for loop

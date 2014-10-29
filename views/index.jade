@@ -9,7 +9,8 @@ block content
         input#uuid(type='text')
         br
         label(for='target') Connect to peer:
-        input#target(type='text', placeholder='Required')
+        select.combobox.place_holder#target(selected="selected")
+            option(value="") Select your option
         br
         button#start-signaler(disabled='') Start Signaler
         button#call(style='margin-left:10px;') Connect

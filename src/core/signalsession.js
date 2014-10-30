@@ -82,23 +82,6 @@ SignalEvent.ERROR = 'signal:error';
                         to: peerId
                     }
                 );
-            },
-            // rtcdatachannel events
-            ondata: function(data) {
-                if (self.ondata) {
-                    self.ondata(data);
-                } else {
-                    logger.log('Channel', 'Received data: ', data);
-                }
-            },
-            onopen: function() {
-                self.peerConnectedHandler();
-            },
-            onclose: function(e) {
-                if (self.peerDisconnectHandler) self.peerDisconnectHandler(e);
-            },
-            onerror: function(e) {
-                if (self.onerror) self.onerror(e);
             }
         };
 
@@ -284,7 +267,7 @@ SignalEvent.ERROR = 'signal:error';
             var from = message.from;
 
             if (sdp.type === 'offer') {
-                this.psm._peers[message.from] = new jsd.core.Answer(from, sdp, this.events);
+                this.psm._peers[message.from] = new jsd.core.Answer(from, this.uuid, sdp, this.events);
             }
 
             if (sdp.type === 'answer') {
@@ -311,7 +294,13 @@ SignalEvent.ERROR = 'signal:error';
 
             // if target user requested next chunk
             if(chunk.readyForNextChunk) {
-                self.fileBufferReader.getNextChunk(chunk.uuid, getNextChunkCallback);
+                self.fileBufferReader.getNextChunk(chunk.uuid, function(nextChunk, isLastChunk) {
+                    if(isLastChunk) {
+                        alert('File Successfully sent.');
+                    }
+                    // sending using WebRTC data channels
+                    datachannel.send(nextChunk);
+                });
                 return;
             }
 
@@ -334,7 +323,7 @@ SignalEvent.ERROR = 'signal:error';
                 logger.log('Peer '+settings.uuid, 'Received invite from ', data.from);
                 // create the offer
                 if (from) {
-                    this.psm._peers[from] = new jsd.core.Offer(from, this.events);
+                    this.psm._peers[from] = new jsd.core.Offer(from, this.uuid, this.events);
                 }
             }
         },

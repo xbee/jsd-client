@@ -22,6 +22,7 @@ var files = [
     'settings.js',
     'util/detect.js',
     'core/signalsession.js',
+    'core/channelevents.js',
     'core/peersession.js',
     'core/offeranswer.js',
     'core/peersessionmanager.js',

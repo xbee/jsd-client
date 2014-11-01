@@ -15,7 +15,7 @@
         self.config = config;
         self.uuid = uuid;
         self.peerId = peerId;
-        self.fileBufferReader = new FileBufferReader();
+        self.fileBufferReader = new jsd.data.FileBufferReader();
         self.channelEvents = new jsd.core.ChannelEvents();
 
         // this means we get local candidate
@@ -75,7 +75,7 @@
             }));
         },
         createDataChannel: function(peer) {
-            var chanLabel = this.uuid + '-' + this.peerId;
+            var chanLabel = this.peerId + '-' + this.uuid;
 
             var chan = (this.peer || peer).createDataChannel(chanLabel, dataChannelDict);
             this.channelEvents.hook(chan);
@@ -95,7 +95,7 @@
         self.type = 'answer';
         self.uuid = uuid;
         self.peerId = peerId;
-        self.fileBufferReader = new FileBufferReader();
+        self.fileBufferReader = new jsd.data.FileBufferReader();
         self.channelEvents = new jsd.core.ChannelEvents();
 
         peer.ondatachannel = function(event) {
@@ -152,7 +152,7 @@
         },
         createDataChannel: function(peer) {
             // Answer channel label
-            var chanLabel = this.peerId + '-' + this.uuid;
+            var chanLabel = this.uuid + '-' + this.peerId;
             var chan = (this.peer || peer).createDataChannel(chanLabel, dataChannelDict);
             this.channelEvents.hook(chan);
             return chan;

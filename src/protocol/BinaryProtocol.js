@@ -1,13 +1,13 @@
 (function (exports) {
     var BinaryProtocol = {};
-    var protocol = require('./ProtocolMessages.js') || peer5.core.protocol;
+    var protocol = require('./ProtocolMessages.js') || jsd.protocol;
 
     // to help node compatibility
     //TODO: change node buffer instead of browsers' Uint8Array
     if (typeof Uint8Array == 'function' && Uint8Array.prototype.subarray)
         Uint8Array.prototype.slice = Uint8Array.prototype.subarray;
 
-    var base64 = (require('../util/base64.js') || peer5.core.util).base64;
+    var base64 = (require('../util/base64.js') || jsd.util).base64;
 
     //TLV: tag 1 byte length 4 bytes value X bytes
     var TAG_SIZE = 1;
@@ -253,7 +253,7 @@
             var json = ab2ascii(buffer.slice(index, index + length));
             return JSON.parse(json);
         }catch(e){
-            peer5.error(e);
+            jsd.error(e);
             peer5.error('printing out the buggy json');
             peer5.error(json);
 

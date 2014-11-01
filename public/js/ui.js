@@ -1,4 +1,39 @@
 
+function readFile(file){
+
+    var reader = new FileReader();
+    //Reading the file in slices:
+    var sliceId = 0;
+    //read a slice the size not bigger than CACHE_SIZE,100MB since ~100MB is the limit for read size of file api (in chrome).
+    var chunksPerSlice = Math.floor(Math.min(1024000,jsd.config.CACHE_SIZE,100000000)/jsd.config.CHUNK_SIZE);
+    //var swID;
+    var sliceSize = chunksPerSlice * jsd.config.CHUNK_SIZE;
+    var blob;
+    //$('#box-text').text('Preparing file...');
+    console.log('Preparing file...');
+
+    reader.onloadend = function (evt) {
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            sharefestClient.addChunks(file.name, evt.target.result,function(){
+                sliceId++;
+                if ((sliceId + 1) * sliceSize < file.size) {
+                    blob = file.slice(sliceId * sliceSize, (sliceId + 1) * sliceSize);
+                    reader.readAsArrayBuffer(blob);
+                } else if (sliceId * sliceSize < file.size) {
+                    blob = file.slice(sliceId * sliceSize, file.size);
+                    reader.readAsArrayBuffer(blob);
+                } else {
+                    finishedLoadingFile(file);
+                }
+            });
+        }
+    };
+
+    blob = file.slice(sliceId * sliceSize, (sliceId + 1) * sliceSize);
+    reader.readAsArrayBuffer(blob);
+}
+
+
 var images = [];
 var imagefns = [];
 
@@ -7,6 +42,7 @@ function handleFileSelect(evt) {
     evt.preventDefault();
 
     var files = evt.dataTransfer.files; // FileList object.
+    jsdapp.files = files;
 
     // files is a FileList of File objects. List some properties.
     var output = [];
@@ -41,7 +77,7 @@ function handleFileSelect(evt) {
         reader.readAsDataURL(f);
 
         // to do some useful with fbr
-        var fileBufferReader = new FileBufferReader();
+        var fileBufferReader = new jsd.data.FileBufferReader();
 
         fileBufferReader.readAsArrayBuffer(f, function(uuid) {
             // var file         = fileBufferReader.chunks[uuid];

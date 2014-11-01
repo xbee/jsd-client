@@ -7,6 +7,7 @@
 
         this.settings = jsd.util.settings;
         this.session = {};
+        this.files = [];
 
         jsd.util.settings.uuid = jsd.util.getUid();
         logger.log('Signal', 'Uuid', jsd.util.settings.uuid);

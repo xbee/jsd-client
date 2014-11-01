@@ -36,7 +36,7 @@ SignalEvent.ERROR = 'signal:error';
         this.localIPs = [];
         //this.peers = null;
         this.psm = null;
-        this.fileBufferReader = new FileBufferReader();
+        this.fileBufferReader = new jsd.data.FileBufferReader();
 
         this.emitter = new EventEmitter2({
             wildcard: true, // should the event emitter use wildcards.

@@ -13,9 +13,9 @@
         this.ondata = function(event) {
             var self = this;
 
-            var fileBufferReader = new FileBufferReader();
+            var fileBufferReader = new jsd.data.FileBufferReader();
 
-            logger.log('ondata: ', event);
+            logger.log('ondata', event);
             var chunk = event.data;
 
             if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
@@ -34,7 +34,7 @@
             if(chunk.readyForNextChunk) {
                 fileBufferReader.getNextChunk(chunk.uuid, function(nextChunk, isLastChunk) {
                     if(isLastChunk) {
-                        alert('File Successfully sent.');
+                        logger.log('Channel', 'File Successfully sent.');
                     }
                     // sending using WebRTC data channels
                     self.channel.send(nextChunk);
@@ -46,9 +46,9 @@
             fileBufferReader.addChunk(chunk, function(promptNextChunk) {
                 // request next chunk
                 // BUG: fix it
-                logger.log('promptNextChunk: ', promptNextChunk);
+                logger.log('Channel', chunk);
                 //logger.log('I am: ', self.channel.type);
-                self.channel.send(promptNextChunk);
+                self.channel.send(chunk);
             });
         },
         this.onopen = function() {

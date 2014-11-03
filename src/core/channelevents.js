@@ -31,7 +31,7 @@
             }
 
             // if target user requested next chunk
-            if(chunk.readyForNextChunk) {
+            if (chunk.readyForNextChunk) {
                 fileBufferReader.getNextChunk(chunk.uuid, function(nextChunk, isLastChunk) {
                     if(isLastChunk) {
                         logger.log('Channel', 'File Successfully sent.');

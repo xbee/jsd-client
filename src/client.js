@@ -3,13 +3,44 @@
     var logger = jsd.util.logger;
     var settings = jsd.util.settings;
 
+    function FileInfo() {
+        this.chunkRead = 0; // current readed chunks
+        this.hasEntireFile = false;
+        this.numOfChunksInFile = 0;
+    };
+
     function Client() {
+
+        this.pendingSwarms = [];
+        this.clientId;
+        this.initiateClient();
+        this.registerEvents();
+        this.chunkRead = 0;
+        this.BW_INTERVAL = 500;
+        this.lastDownCycleTime = Date.now();
+        this.lastUpCycleTime;
+        this.totalUpSinceLastCycle = 0
+        this.lastCycleUpdateSizeInBytes = 0;
+        this.firstTime = true;
+        this.startTime;
+        this.totalAvarageBw;
+        this.lastReportTime = 0;
+        this.lastStatCalcTime = 0;
+        this.statsCalculator = null;
+        //peer5.setLogLevel(peer5.config.LOG_LEVEL);
+
+        //monitor the sendQueues
+        this.cron_interval_id = window.setInterval(this.cron, jsd.config.MONITOR_INTERVAL, this);
 
         this.settings = jsd.util.settings;
         this.session = {};
         this.files = [];
+        // key: filename, value: fileinfo obj
+        this.fileInfos = {};
 
-        jsd.util.settings.uuid = jsd.util.getUid();
+
+
+        this.clientId = jsd.util.settings.uuid = jsd.util.getUid();
         logger.log('Signal', 'Uuid', jsd.util.settings.uuid);
 
         try {
@@ -95,104 +126,148 @@
 
     }
 
-    Client.prototype.createSignalSession = function () {
-        var session = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
-        return session;
-    };
+    Client.prototype = {
+        createSignalSession : function () {
+            var session = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
+            return session;
+        },
 
-    Client.prototype.createPeerConnection = function(peerid) {
-        this.session.sendParticipantRequest(peerid);
-    };
+        createPeerConnection : function(peerid) {
+            this.session.sendParticipantRequest(peerid);
+        },
 
-    Client.prototype.getPeerById = function(peerid) {
-        if (this.session && this.session.psm)
-            return this.session.psm.getPeerByUuid(peerid);
-        else
-            return null;
-    };
+        getPeerById : function(peerid) {
+            if (this.session && this.session.psm)
+                return this.session.psm.getPeerByUuid(peerid);
+            else
+                return null;
+        },
 
-    Client.prototype.getDataChannelByPeerId = function(peerid) {
-        var peer = this.getPeerById(peerid);
-        if (peer) {
-            return peer.channel;
-        } else {
-            return null;
-        }
-    };
+        getDataChannelByPeerId : function(peerid) {
+            var peer = this.getPeerById(peerid);
+            if (peer) {
+                return peer.channel;
+            } else {
+                return null;
+            }
+        },
 
-    /**
-     * Start
-     *
-     * @method start
-     * @chainable
-     * @param config Configuration-Object
-     * @returns {Object}
-     */
-    Client.prototype.start = function (config) {
-        // 1. create session
-        this.session = this.createSignalSession();
-        // 2. set session callbacks
-        // TODO: need to removed to bootstrap.js
-        if (this.session) {
-            //this.session.on(SignalEvent.CONNECTED, this.session_onConnected.bind(this));
-            //this.session.on(SignalEvent.BEFORECONNECT, this.session_onConnecting.bind(this));
-            //this.session.on(SignalEvent.BEFOREAUTHENTICATE, this.session_onAuthenticating.bind(this));
-            this.session.on(SignalEvent.AUTHENTICATED, this.session_onAuthenticated.bind(this));
-            //this.session.on(CMD.OFFER, this.session_onOffer.bind(this));
-        }
-        // 3. session connect
-        // connect to signal server
-        this.session.connect();
+        prepareToReadFile:function (fileName, fileSize) {
+            this.originator = true;
+            this.statsCalculator = new jsd.stats.StatsCalculator(fileSize, fileName, '');
+            jsd.data.BlockCache.add(fileName, new jsd.datastructure.BlockMap(fileSize, fileName));
+            var blockMap = jsd.data.BlockCache.get(fileName);
+            this.fileInfos[fileName] = new FileInfo();
+//            blockMap.addMetadata({name:fileName});
+//            if (jsd.config.USE_FS) {
+//                jsd.data.FSio.createResource(fileName,function(succ) {
+//                    if (succ) {
+//                        blockMap.fs = true;
+//                    } else {
+//                        blockMap.fs = false;
+//                    }
+//                });
+//            }
+        },
 
-        return this;
-    };
+        addChunks : function(fileName, binarySlice, cb) {
+            var blockMap = jsd.data.BlockCache.get(fileName);
+            var numOfChunksInSlice = Math.ceil(binarySlice.byteLength / jsd.config.CHUNK_SIZE);
+            var fileInfo = this.fileInfos[fileName];
+            for (var i = 0; i < numOfChunksInSlice; i++) {
+                var start = i * jsd.config.CHUNK_SIZE;
+                var newChunk = new Uint8Array(binarySlice.slice(start, Math.min(start + jsd.config.CHUNK_SIZE, binarySlice.byteLength)));
+                var blockId = blockMap.setChunk(fileInfo.chunkRead, newChunk);
+                blockMap.verifyBlock(blockId);
+                radio('chunkAddedToBlockMap').broadcast();
+                fileInfo.chunkRead++;
+            }
+            //if (this.chunkRead == this.numOfChunksInFile) {
+            //    this.hasEntireFile = true;
+            //}
+            if (jsd.config.USE_FS)
+                jsd.data.FSio.notifyFinishWrite(cb);
+            else
+                cb()
+        },
 
-    /**
-     * Stop clent
-     * @method stop
-     * @chainable
-     */
-    Client.prototype.stop = function () {
+        /**
+         * Start
+         *
+         * @method start
+         * @chainable
+         * @param config Configuration-Object
+         * @returns {Object}
+         */
+        start : function (config) {
+            // 1. create session
+            this.session = this.createSignalSession();
+            // 2. set session callbacks
+            // TODO: need to removed to bootstrap.js
+            if (this.session) {
+                //this.session.on(SignalEvent.CONNECTED, this.session_onConnected.bind(this));
+                //this.session.on(SignalEvent.BEFORECONNECT, this.session_onConnecting.bind(this));
+                //this.session.on(SignalEvent.BEFOREAUTHENTICATE, this.session_onAuthenticating.bind(this));
+                this.session.on(SignalEvent.AUTHENTICATED, this.session_onAuthenticated.bind(this));
+                //this.session.on(CMD.OFFER, this.session_onOffer.bind(this));
+            }
+            // 3. session connect
+            // connect to signal server
+            this.session.connect();
 
-        this.session.disconnect();
-        return this;
+            return this;
+        },
 
-    };
+        /**
+         * Stop clent
+         * @method stop
+         * @chainable
+         */
+        stop : function () {
 
-    //
-    // ----------------- event handlers ----------------------
-    //
-    // TODO: need to removed to api caller code
-    Client.prototype.session_onAuthenticated = function (event) {
-        logger.log('Signal', 'session_onAuthenticated');
-        var self = this;
+            this.session.disconnect();
+            return this;
 
-        function peerlistHandler(e) {
-            var response = JSON.parse(e.data);
-            if (response.cmd === CMD.LIST) {
-                self.session.socket.removeEventListener('message', peerlistHandler);
-                // received response of auth
-                if (response['data']['success'] && (response['data']['success'] === true)) {
-                    if (response['data']['peers']) {
-                        var pls = response['data']['peers'];
-                        logger.log('Signal', 'peers: ', JSON.stringify(pls));
-                        // handle the peer list datas
-                        for (x in pls) {
-                            $('#target').append($('<option>', {
-                                value: pls[x].id,
-                                text: pls[x].id
-                            }));
+        },
+
+        //
+        // ----------------- event handlers ----------------------
+        //
+        // TODO: need to removed to api caller code
+        session_onAuthenticated : function (event) {
+            logger.log('Signal', 'session_onAuthenticated');
+            var self = this;
+
+            function peerlistHandler(e) {
+                var response = JSON.parse(e.data);
+                if (response.cmd === CMD.LIST) {
+                    self.session.socket.removeEventListener('message', peerlistHandler);
+                    // received response of auth
+                    if (response['data']['success'] && (response['data']['success'] === true)) {
+                        if (response['data']['peers']) {
+                            var pls = response['data']['peers'];
+                            logger.log('Signal', 'peers: ', JSON.stringify(pls));
+                            // handle the peer list datas
+                            for (x in pls) {
+                                $('#target').append($('<option>', {
+                                    value: pls[x].id,
+                                    text: pls[x].id
+                                }));
+                            }
+
                         }
-
                     }
                 }
             }
-        }
 
-        this.session.socket.addEventListener('message', peerlistHandler);
-        // get the peer list
-        this.session.getAllRelatedPeers();
+            this.session.socket.addEventListener('message', peerlistHandler);
+            // get the peer list
+            this.session.getAllRelatedPeers();
+        }
     };
+
+
+
 
     exports.Client = Client;
 

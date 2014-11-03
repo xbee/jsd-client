@@ -52,9 +52,11 @@
         self.channelEvents.hook(self.channel);
 
 //      window.peer = peer;
-        peer.createOffer(function(sdp) {
-            peer.setLocalDescription(sdp);
-            config.onsdp(peerId, sdp);
+        peer.createOffer(function(offer) {
+            offer.sdp = Reliable.higherBandwidthSDP(offer.sdp);
+
+            peer.setLocalDescription(offer);
+            config.onsdp(peerId, offer);
         }, onSdpError, offerAnswerConstraints);
 
         self.peer = peer;
@@ -132,9 +134,11 @@
         };
 
         peer.setRemoteDescription(new RTCSessionDescription(offer));
-        peer.createAnswer(function(sdp) {
-            peer.setLocalDescription(sdp);
-            config.onsdp(peerId, sdp);
+        peer.createAnswer(function(answer) {
+            answer.sdp = Reliable.higherBandwidthSDP(answer.sdp);
+
+            peer.setLocalDescription(answer);
+            config.onsdp(peerId, answer);
         }, onSdpError, offerAnswerConstraints);
 
         self.peer = peer;

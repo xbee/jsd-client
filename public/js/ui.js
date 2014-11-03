@@ -5,7 +5,7 @@ function readFile(file){
     //Reading the file in slices:
     var sliceId = 0;
     //read a slice the size not bigger than CACHE_SIZE,100MB since ~100MB is the limit for read size of file api (in chrome).
-    var chunksPerSlice = Math.floor(Math.min(1024000,jsd.config.CACHE_SIZE,100000000)/jsd.config.CHUNK_SIZE);
+    var chunksPerSlice = Math.floor(Math.min(1048576,jsd.config.CACHE_SIZE,100000000)/jsd.config.CHUNK_SIZE);
     //var swID;
     var sliceSize = chunksPerSlice * jsd.config.CHUNK_SIZE;
     var blob;
@@ -14,7 +14,7 @@ function readFile(file){
 
     reader.onloadend = function (evt) {
         if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-            sharefestClient.addChunks(file.name, evt.target.result,function(){
+            jsdapp.addChunks(file.name, evt.target.result,function(){
                 sliceId++;
                 if ((sliceId + 1) * sliceSize < file.size) {
                     blob = file.slice(sliceId * sliceSize, (sliceId + 1) * sliceSize);
@@ -23,7 +23,8 @@ function readFile(file){
                     blob = file.slice(sliceId * sliceSize, file.size);
                     reader.readAsArrayBuffer(blob);
                 } else {
-                    finishedLoadingFile(file);
+                    //finishedLoadingFile(file);
+                    console.log("Finished loading file");
                 }
             });
         }

@@ -1,5 +1,72 @@
 (function (exports) {
 
+    exports.debug = true;
+
+    exports.inherits = function(ctor, superCtor) {
+        ctor.super_ = superCtor;
+        ctor.prototype = Object.create(superCtor.prototype, {
+            constructor: {
+                value: ctor,
+                enumerable: false,
+                writable: true,
+                configurable: true
+            }
+        });
+    };
+
+    exports.extend = function(dest, source) {
+        for(var key in source) {
+            if(source.hasOwnProperty(key)) {
+                dest[key] = source[key];
+            }
+        }
+        return dest;
+    };
+
+    exports.pack = jsd.util.BinaryPack.pack;
+    exports.unpack = jsd.util.BinaryPack.unpack;
+
+    exports.log = function () {
+        if (exports.debug) {
+            var copy = [];
+            for (var i = 0; i < arguments.length; i++) {
+                copy[i] = arguments[i];
+            }
+            copy.unshift('JSD: ');
+            console.log.apply(console, copy);
+        }
+    };
+
+    exports.setZeroTimeout = (function(global) {
+        var timeouts = [];
+        var messageName = 'zero-timeout-message';
+
+        // Like setTimeout, but only takes a function argument.	 There's
+        // no time argument (always zero) and no arguments (you have to
+        // use a closure).
+        function setZeroTimeoutPostMessage(fn) {
+            timeouts.push(fn);
+            global.postMessage(messageName, '*');
+        }
+
+        function handleMessage(event) {
+            if (event.source == global && event.data == messageName) {
+                if (event.stopPropagation) {
+                    event.stopPropagation();
+                }
+                if (timeouts.length) {
+                    timeouts.shift()();
+                }
+            }
+        }
+        if (global.addEventListener) {
+            global.addEventListener('message', handleMessage, true);
+        } else if (global.attachEvent) {
+            global.attachEvent('onmessage', handleMessage);
+        }
+        return setZeroTimeoutPostMessage;
+    }(this));
+
     this.sleep = function (milliseconds) {
         var start = new Date().getTime();
         for (var i = 0; i < 10000000; i++) {
@@ -140,7 +207,7 @@
     exports.d2h = function(d) {return d.toString(16);};
     //exports.h2d = function(h) {return parseInt(h,16);};
 
-    exports.load_resource = function(url, callback) {
+    exports.loadResource = function(url, callback) {
         //deferred = Q.defer;
         var oReq = new XMLHttpRequest();
         oReq.open("GET", url, true);
@@ -213,6 +280,33 @@
             canvas = null;
         };
         img.src = url;
+    };
+
+    // chunks a blob.
+    exports.chunk = function(bl) {
+        var chunks = {};
+        var size = bl.size;
+        var start = index = 0;
+        var total = Math.ceil(size / jsd.config.MAX_CHUNK_SIZE);
+        chunks['total'] = total;
+        chunks['arr'] = [];
+        while (start < size) {
+            var end = Math.min(size, start + jsd.config.MAX_CHUNK_SIZE);
+            var b = bl.slice(start, end);
+
+            var chunk = {
+                //__peerData: dataCount,
+                n: index,
+                data: b
+            };
+
+            chunks['arr'].push(chunk);
+
+            start = end;
+            index += 1;
+        }
+        //dataCount += 1;
+        return chunks;
     };
 
     exports.hex2rgb = this.toRGB;

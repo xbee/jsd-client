@@ -1,5 +1,44 @@
 
-function readFile(file){
+var progressHelper = {};
+var outputPanel = document.querySelector('.output-panel');
+
+var FileHelper = {
+    onBegin: function(file) {
+        var li = document.createElement('li');
+        li.title = file.name;
+        li.innerHTML = '<label>0%</label> <progress></progress>';
+        outputPanel.insertBefore(li, outputPanel.firstChild);
+        progressHelper[file.uuid] = {
+            li: li,
+            progress: li.querySelector('progress'),
+            label: li.querySelector('label')
+        };
+        progressHelper[file.uuid].progress.max = file.maxChunks;
+    },
+    onEnd: function(file) {
+        progressHelper[file.uuid].li.innerHTML = '<a href="' + file.url + '" target="_blank" download="' + file.name + '">' + file.name + '</a>';
+    },
+    onProgress: function(chunk) {
+        var helper = progressHelper[chunk.uuid];
+        helper.progress.value = chunk.currentPosition || chunk.maxChunks || helper.progress.max;
+        updateLabel(helper.progress, helper.label);
+    }
+};
+
+function updateLabel(progress, label) {
+    if (progress.position == -1) return;
+    var position = +progress.position.toFixed(2).split('.')[1] || 100;
+    label.innerHTML = position + '%';
+}
+
+window.fileBufferReader = new jsd.data.FileBufferReader();
+
+// must set next three events
+fileBufferReader.onBegin    = FileHelper.onBegin;
+fileBufferReader.onProgress = FileHelper.onProgress;
+fileBufferReader.onEnd      = FileHelper.onEnd;
+
+function readFile(file) {
 
     var reader = new FileReader();
     //Reading the file in slices:
@@ -78,7 +117,7 @@ function handleFileSelect(evt) {
         reader.readAsDataURL(f);
 
         // to do some useful with fbr
-        var fileBufferReader = new jsd.data.FileBufferReader();
+        var fileBufferReader = window.fileBufferReader || new jsd.data.FileBufferReader();
 
         fileBufferReader.readAsArrayBuffer(f, function(uuid) {
             // var file         = fileBufferReader.chunks[uuid];

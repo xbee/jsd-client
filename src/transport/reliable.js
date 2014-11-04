@@ -10,7 +10,7 @@
         if (!(this instanceof Reliable)) return new Reliable(dc);
         this._dc = dc;
 
-        util.debug = debug;
+        //util.debug = debug;
 
         // Messages sent/received so far.
         // id: { ack: n, chunks: [...] }
@@ -49,7 +49,7 @@
             chunks: this._chunk(bl)
         };
 
-        if (jsd.util.debug) {
+        if (debug) {
             this._outgoing[this._count].timer = new Date();
         }
 
@@ -130,6 +130,10 @@
             if (datatype === String) {
                 var ab = jsd.util.binaryStringToArrayBuffer(msg);
                 msg = jsd.util.unpack(ab);
+                self._handleMessage(msg);
+            }
+            if (datatype === ArrayBuffer) {
+                msg = jsd.util.unpack(msg);
                 self._handleMessage(msg);
             }
         };

@@ -24,6 +24,7 @@ var files = [
     'data/binarypack.js',
     'util/logger.js',
     'util/index.js',
+    'transport/reliable.js',
     'util/myid.js',
     'settings.js',
     'util/detect.js',

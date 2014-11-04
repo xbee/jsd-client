@@ -53,7 +53,7 @@
 
 //      window.peer = peer;
         peer.createOffer(function(offer) {
-            offer.sdp = Reliable.higherBandwidthSDP(offer.sdp);
+            //offer.sdp = jsd.transport.Reliable.higherBandwidthSDP(offer.sdp);
 
             peer.setLocalDescription(offer);
             config.onsdp(peerId, offer);
@@ -135,7 +135,7 @@
 
         peer.setRemoteDescription(new RTCSessionDescription(offer));
         peer.createAnswer(function(answer) {
-            answer.sdp = Reliable.higherBandwidthSDP(answer.sdp);
+            //answer.sdp = jsd.transport.Reliable.higherBandwidthSDP(answer.sdp);
 
             peer.setLocalDescription(answer);
             config.onsdp(peerId, answer);

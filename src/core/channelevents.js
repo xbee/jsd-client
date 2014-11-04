@@ -13,7 +13,8 @@
         this.ondata = function(event) {
             var self = this;
 
-            var fileBufferReader = new jsd.data.FileBufferReader();
+            // must be a global variable
+            var fileBufferReader = window.fileBufferReader || new jsd.data.FileBufferReader();
 
             logger.log('ondata', event);
             var chunk = event.data;
@@ -48,7 +49,7 @@
                 // BUG: fix it
                 logger.log('Channel', chunk);
                 //logger.log('I am: ', self.channel.type);
-                self.channel.send(chunk);
+                self.channel.send(promptNextChunk);
             });
         },
         this.onopen = function() {
@@ -67,23 +68,25 @@
         hook: function(datachannel) {
 
             var self = this;
-            self.channel = datachannel;
+            var dc;
+            //self.channel = dc = new jsd.transport.Reliable(datachannel, jsd.util.debug);
+            self.channel = dc = datachannel;
 
             // set channel events
-            datachannel.binaryType = 'arraybuffer';
-            datachannel.onmessage = function(event) {
+            dc.binaryType = 'arraybuffer';
+            dc.onmessage = function(event) {
                 self.ondata(event);
             };
-            datachannel.onopen = function() {
+            dc.onopen = function() {
                 self.onopen();
             };
 
-            datachannel.onerror = function(e) {
+            dc.onerror = function(e) {
                 logger.error('channel.onerror', JSON.stringify(e, null, '\t'));
                 self.onerror(e);
             };
 
-            datachannel.onclose = function(e) {
+            dc.onclose = function(e) {
                 logger.warn('channel.onclose', JSON.stringify(e, null, '\t'));
                 self.onclose(e);
             };

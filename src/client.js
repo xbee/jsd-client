@@ -13,8 +13,8 @@
 
         this.pendingSwarms = [];
         this.clientId;
-        this.initiateClient();
-        this.registerEvents();
+        //this.initiateClient();
+        //this.registerEvents();
         this.chunkRead = 0;
         this.BW_INTERVAL = 500;
         this.lastDownCycleTime = Date.now();

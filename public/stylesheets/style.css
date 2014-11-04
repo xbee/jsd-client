@@ -85,6 +85,10 @@ label {
 .place_holder{
     color: gray;
 }
+.output-panel {
+    max-height: 80%;
+    overflow: hidden;
+}
 option{
     color: #000000;
 }

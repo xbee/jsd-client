@@ -373,7 +373,11 @@ SignalEvent.ERROR = 'signal:error';
 
                 //send data to websocket as String
                 this.socket.send(JSON.stringify(data));
-                logger.log('Signal ' + this.uuid, 'Sent ', data.cmd, data);
+
+                if (jsd.config.DEBUG_VERBOSE)
+                    logger.log('Signal ' + this.uuid, 'Sent ', data.cmd, data);
+                else
+                    logger.log('Signal ' + this.uuid, 'Sent ', data.cmd);
 
                 return true;
             } catch (e) {
@@ -411,7 +415,10 @@ SignalEvent.ERROR = 'signal:error';
             var self = this;
             var data = JSON.parse(e.data), cmd = data.cmd;
 
-            logger.log('Signal ' + this.uuid, 'Received', data.cmd, data.data);
+            if (jsd.config.DEBUG_VERBOSE)
+                logger.log('Signal ' + this.uuid, 'Received', data.cmd, data.data);
+            else
+                logger.log('Signal ' + this.uuid, 'Received', data.cmd);
 
             switch (cmd.toLowerCase()) {
 //          case CMD.OFFER:

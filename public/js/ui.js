@@ -31,7 +31,7 @@ function updateLabel(progress, label) {
     label.innerHTML = position + '%';
 }
 
-window.fileBufferReader = new jsd.data.FileBufferReader();
+window.fileBufferReader = jsdapp.fileBufferReader;
 
 // must set next three events
 fileBufferReader.onBegin    = FileHelper.onBegin;

@@ -2,10 +2,14 @@
 
     var MAX_MESSAGES = 100;
 
-    var output = document.getElementById('log'),
-        htmlLogging = true,
-        consoleLogging = true,
-        msgAmount = 0;
+    var output = document.getElementById('log');
+    var htmlLogging = true;
+    var consoleLogging = true;
+    var msgAmount = 0;
+
+    var flat = true;
+    var logLevel = 5; // by default we allow warnings and error
+    var friendly = ['0', 'ERROR', "WARNING", "info", "log", "debug"];
 
     /**
      * Create a timestamp ( format : HH::MM:SS )
@@ -30,8 +34,54 @@
         return date.join(':');
     }
 
+    var internal_log = function (level, object, title) {
+        if (level > logLevel) return; // our current log level is not verbose enough
+        // just a plain object to hold the log message which prints out nice on the console
+        function jdlog(object, title) {
+            this.title = title;
+            this.severity = friendly[level];
+            this.time = getPrettyTimeStamp();
+            this.content = object;
+            if (level < 3) {
+                var stack = new Error().stack;
+                this.stack = (stack)?new Error().stack.replace("Error\n", ""):'';
+            }
+        }
+
+        jdlog.prototype.toString = function () {
+            var arr;
+            if (this.content.stack) { //good for errors
+                arr = [this.title, this.severity, this.time, this.content, this.content.stack];
+            } else {
+                arr = [this.title, this.severity, this.time, JSON.stringify(this.content) , this.stack];
+            }
+            return arr.join('\t');
+        };
+
+        object = (flat) ? new jdlog(object).toString() : new jdlog(object);
+//        logFunction[level](object);
+        switch (level) {
+            case 1:
+                console.error(object);
+                break;
+            case 2:
+                console.warn(object);
+                break;
+            case 3:
+                console.info(object);
+                break;
+            case 4:
+            case 5:
+                console.log(object);
+                break;
+        }
+    };
 
     function print(type, args) {
+
+        if (!jsd.config.DEBUG) {
+            return;
+        }
 
         if (!output) {
             htmlLogging = false;
@@ -50,6 +100,21 @@
 
         //Console
         if (consoleLogging) {
+            switch (type) {
+                case 'log':
+                    logLevel = 5;
+                    break;
+                case 'info':
+                    logLevel = 3;
+                    break;
+                case 'warn':
+                    logLevel = 2;
+                    break;
+                case 'error':
+                    logLevel = 1;
+                    break;
+            }
+            //internal_log(logLevel, data, 'JDY - ' + origin);
             console[type].apply(console, [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data));
         }
 
@@ -64,7 +129,6 @@
 
             // output.innerHTML += getPrettyTimeStamp() + ' ' + '<strong style="color:red">' + origin + '</strong> : ' + dataAsString.join(' ') + '<br/>';
             output.innerHTML = getPrettyTimeStamp() + ' ' + '<strong style="color:red">' + origin + '</strong> : ' + dataAsString.join(' ') + '<br/>' + output.innerHTML;
-
         }
         msgAmount++;
     }
@@ -72,6 +136,23 @@
     function logger() {}
 
     logger.prototype = {
+
+        setLogFlat : function (b) {
+            flat = b
+        },
+
+        setLogLevel : function (newLevel) {
+            logLevel = newLevel;
+        },
+
+        isVerbose : function () {
+            return (logLevel > 2);
+        },
+
+        isDebug : function () {
+            return (logLevel == 5);
+        },
+
         /**
          * @method disableHTMLLog
          */

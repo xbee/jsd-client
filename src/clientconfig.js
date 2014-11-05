@@ -1,6 +1,7 @@
 
 jsd.config = {
     DEBUG: true,
+    DEBUG_VERBOSE: false,
     LOG_LEVEL:2,
     MAX_PENDING_CHUNKS:200, //max number of chunks pending per peer
     MOZ_MAX_PENDING_CHUNKS:8, //max number of chunks pending per peer for mozilla

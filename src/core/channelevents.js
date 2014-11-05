@@ -16,7 +16,7 @@
             // must be a global variable
             var fileBufferReader = window.fileBufferReader || new jsd.data.FileBufferReader();
 
-            logger.log('ondata', event);
+            //logger.log('ondata', event);
             var chunk = event.data;
 
             if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
@@ -46,8 +46,8 @@
             // if chunk is received
             fileBufferReader.addChunk(chunk, function(promptNextChunk) {
                 // request next chunk
-                // BUG: fix it
-                logger.log('Channel', chunk);
+                chunk.uuid && chunk.currentPosition &&
+                logger.log('Channel', 'File ' + chunk.uuid + ', ' + 'chunk: ' + chunk.currentPosition + ' received.');
                 //logger.log('I am: ', self.channel.type);
                 self.channel.send(promptNextChunk);
             });
@@ -82,12 +82,12 @@
             };
 
             dc.onerror = function(e) {
-                logger.error('channel.onerror', JSON.stringify(e, null, '\t'));
+                //logger.error('channel.onerror', JSON.stringify(e, null, '\t'));
                 self.onerror(e);
             };
 
             dc.onclose = function(e) {
-                logger.warn('channel.onclose', JSON.stringify(e, null, '\t'));
+                //logger.warn('channel.onclose', JSON.stringify(e, null, '\t'));
                 self.onclose(e);
             };
         }

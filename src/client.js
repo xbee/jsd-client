@@ -19,7 +19,7 @@
         this.BW_INTERVAL = 500;
         this.lastDownCycleTime = Date.now();
         this.lastUpCycleTime;
-        this.totalUpSinceLastCycle = 0
+        this.totalUpSinceLastCycle = 0;
         this.lastCycleUpdateSizeInBytes = 0;
         this.firstTime = true;
         this.startTime;
@@ -37,8 +37,6 @@
         this.files = [];
         // key: filename, value: fileinfo obj
         this.fileInfos = {};
-
-
 
         this.clientId = jsd.util.settings.uuid = jsd.util.getUid();
         logger.log('Signal', 'Uuid', jsd.util.settings.uuid);
@@ -127,6 +125,8 @@
     }
 
     Client.prototype = {
+        fileBufferReader : new jsd.data.FileBufferReader(),
+
         createSignalSession : function () {
             var session = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
             return session;

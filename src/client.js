@@ -33,7 +33,7 @@
         this.cron_interval_id = window.setInterval(this.cron, jsd.config.MONITOR_INTERVAL, this);
 
         this.settings = jsd.util.settings;
-        this.session = {};
+        this.signaler = {};
         this.files = [];
         // key: filename, value: fileinfo obj
         this.fileInfos = {};
@@ -128,17 +128,17 @@
         fileBufferReader : new jsd.data.FileBufferReader(),
 
         createSignalSession : function () {
-            var session = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
-            return session;
+            var signaler = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
+            return signaler;
         },
 
         createPeerConnection : function(peerid) {
-            this.session.sendParticipantRequest(peerid);
+            this.signaler.sendParticipantRequest(peerid);
         },
 
         getPeerById : function(peerid) {
-            if (this.session && this.session.psm)
-                return this.session.psm.getPeerByUuid(peerid);
+            if (this.signaler && this.signaler.psm)
+                return this.signaler.psm.getPeerByUuid(peerid);
             else
                 return null;
         },
@@ -191,6 +191,21 @@
                 cb()
         },
 
+        setOptions : function(options) {
+            if (this.signaler && options) {
+                options.signaler_onConnected        &&
+                    this.signaler.on(SignalEvent.CONNECTED, options.signaler_onConnected.bind(this));
+                options.signaler_onConnecting       &&
+                    this.signaler.on(SignalEvent.BEFORECONNECT, options.signaler_onConnecting.bind(this));
+                options.signaler_onAuthenticating   &&
+                    this.signaler.on(SignalEvent.BEFOREAUTHENTICATE, options.signaler_onAuthenticating.bind(this));
+                options.signaler_onAuthenticated    &&
+                    this.signaler.on(SignalEvent.AUTHENTICATED, options.signaler_onAuthenticated.bind(this));
+                options.signaler_onOffer            &&
+                    this.signaler.on(CMD.OFFER, options.signaler_onOffer.bind(this));
+            }
+        },
+
         /**
          * Start
          *
@@ -200,20 +215,21 @@
          * @returns {Object}
          */
         start : function (config) {
-            // 1. create session
-            this.session = this.createSignalSession();
-            // 2. set session callbacks
+            // 1. create signaler
+            this.signaler = this.createSignalSession();
+            // 2. set signaler callbacks
             // TODO: need to removed to bootstrap.js
-            if (this.session) {
-                //this.session.on(SignalEvent.CONNECTED, this.session_onConnected.bind(this));
-                //this.session.on(SignalEvent.BEFORECONNECT, this.session_onConnecting.bind(this));
-                //this.session.on(SignalEvent.BEFOREAUTHENTICATE, this.session_onAuthenticating.bind(this));
-                this.session.on(SignalEvent.AUTHENTICATED, this.session_onAuthenticated.bind(this));
-                //this.session.on(CMD.OFFER, this.session_onOffer.bind(this));
-            }
-            // 3. session connect
+            this.setOptions(config);
+            //if (this.signaler) {
+            //    //this.signaler.on(SignalEvent.CONNECTED, this.signaler_onConnected.bind(this));
+            //    //this.signaler.on(SignalEvent.BEFORECONNECT, this.signaler_onConnecting.bind(this));
+            //    //this.signaler.on(SignalEvent.BEFOREAUTHENTICATE, this.signaler_onAuthenticating.bind(this));
+            //    this.signaler.on(SignalEvent.AUTHENTICATED, this.signaler_onAuthenticated.bind(this));
+            //    //this.signaler.on(CMD.OFFER, this.signaler_onOffer.bind(this));
+            //}
+            // 3. signaler connect
             // connect to signal server
-            this.session.connect();
+            this.signaler.connect();
 
             return this;
         },
@@ -225,45 +241,11 @@
          */
         stop : function () {
 
-            this.session.disconnect();
+            this.signaler.disconnect();
             return this;
 
-        },
-
-        //
-        // ----------------- event handlers ----------------------
-        //
-        // TODO: need to removed to api caller code
-        session_onAuthenticated : function (event) {
-            logger.log('Signal', 'session_onAuthenticated');
-            var self = this;
-
-            function peerlistHandler(e) {
-                var response = JSON.parse(e.data);
-                if (response.cmd === CMD.LIST) {
-                    self.session.socket.removeEventListener('message', peerlistHandler);
-                    // received response of auth
-                    if (response['data']['success'] && (response['data']['success'] === true)) {
-                        if (response['data']['peers']) {
-                            var pls = response['data']['peers'];
-                            logger.log('Signal', 'peers: ', JSON.stringify(pls));
-                            // handle the peer list datas
-                            for (x in pls) {
-                                $('#target').append($('<option>', {
-                                    value: pls[x].id,
-                                    text: pls[x].id
-                                }));
-                            }
-
-                        }
-                    }
-                }
-            }
-
-            this.session.socket.addEventListener('message', peerlistHandler);
-            // get the peer list
-            this.session.getAllRelatedPeers();
         }
+
     };
 
 

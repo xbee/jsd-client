@@ -183,7 +183,7 @@ SignalEvent.ERROR = 'signal:error';
                     if (response['data']['success'] && (response['data']['success'] === true)) {
                         // get the authToken
                         if (response['data']['authToken']) {
-                            logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
+                            //logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
                             settings.authToken = response['data']['authToken'];
                             settings.tokenExpiresAt = parseInt(response['data']['expiresAt']);
                         }

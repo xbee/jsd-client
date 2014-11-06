@@ -57,9 +57,20 @@
         },
         this.onclose = function(e) {
             logger.info('Channel', 'Channel disconnected: ', e);
+            this.handlePeerDisconnect(e);
         },
         this.onerror = function(e) {
             logger.error('Channel', 'Channel error: ', e);
+        },
+        this.handlePeerDisconnect = function(e) {
+            if(this.channel.readyState != "closed"){
+                logger.info("handling peer disconnection: closing the datachannel");
+                this.channel.close();
+            }
+            //if(this.peerConnection.signalingState != "closed"){
+            //    peer5.info("handling peer disconnection: closing the peerconnection");
+            //    this.peerConnection.close();
+            //}
         }
     };
 

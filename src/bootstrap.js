@@ -4,7 +4,42 @@ try {
     var logger = jsd.util.logger;
 
     var app = new jsd.Client();
-    app.start();
+
+    var options = {
+        // ----------------- event handlers ----------------------
+        //
+        signaler_onAuthenticated : function (event) {
+            logger.log('Signal', 'signaler_onAuthenticated');
+            var self = this;
+
+            function peerlistHandler(e) {
+                var response = JSON.parse(e.data);
+                if (response.cmd === CMD.LIST) {
+                    self.signaler.socket.removeEventListener('message', peerlistHandler);
+                    // received response of auth
+                    if (response['data']['success'] && (response['data']['success'] === true)) {
+                        if (response['data']['peers']) {
+                            var pls = response['data']['peers'];
+                            logger.log('Signal', 'peers: ', JSON.stringify(pls));
+                            // handle the peer list datas
+                            for (x in pls) {
+                                $('#target').append($('<option>', {
+                                    value: pls[x].id,
+                                    text: pls[x].id
+                                }));
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            this.signaler.socket.addEventListener('message', peerlistHandler);
+            // get the peer list
+            this.signaler.getAllRelatedPeers();
+        }
+    };
+    app.start(options);
 
     window.jsdapp = app;
     window.jsd = jsd;

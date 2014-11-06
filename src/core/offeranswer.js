@@ -5,6 +5,18 @@
     // optional argument for createDataChannel
     var dataChannelDict = {};
 
+    function higherBandwidthSDP(sdp) {
+
+        var newSDP;
+        var split = sdp.split("b=AS:30");
+        if(split.length > 1)
+            newSDP = split[0] + "b=AS:1638400" + split[1];
+        else
+            newSDP = sdp;
+
+        return newSDP;
+    }
+
     function Offer(peerId, uuid, config) {
         jsd.core.PeerSession.call(this);
 
@@ -34,18 +46,20 @@
         };
 
         peer.onsignalingstatechange = function() {
-            logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+            if (jsd.util.DEBUG_VERBOSE)
+                logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
         peer.oniceconnectionstatechange = function() {
-            logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+            if (jsd.util.DEBUG_VERBOSE)
+                logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
 
         self.channel = self.createDataChannel(peer);
@@ -53,7 +67,7 @@
 
 //      window.peer = peer;
         peer.createOffer(function(offer) {
-            //offer.sdp = jsd.transport.Reliable.higherBandwidthSDP(offer.sdp);
+            offer.sdp = higherBandwidthSDP(offer.sdp);
 
             peer.setLocalDescription(offer);
             config.onsdp(peerId, offer);
@@ -119,23 +133,25 @@
         };
 
         peer.onsignalingstatechange = function() {
-            logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+            if (jsd.util.DEBUG_VERBOSE)
+                logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
         peer.oniceconnectionstatechange = function() {
-            logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+            if (jsd.util.DEBUG_VERBOSE)
+                logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
 
         peer.setRemoteDescription(new RTCSessionDescription(offer));
         peer.createAnswer(function(answer) {
-            //answer.sdp = jsd.transport.Reliable.higherBandwidthSDP(answer.sdp);
+            answer.sdp = higherBandwidthSDP(answer.sdp);
 
             peer.setLocalDescription(answer);
             config.onsdp(peerId, answer);

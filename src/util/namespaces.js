@@ -1,4 +1,4 @@
-var jsd = {
+;var jsd = {
     core:{},
     data:{},
     geo:{},

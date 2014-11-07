@@ -86,14 +86,20 @@ router.get('/client.js', function (req, res) {
       debug = false;
     }
 
-    var jsc = js.content;
     if (!debug) {
-      js = js.uglify();
-      jsc = packer.pack(js.content, true, true);
+
+        var jsc = js.uglify();
+        //var jsp = packer.pack(jsc.content, true, true);
+
+        res.setHeader('Content-Type', 'text/javascript');
+        res.send(200, jsc.content);
+
+    } else {
+
+        res.setHeader('Content-Type', 'text/javascript');
+        res.send(200, js.content);
     }
 
-    res.setHeader('Content-Type', 'text/javascript');
-    res.send(200, jsc);
   }
 
 });

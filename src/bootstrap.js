@@ -3,29 +3,59 @@
 try {
     var logger = jsd.util.logger;
 
-    var app = new jsd.App();
-    app.init();
-    app.start();
+    var app = new jsd.Client();
+
+    var options = {
+        // ----------------- event handlers ----------------------
+        //
+        signaler_onAuthenticated : function (event) {
+            logger.debug('Signal', 'signaler_onAuthenticated');
+            var self = this;
+
+            function peerlistHandler(e) {
+                var response = JSON.parse(e.data);
+                if (response.cmd === CMD.LIST) {
+                    self.signaler.socket.removeEventListener('message', peerlistHandler);
+                    // received response of auth
+                    if (response['data']['success'] && (response['data']['success'] === true)) {
+                        if (response['data']['peers']) {
+                            var pls = response['data']['peers'];
+                            logger.log('Signal', 'peers: ', JSON.stringify(pls));
+                            // handle the peer list datas
+                            for (x in pls) {
+                                $('#target').append($('<option>', {
+                                    value: pls[x].id,
+                                    text: pls[x].id
+                                }));
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            this.signaler.socket.addEventListener('message', peerlistHandler);
+            // get the peer list
+            this.signaler.getAllRelatedPeers();
+        }
+    };
+    app.start(options);
 
     window.jsdapp = app;
     window.jsd = jsd;
 
     var peer = null;
-    var createPeerConnection = function(peerid) {
-        app.session.sendParticipantRequest(peerid);
-    };
 
     var getPeer = function() {
         var peerid = $('#target').val();
         if (peerid) {
-            return app.session.psm.getPeerByUuid(peerid);
+            return app.getPeerById(peerid);
         } else {
             return null;
         }
     };
 
     window.peer = peer;
-    window.createPeerConnection = createPeerConnection;
 
     $('#uuid').val(app.settings.uuid);
     $('#call').click(function () {
@@ -33,6 +63,7 @@ try {
         if (target) {
             app.createPeerConnection(target);
         } else {
+
             console.error('You need input the target id');
         }
     });
@@ -46,27 +77,6 @@ try {
         }
     });
 
-    /**
-     * Event-Handler, called when Network state changes
-     *
-     * @private
-     * @method networkConnectivityStateChangeHandler
-     * @param {Object} e
-     */
-    function networkConnectivityStateChangeHandler(e) {
-        if (e.type === 'online') {
-            logger.log('Network', 'online!');
-            logger.log('Network', 'try to reconnecting ...');
-            app.start();
-        }
-        else {
-            logger.warn('Network', 'offline!');
-            app.stop();
-        }
-    }
-
-    window.addEventListener('offline', networkConnectivityStateChangeHandler);
-    window.addEventListener('online', networkConnectivityStateChangeHandler);
 
 } catch(ex) {
     console.log(ex.stack);

@@ -131,7 +131,7 @@ if (window.webkitRTCPeerConnection) {
         // Protocol switch SRTP(=default) or SCTP
         if (settings.protocol.toLowerCase() === 'sctp') {
             this.protocol = 'sctp';
-            logger.log('Signal '+_self.peerId, 'Using SCTP');
+            logger.debug('Signal '+this.peerId, 'Using SCTP');
 
             connectionConstraint = {
                 optional: [
@@ -150,7 +150,7 @@ if (window.webkitRTCPeerConnection) {
             };
         } else {
             this.protocol = 'srtp';
-            logger.log('Signal '+_self.peerId, 'Using SRTP');
+            logger.debug('Signal '+this.peerId, 'Using SRTP');
         }
     }
 

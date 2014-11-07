@@ -1,4 +1,79 @@
 
+var progressHelper = {};
+var outputPanel = document.querySelector('.output-panel');
+
+var FileHelper = {
+    onBegin: function(file) {
+        var li = document.createElement('li');
+        li.title = file.name;
+        li.innerHTML = '<label>0%</label> <progress></progress>';
+        outputPanel.insertBefore(li, outputPanel.firstChild);
+        progressHelper[file.uuid] = {
+            li: li,
+            progress: li.querySelector('progress'),
+            label: li.querySelector('label')
+        };
+        progressHelper[file.uuid].progress.max = file.maxChunks;
+    },
+    onEnd: function(file) {
+        progressHelper[file.uuid].li.innerHTML = '<a href="' + file.url + '" target="_blank" download="' + file.name + '">' + file.name + '</a>';
+    },
+    onProgress: function(chunk) {
+        var helper = progressHelper[chunk.uuid];
+        helper.progress.value = chunk.currentPosition || chunk.maxChunks || helper.progress.max;
+        updateLabel(helper.progress, helper.label);
+    }
+};
+
+function updateLabel(progress, label) {
+    if (progress.position == -1) return;
+    var position = +progress.position.toFixed(2).split('.')[1] || 100;
+    label.innerHTML = position + '%';
+}
+
+window.fileBufferReader = jsdapp.fileBufferReader;
+
+// must set next three events
+fileBufferReader.onBegin    = FileHelper.onBegin;
+fileBufferReader.onProgress = FileHelper.onProgress;
+fileBufferReader.onEnd      = FileHelper.onEnd;
+
+function readFile(file) {
+
+    var reader = new FileReader();
+    //Reading the file in slices:
+    var sliceId = 0;
+    //read a slice the size not bigger than CACHE_SIZE,100MB since ~100MB is the limit for read size of file api (in chrome).
+    var chunksPerSlice = Math.floor(Math.min(1048576,jsd.config.CACHE_SIZE,100000000)/jsd.config.CHUNK_SIZE);
+    //var swID;
+    var sliceSize = chunksPerSlice * jsd.config.CHUNK_SIZE;
+    var blob;
+    //$('#box-text').text('Preparing file...');
+    console.log('Preparing file...');
+
+    reader.onloadend = function (evt) {
+        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+            jsdapp.addChunks(file.name, evt.target.result,function(){
+                sliceId++;
+                if ((sliceId + 1) * sliceSize < file.size) {
+                    blob = file.slice(sliceId * sliceSize, (sliceId + 1) * sliceSize);
+                    reader.readAsArrayBuffer(blob);
+                } else if (sliceId * sliceSize < file.size) {
+                    blob = file.slice(sliceId * sliceSize, file.size);
+                    reader.readAsArrayBuffer(blob);
+                } else {
+                    //finishedLoadingFile(file);
+                    console.log("Finished loading file");
+                }
+            });
+        }
+    };
+
+    blob = file.slice(sliceId * sliceSize, (sliceId + 1) * sliceSize);
+    reader.readAsArrayBuffer(blob);
+}
+
+
 var images = [];
 var imagefns = [];
 
@@ -7,6 +82,7 @@ function handleFileSelect(evt) {
     evt.preventDefault();
 
     var files = evt.dataTransfer.files; // FileList object.
+    jsdapp.files = files;
 
     // files is a FileList of File objects. List some properties.
     var output = [];
@@ -39,7 +115,33 @@ function handleFileSelect(evt) {
 
         // Read in the image file as a data URL.
         reader.readAsDataURL(f);
-    }
+
+        // to do some useful with fbr
+        var fileBufferReader = window.fileBufferReader || new jsd.data.FileBufferReader();
+
+        fileBufferReader.readAsArrayBuffer(f, function(uuid) {
+            // var file         = fileBufferReader.chunks[uuid];
+            // var listOfChunks = file.listOfChunks;
+
+            // get first chunk, and send using WebRTC data channels
+            // NEVER send chunks in loop; otherwise you'll face issues in slow networks
+            // remote peer should notify if it is ready for next chunk
+            fileBufferReader.getNextChunk(uuid, function(nextChunk, isLastChunk) {
+                if(isLastChunk) {
+                    alert('File Successfully sent.');
+                }
+                // sending using WebRTC data channels
+                // TODO: need to find the channel
+                var peerid = $('#target').val();
+                var dc = jsdapp.getDataChannelByPeerId(peerid);
+                if (dc) {
+                    dc.send(nextChunk);
+                } else {
+                    logger.error('Send file failed: dc is null');
+                }
+            });
+        });
+    } // end of for loop
     document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
     //document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
@@ -50,23 +152,6 @@ function handleDragOver(evt) {
     evt.preventDefault();
     evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 }
-
-function load_binary_resource(url, callback) {
-    //deferred = Q.defer;
-    var oReq = new XMLHttpRequest();
-    oReq.open("GET", url, true);
-    // oReq.setRequestHeader('Range', 'bytes=100-200');
-    oReq.responseType = "blob";
-
-    var blob;
-    oReq.onload = function(oEvent) {
-        blob = oReq.response;
-        // do something with blob
-        callback(blob);
-    };
-
-    oReq.send();
-};
 
 // Setup the dnd listeners.
 var dropZone = document.getElementById('drop_zone');

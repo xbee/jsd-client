@@ -1,28 +1,23 @@
 
 ;(function(exports) {
-    function setChannelEvents(channel, config) {
-        channel.binaryType = 'arraybuffer';
-        channel.onmessage = function(event) {
-            config.ondata(event.data);
-        };
-        channel.onopen = function() {
-            config.onopen();
-        };
+    var logger = jsd.util.logger;
 
-        channel.onerror = function(e) {
-            logger.error('channel.onerror', JSON.stringify(e, null, '\t'));
-            config.onerror(e);
-        };
-
-        channel.onclose = function(e) {
-            logger.warn('channel.onclose', JSON.stringify(e, null, '\t'));
-            config.onclose(e);
-        };
-    };
-
+    // optional argument for createDataChannel
     var dataChannelDict = {};
 
-    function Offer(peerId, config) {
+    function higherBandwidthSDP(sdp) {
+
+        var newSDP;
+        var split = sdp.split("b=AS:30");
+        if(split.length > 1)
+            newSDP = split[0] + "b=AS:1638400" + split[1];
+        else
+            newSDP = sdp;
+
+        return newSDP;
+    }
+
+    function Offer(peerId, uuid, config) {
         jsd.core.PeerSession.call(this);
 
         var peer = new RTCPeerConnection(ICE_SERVER_SETTINGS, optionalArgument);
@@ -30,8 +25,10 @@
         var self = this;
         self.type = 'offer';
         self.config = config;
+        self.uuid = uuid;
         self.peerId = peerId;
-        self.fileBufferReader = new FileBufferReader();
+        self.fileBufferReader = new jsd.data.FileBufferReader();
+        self.channelEvents = new jsd.core.ChannelEvents();
 
         // this means we get local candidate
         // so need to send it to peer
@@ -49,26 +46,29 @@
         };
 
         peer.onsignalingstatechange = function() {
-            logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+                logger.debug('Offer', 'onsignalingstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
         peer.oniceconnectionstatechange = function() {
-            logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+                logger.debug('Offer', 'oniceconnectionstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
 
         self.channel = self.createDataChannel(peer);
+        self.channelEvents.hook(self.channel);
 
 //      window.peer = peer;
-        peer.createOffer(function(sdp) {
-            peer.setLocalDescription(sdp);
-            config.onsdp(peerId, sdp);
+        peer.createOffer(function(offer) {
+            offer.sdp = higherBandwidthSDP(offer.sdp);
+
+            peer.setLocalDescription(offer);
+            config.onsdp(peerId, offer);
         }, onSdpError, offerAnswerConstraints);
 
         self.peer = peer;
@@ -89,14 +89,16 @@
             }));
         },
         createDataChannel: function(peer) {
-            var chan = (this.peer || peer).createDataChannel('channel', dataChannelDict);
-            setChannelEvents(chan, this.config);
+            var chanLabel = this.peerId + '-' + this.uuid;
+
+            var chan = (this.peer || peer).createDataChannel(chanLabel, dataChannelDict);
+            this.channelEvents.hook(chan);
             return chan;
         }
     });
     exports.Offer = Offer;
 
-    function Answer(peerId, offer, config) {
+    function Answer(peerId, uuid, offer, config) {
         var Parent = jsd.core.PeerSession;
         Parent.call(this);
 
@@ -105,12 +107,14 @@
         var self = this;
         self.config = config;
         self.type = 'answer';
+        self.uuid = uuid;
         self.peerId = peerId;
-        self.fileBufferReader = new FileBufferReader();
+        self.fileBufferReader = new jsd.data.FileBufferReader();
+        self.channelEvents = new jsd.core.ChannelEvents();
 
         peer.ondatachannel = function(event) {
             self.channel = event.channel;
-            setChannelEvents(self.channel, config);
+            self.channelEvents.hook(self.channel);
         };
 
         peer.onicecandidate = function(event) {
@@ -127,24 +131,26 @@
         };
 
         peer.onsignalingstatechange = function() {
-            logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+                logger.debug('Answer', 'onsignalingstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
         peer.oniceconnectionstatechange = function() {
-            logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
-                iceGatheringState: peer.iceGatheringState,
-                signalingState: peer.signalingState,
-                iceConnectionState: peer.iceConnectionState
-            }));
+                logger.debug('Answer', 'oniceconnectionstatechange:', JSON.stringify({
+                    iceGatheringState: peer.iceGatheringState,
+                    signalingState: peer.signalingState,
+                    iceConnectionState: peer.iceConnectionState
+                }));
         };
 
         peer.setRemoteDescription(new RTCSessionDescription(offer));
-        peer.createAnswer(function(sdp) {
-            peer.setLocalDescription(sdp);
-            config.onsdp(peerId, sdp);
+        peer.createAnswer(function(answer) {
+            answer.sdp = higherBandwidthSDP(answer.sdp);
+
+            peer.setLocalDescription(answer);
+            config.onsdp(peerId, answer);
         }, onSdpError, offerAnswerConstraints);
 
         self.peer = peer;
@@ -161,8 +167,10 @@
             }));
         },
         createDataChannel: function(peer) {
-            var chan = (this.peer || peer).createDataChannel('channel', dataChannelDict);
-            setChannelEvents(chan, this.config);
+            // Answer channel label
+            var chanLabel = this.uuid + '-' + this.peerId;
+            var chan = (this.peer || peer).createDataChannel(chanLabel, dataChannelDict);
+            this.channelEvents.hook(chan);
             return chan;
         }
     });
@@ -171,7 +179,7 @@
     function onSdpError(e) {
         console.error(e);
     }
-    
+
 })(typeof exports === 'undefined' ? jsd.core : exports);
 
 

@@ -34,9 +34,9 @@ SignalEvent.ERROR = 'signal:error';
         this.socket = null;
         //this.isConnected = false;
         this.localIPs = [];
-        this.peers = null;
+        //this.peers = null;
         this.psm = null;
-        this.fileBufferReader = new FileBufferReader();
+        this.fileBufferReader = new jsd.data.FileBufferReader();
 
         this.emitter = new EventEmitter2({
             wildcard: true, // should the event emitter use wildcards.
@@ -82,23 +82,6 @@ SignalEvent.ERROR = 'signal:error';
                         to: peerId
                     }
                 );
-            },
-            // rtcdatachannel events
-            ondata: function(data) {
-                if (self.ondata) {
-                    self.ondata(data);
-                } else {
-                    logger.log('Channel', 'Received data: ', data);
-                }
-            },
-            onopen: function() {
-                self.peerConnectedHandler();
-            },
-            onclose: function(e) {
-                if (self.peerDisconnectHandler) self.peerDisconnectHandler(e);
-            },
-            onerror: function(e) {
-                if (self.onerror) self.onerror(e);
             }
         };
 
@@ -113,25 +96,25 @@ SignalEvent.ERROR = 'signal:error';
     SignalSession.prototype = {
         //------------------ begin of events ------------------
         onbeforestartup: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: startup!");
+            logger.debug('Signal', "START   EVENT: startup!");
         },
         onbeforeconnect: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: connect!");
+            logger.debug('Signal', "START   EVENT: connect!");
             this.triggerEvent(SignalEvent.BEFORECONNECT);
         },
         onbeforedetect: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: detect!");
+            logger.debug('Signal', "START   EVENT: detect!");
         },
         onbeforedisconnect: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: disconnect!");
+            logger.debug('Signal', "START   EVENT: disconnect!");
         },
         onbeforeauthenticate: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: authenticate!");
+            logger.debug('Signal', "START   EVENT: authenticate!");
             this.triggerEvent(SignalEvent.BEFOREAUTHENTICATE);
         },
 
         onleavedisconnected: function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: disconnected");
+            logger.debug('Signal', "LEAVE   STATE: disconnected");
             var self = this;
 
             try {
@@ -173,7 +156,7 @@ SignalEvent.ERROR = 'signal:error';
             return StateMachine.ASYNC;
         },
         onleaveconnected:  function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: connected");
+            logger.debug('Signal', "LEAVE   STATE: connected");
             var self = this;
 
             // start to detect local ips
@@ -188,7 +171,7 @@ SignalEvent.ERROR = 'signal:error';
             return StateMachine.ASYNC;
         },
         onleavedetected: function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: detected");
+            logger.debug('Signal', "LEAVE   STATE: detected");
             var self = this;
 
             // set callback for auth message
@@ -200,7 +183,7 @@ SignalEvent.ERROR = 'signal:error';
                     if (response['data']['success'] && (response['data']['success'] === true)) {
                         // get the authToken
                         if (response['data']['authToken']) {
-                            logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
+                            //logger.log('Signal', 'Got auth token: ', response['data']['authToken']);
                             settings.authToken = response['data']['authToken'];
                             settings.tokenExpiresAt = parseInt(response['data']['expiresAt']);
                         }
@@ -219,28 +202,28 @@ SignalEvent.ERROR = 'signal:error';
             return StateMachine.ASYNC;
         },
         onleaveauthenticated: function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: authenticated");
+            logger.debug('Signal', "LEAVE   STATE: authenticated");
         },
 
         onconnected: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: connected");
+            logger.debug('Signal', "ENTER   STATE: connected");
         },
         ondetected: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: detected");
+            logger.debug('Signal', "ENTER   STATE: detected");
         },
         ondisconnected: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: disconnected");
+            logger.debug('Signal', "ENTER   STATE: disconnected");
         },
         onauthenticated: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: authenticated");
+            logger.debug('Signal', "ENTER   STATE: authenticated");
         },
 
         onstartup: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: startup!");
+            logger.debug('Signal', "FINISH  EVENT: startup!");
         },
         // onconnect = on after connect event
         onconnect: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: connect!");
+            logger.debug('Signal', "FINISH  EVENT: connect!");
             if (this.is('connected')) {
                 this.triggerEvent(SignalEvent.CONNECTED);
                 // now start detect event
@@ -249,7 +232,7 @@ SignalEvent.ERROR = 'signal:error';
         },
         // on after detect event
         ondetect: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: detect!");
+            logger.debug('Signal', "FINISH  EVENT: detect!");
             if (this.is('detected')) {
                 this.triggerEvent(SignalEvent.DETECTED);
                 // now start authenticate event
@@ -258,7 +241,7 @@ SignalEvent.ERROR = 'signal:error';
         },
         ondisconnect: function(event, from, to) {
             var self = this;
-            logger.log('Signal', "FINISH  EVENT: disconnect!");
+            logger.debug('Signal', "FINISH  EVENT: disconnect!");
             if (this.is('disconnected')) {
                 this.socket = null;
                 setTimeout(function () {
@@ -267,14 +250,14 @@ SignalEvent.ERROR = 'signal:error';
             }
         },
         onauthenticate: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: authenticate!");
+            logger.debug('Signal', "FINISH  EVENT: authenticate!");
             if (this.is('authenticated')) {
                 this.triggerEvent(SignalEvent.AUTHENTICATED);
             }
         },
 
         onchangestate: function(event, from, to) {
-            logger.log('Signal', "CHANGED STATE: " + from + " to " + to);
+            logger.log('Signal', "STATE CHANGED: from [" + from + "] to [" + to + "]");
         },
 
         // if someone shared SDP
@@ -284,7 +267,7 @@ SignalEvent.ERROR = 'signal:error';
             var from = message.from;
 
             if (sdp.type === 'offer') {
-                this.psm._peers[message.from] = new jsd.core.Answer(from, sdp, this.events);
+                this.psm._peers[message.from] = new jsd.core.Answer(from, this.uuid, sdp, this.events);
             }
 
             if (sdp.type === 'answer') {
@@ -294,6 +277,7 @@ SignalEvent.ERROR = 'signal:error';
 
         ondata: function(event) {
             var self = this;
+            logger.log('ondata: ', event);
             var chunk = event.data;
 
             if (chunk instanceof ArrayBuffer || chunk instanceof DataView) {
@@ -310,13 +294,22 @@ SignalEvent.ERROR = 'signal:error';
 
             // if target user requested next chunk
             if(chunk.readyForNextChunk) {
-                self.fileBufferReader.getNextChunk(chunk.uuid, getNextChunkCallback);
+                self.fileBufferReader.getNextChunk(chunk.uuid, function(nextChunk, isLastChunk) {
+                    if(isLastChunk) {
+                        logger.log('File Successfully sent.');
+                    }
+                    // sending using WebRTC data channels
+                    datachannel.send(nextChunk);
+                });
                 return;
             }
 
             // if chunk is received
             self.fileBufferReader.addChunk(chunk, function(promptNextChunk) {
                 // request next chunk
+                // BUG: fix it
+                logger.debug('promptNextChunk: ', promptNextChunk);
+                //logger.log('I am: ', self.channel.type);
                 peerConnection.send(promptNextChunk);
             });
         },
@@ -330,7 +323,7 @@ SignalEvent.ERROR = 'signal:error';
                 logger.log('Peer '+settings.uuid, 'Received invite from ', data.from);
                 // create the offer
                 if (from) {
-                    this.psm._peers[from] = new jsd.core.Offer(from, this.events);
+                    this.psm._peers[from] = new jsd.core.Offer(from, this.uuid, this.events);
                 }
             }
         },
@@ -339,7 +332,7 @@ SignalEvent.ERROR = 'signal:error';
             var eventInfo = {}, i;
             if (peer) {
                 eventInfo.peer = peer;
-                this.peers.push(peer);
+                //this.psm.push(peer);
             } else {
                 if (this.is('disconnected')) {
                     // TODO: need to do something
@@ -380,7 +373,9 @@ SignalEvent.ERROR = 'signal:error';
 
                 //send data to websocket as String
                 this.socket.send(JSON.stringify(data));
-                logger.log('Signal ' + this.uuid, 'Sent ', data.cmd, data);
+
+                logger.debug('Signal ' + this.uuid, 'Sent ', data.cmd, data);
+
 
                 return true;
             } catch (e) {
@@ -418,7 +413,8 @@ SignalEvent.ERROR = 'signal:error';
             var self = this;
             var data = JSON.parse(e.data), cmd = data.cmd;
 
-            logger.log('Signal ' + this.uuid, 'Received', data.cmd, data.data);
+            logger.debug('Signal ' + this.uuid, 'Received', data.cmd, data.data);
+
 
             switch (cmd.toLowerCase()) {
 //          case CMD.OFFER:
@@ -504,7 +500,7 @@ SignalEvent.ERROR = 'signal:error';
          */
         peerAnswerHandler: function(data) {
             logger.log('Peer '+this.uuid, 'Received answer: ', data);
-            var peer = this.peers.getPeerByUuid(data.to);
+            var peer = this.psm.getPeerByUuid(data.to);
             if (!peer) {
                 logger.error('Signal '+this.uuid, 'Unknown peer answer: ', data);
                 return;
@@ -522,7 +518,7 @@ SignalEvent.ERROR = 'signal:error';
          */
         peerCandidateHandler: function(data) {
             logger.info('Peer '+this.uuid, 'Received candidate: ', data);
-            var peer = this.peers.getPeerByUuid(data.to);
+            var peer = this.psm.getPeerByUuid(data.to);
             if (!peer) {
                 logger.error('Signal '+this.uuid, 'Unknown peer candidate: ', data);
                 return;
@@ -556,8 +552,8 @@ SignalEvent.ERROR = 'signal:error';
 
             // BUG: TypeError: this.peers is null
             // Need for more connected peers?
-            if (this.peers.getConnectedPeers().length < this.settings.maxPeers) {
-                this.peers.connectToNeighbourPeers();
+            if (this.psm.getConnectedPeers().length < this.settings.maxPeers) {
+                this.psm.connectToNeighbourPeers();
             }
         },
 

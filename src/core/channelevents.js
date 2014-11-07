@@ -80,7 +80,6 @@
 
             var self = this;
             var dc;
-            //self.channel = dc = new jsd.transport.Reliable(datachannel, jsd.util.debug);
             self.channel = dc = datachannel;
 
             // set channel events

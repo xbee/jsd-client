@@ -96,25 +96,25 @@ SignalEvent.ERROR = 'signal:error';
     SignalSession.prototype = {
         //------------------ begin of events ------------------
         onbeforestartup: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: startup!");
+            logger.debug('Signal', "START   EVENT: startup!");
         },
         onbeforeconnect: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: connect!");
+            logger.debug('Signal', "START   EVENT: connect!");
             this.triggerEvent(SignalEvent.BEFORECONNECT);
         },
         onbeforedetect: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: detect!");
+            logger.debug('Signal', "START   EVENT: detect!");
         },
         onbeforedisconnect: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: disconnect!");
+            logger.debug('Signal', "START   EVENT: disconnect!");
         },
         onbeforeauthenticate: function(event, from, to) {
-            logger.log('Signal', "START   EVENT: authenticate!");
+            logger.debug('Signal', "START   EVENT: authenticate!");
             this.triggerEvent(SignalEvent.BEFOREAUTHENTICATE);
         },
 
         onleavedisconnected: function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: disconnected");
+            logger.debug('Signal', "LEAVE   STATE: disconnected");
             var self = this;
 
             try {
@@ -156,7 +156,7 @@ SignalEvent.ERROR = 'signal:error';
             return StateMachine.ASYNC;
         },
         onleaveconnected:  function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: connected");
+            logger.debug('Signal', "LEAVE   STATE: connected");
             var self = this;
 
             // start to detect local ips
@@ -171,7 +171,7 @@ SignalEvent.ERROR = 'signal:error';
             return StateMachine.ASYNC;
         },
         onleavedetected: function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: detected");
+            logger.debug('Signal', "LEAVE   STATE: detected");
             var self = this;
 
             // set callback for auth message
@@ -202,28 +202,28 @@ SignalEvent.ERROR = 'signal:error';
             return StateMachine.ASYNC;
         },
         onleaveauthenticated: function(event, from, to) {
-            logger.log('Signal', "LEAVE   STATE: authenticated");
+            logger.debug('Signal', "LEAVE   STATE: authenticated");
         },
 
         onconnected: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: connected");
+            logger.debug('Signal', "ENTER   STATE: connected");
         },
         ondetected: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: detected");
+            logger.debug('Signal', "ENTER   STATE: detected");
         },
         ondisconnected: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: disconnected");
+            logger.debug('Signal', "ENTER   STATE: disconnected");
         },
         onauthenticated: function(event, from, to) {
-            logger.log('Signal', "ENTER   STATE: authenticated");
+            logger.debug('Signal', "ENTER   STATE: authenticated");
         },
 
         onstartup: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: startup!");
+            logger.debug('Signal', "FINISH  EVENT: startup!");
         },
         // onconnect = on after connect event
         onconnect: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: connect!");
+            logger.debug('Signal', "FINISH  EVENT: connect!");
             if (this.is('connected')) {
                 this.triggerEvent(SignalEvent.CONNECTED);
                 // now start detect event
@@ -232,7 +232,7 @@ SignalEvent.ERROR = 'signal:error';
         },
         // on after detect event
         ondetect: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: detect!");
+            logger.debug('Signal', "FINISH  EVENT: detect!");
             if (this.is('detected')) {
                 this.triggerEvent(SignalEvent.DETECTED);
                 // now start authenticate event
@@ -241,7 +241,7 @@ SignalEvent.ERROR = 'signal:error';
         },
         ondisconnect: function(event, from, to) {
             var self = this;
-            logger.log('Signal', "FINISH  EVENT: disconnect!");
+            logger.debug('Signal', "FINISH  EVENT: disconnect!");
             if (this.is('disconnected')) {
                 this.socket = null;
                 setTimeout(function () {
@@ -250,14 +250,14 @@ SignalEvent.ERROR = 'signal:error';
             }
         },
         onauthenticate: function(event, from, to) {
-            logger.log('Signal', "FINISH  EVENT: authenticate!");
+            logger.debug('Signal', "FINISH  EVENT: authenticate!");
             if (this.is('authenticated')) {
                 this.triggerEvent(SignalEvent.AUTHENTICATED);
             }
         },
 
         onchangestate: function(event, from, to) {
-            logger.log('Signal', "CHANGED STATE: " + from + " to " + to);
+            logger.log('Signal', "STATE CHANGED: from [" + from + "] to [" + to + "]");
         },
 
         // if someone shared SDP
@@ -296,7 +296,7 @@ SignalEvent.ERROR = 'signal:error';
             if(chunk.readyForNextChunk) {
                 self.fileBufferReader.getNextChunk(chunk.uuid, function(nextChunk, isLastChunk) {
                     if(isLastChunk) {
-                        alert('File Successfully sent.');
+                        logger.log('File Successfully sent.');
                     }
                     // sending using WebRTC data channels
                     datachannel.send(nextChunk);
@@ -308,7 +308,7 @@ SignalEvent.ERROR = 'signal:error';
             self.fileBufferReader.addChunk(chunk, function(promptNextChunk) {
                 // request next chunk
                 // BUG: fix it
-                logger.log('promptNextChunk: ', promptNextChunk);
+                logger.debug('promptNextChunk: ', promptNextChunk);
                 //logger.log('I am: ', self.channel.type);
                 peerConnection.send(promptNextChunk);
             });
@@ -374,10 +374,8 @@ SignalEvent.ERROR = 'signal:error';
                 //send data to websocket as String
                 this.socket.send(JSON.stringify(data));
 
-                if (jsd.config.DEBUG_VERBOSE)
-                    logger.log('Signal ' + this.uuid, 'Sent ', data.cmd, data);
-                else
-                    logger.log('Signal ' + this.uuid, 'Sent ', data.cmd);
+                logger.debug('Signal ' + this.uuid, 'Sent ', data.cmd, data);
+
 
                 return true;
             } catch (e) {
@@ -415,10 +413,8 @@ SignalEvent.ERROR = 'signal:error';
             var self = this;
             var data = JSON.parse(e.data), cmd = data.cmd;
 
-            if (jsd.config.DEBUG_VERBOSE)
-                logger.log('Signal ' + this.uuid, 'Received', data.cmd, data.data);
-            else
-                logger.log('Signal ' + this.uuid, 'Received', data.cmd);
+            logger.debug('Signal ' + this.uuid, 'Received', data.cmd, data.data);
+
 
             switch (cmd.toLowerCase()) {
 //          case CMD.OFFER:

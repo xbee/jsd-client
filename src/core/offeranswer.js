@@ -46,16 +46,14 @@
         };
 
         peer.onsignalingstatechange = function() {
-            if (jsd.util.DEBUG_VERBOSE)
-                logger.log('Offer', 'onsignalingstatechange:', JSON.stringify({
+                logger.debug('Offer', 'onsignalingstatechange:', JSON.stringify({
                     iceGatheringState: peer.iceGatheringState,
                     signalingState: peer.signalingState,
                     iceConnectionState: peer.iceConnectionState
                 }));
         };
         peer.oniceconnectionstatechange = function() {
-            if (jsd.util.DEBUG_VERBOSE)
-                logger.log('Offer', 'oniceconnectionstatechange:', JSON.stringify({
+                logger.debug('Offer', 'oniceconnectionstatechange:', JSON.stringify({
                     iceGatheringState: peer.iceGatheringState,
                     signalingState: peer.signalingState,
                     iceConnectionState: peer.iceConnectionState
@@ -133,16 +131,14 @@
         };
 
         peer.onsignalingstatechange = function() {
-            if (jsd.util.DEBUG_VERBOSE)
-                logger.log('Answer', 'onsignalingstatechange:', JSON.stringify({
+                logger.debug('Answer', 'onsignalingstatechange:', JSON.stringify({
                     iceGatheringState: peer.iceGatheringState,
                     signalingState: peer.signalingState,
                     iceConnectionState: peer.iceConnectionState
                 }));
         };
         peer.oniceconnectionstatechange = function() {
-            if (jsd.util.DEBUG_VERBOSE)
-                logger.log('Answer', 'oniceconnectionstatechange:', JSON.stringify({
+                logger.debug('Answer', 'oniceconnectionstatechange:', JSON.stringify({
                     iceGatheringState: peer.iceGatheringState,
                     signalingState: peer.signalingState,
                     iceConnectionState: peer.iceConnectionState

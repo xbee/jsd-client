@@ -9,7 +9,7 @@ try {
         // ----------------- event handlers ----------------------
         //
         signaler_onAuthenticated : function (event) {
-            logger.log('Signal', 'signaler_onAuthenticated');
+            logger.debug('Signal', 'signaler_onAuthenticated');
             var self = this;
 
             function peerlistHandler(e) {

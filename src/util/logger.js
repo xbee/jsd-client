@@ -8,8 +8,15 @@
     var msgAmount = 0;
 
     var flat = true;
-    var logLevel = 5; // by default we allow warnings and error
-    var friendly = ['0', 'ERROR', "WARNING", "info", "log", "debug"];
+    var logLevel = jsd.config.LOG_LEVEL; // by default we allow warnings and error
+    var friendly = ['0', 'error', "warn", "info", "log", "debug"];
+    var Levels = {
+        'error' : 1,
+        'warn' : 2,
+        'info' : 3,
+        'log' : 4,
+        'debug' : 5
+    };
 
     /**
      * Create a timestamp ( format : HH::MM:SS )
@@ -74,10 +81,27 @@
             case 5:
                 console.log(object);
                 break;
+            case 6:
+                console.debug(object);
+                break;
         }
     };
 
-    function print(type, args) {
+    // level maybe string: error, warn, info, log, debug
+    //       maybe number: 1..5
+    function print(level, args) {
+        var type;
+        if (typeof level === 'number') {
+            // convert it to number
+            //level = Number(Levels[level])
+            type = friendly[level];
+        }
+        if (typeof level === 'string') {
+            type = level;
+            level = Number(Levels[level])
+        }
+        // now level is an number
+        if (level > logLevel) return; // our current log level is not verbose enough
 
         if (!jsd.config.DEBUG) {
             return;
@@ -98,23 +122,9 @@
             data = Array.prototype.slice.call(args, 1),
             dataAsString = _.clone(data);
 
+        //var object = [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data);
         //Console
         if (consoleLogging) {
-            switch (type) {
-                case 'log':
-                    logLevel = 5;
-                    break;
-                case 'info':
-                    logLevel = 3;
-                    break;
-                case 'warn':
-                    logLevel = 2;
-                    break;
-                case 'error':
-                    logLevel = 1;
-                    break;
-            }
-            //internal_log(logLevel, data, 'JDY - ' + origin);
             console[type].apply(console, [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data));
         }
 
@@ -150,7 +160,7 @@
         },
 
         isDebug : function () {
-            return (logLevel == 5);
+            return (logLevel == 6);
         },
 
         /**
@@ -209,6 +219,10 @@
          */
         log: function (msg, desc, data) {
             print('log', arguments);
+        },
+
+        debug: function(msg, desc, data) {
+            print('debug', arguments);
         },
 
         info: function (msg, desc, data) {

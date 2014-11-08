@@ -80,6 +80,11 @@ function messageHandler(socket, data) {
         token: token
       });
 
+      if (success) {
+          // TODO: need to broadcast it to client peers
+          // peers.publish
+      }
+
       sendToPeer(socket, {cmd: 'signal:auth', data: {success: success, authToken: token, expiresAt: expiresAt}});
 
       //https://github.com/einaros/ws/blob/master/lib/ErrorCodes.js
@@ -211,15 +216,23 @@ function messageHandler(socket, data) {
 
 function sendToPeer(socket, data) {
   //state 1 = ready
+  //  Transport.CONNECTING = 0;
+  //
+  //  Transport.OPEN = 1;
+  //
+  //  Transport.CLOSING = 2;
+  //
+  //  Transport.CLOSED = 3;
   if (!socket || !(socket.readyState === 1)) {
     peers.remove(peers.getPeerBySocket(socket));
     return;
   }
   try {
+
     socket.send(JSON.stringify(data));
     console.log('Send a message: ', JSON.stringify(data));
-  }
-  catch (e) {
+
+  } catch (e) {
     console.error(e);
     peers.remove(peers.getPeerBySocket(socket));
     socket.close();

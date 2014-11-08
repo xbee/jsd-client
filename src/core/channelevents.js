@@ -5,9 +5,10 @@
 
     var logger = jsd.util.logger;
 
-    function ChannelEvents() {
+    function ChannelEvents(conn) {
 
         this.channel = null;
+        this.peerConnection = conn;
 
         // rtcdatachannel events
         this.ondata = function(event) {
@@ -56,21 +57,22 @@
             logger.info('Channel', 'Peer connection established.');
         },
         this.onclose = function(e) {
-            logger.info('Channel', 'Channel disconnected: ', e);
-            this.handlePeerDisconnect(e);
+            logger.info('Channel', 'Channel disconnected.');
+            this._handlePeerDisconnect(e);
         },
         this.onerror = function(e) {
             logger.error('Channel', 'Channel error: ', e);
         },
-        this.handlePeerDisconnect = function(e) {
+        this._handlePeerDisconnect = function(e) {
             if(this.channel.readyState != "closed"){
-                logger.info("handling peer disconnection: closing the datachannel");
+                logger.info('Channel', "handling peer disconnection: closing the datachannel");
                 this.channel.close();
             }
-            //if(this.peerConnection.signalingState != "closed"){
-            //    peer5.info("handling peer disconnection: closing the peerconnection");
-            //    this.peerConnection.close();
-            //}
+            // need to clear peer connection
+            if(this.peerConnection.signalingState != "closed"){
+                logger.info("handling peer disconnection: closing the peerconnection");
+                this.peerConnection.close();
+            }
         }
     };
 

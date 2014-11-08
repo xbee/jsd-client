@@ -122,10 +122,10 @@
             data = Array.prototype.slice.call(args, 1),
             dataAsString = _.clone(data);
 
-        //var object = [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data);
+        var object = [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data);
         //Console
         if (consoleLogging) {
-            console[type].apply(console, [getPrettyTimeStamp(), '|', 'JSD', '-', origin, ':'].concat(data));
+            console[type].apply(console, object);
         }
 
         //DOM

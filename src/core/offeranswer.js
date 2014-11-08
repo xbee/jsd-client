@@ -28,7 +28,7 @@
         self.uuid = uuid;
         self.peerId = peerId;
         self.fileBufferReader = new jsd.data.FileBufferReader();
-        self.channelEvents = new jsd.core.ChannelEvents();
+        self.channelEvents = new jsd.core.ChannelEvents(peer);
 
         // this means we get local candidate
         // so need to send it to peer
@@ -110,7 +110,7 @@
         self.uuid = uuid;
         self.peerId = peerId;
         self.fileBufferReader = new jsd.data.FileBufferReader();
-        self.channelEvents = new jsd.core.ChannelEvents();
+        self.channelEvents = new jsd.core.ChannelEvents(peer);
 
         peer.ondatachannel = function(event) {
             self.channel = event.channel;

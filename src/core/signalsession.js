@@ -548,7 +548,7 @@ SignalEvent.ERROR = 'signal:error';
          * @param {Object} e
          */
         peerDisconnectHandler: function(e) {
-            logger.info('Channel', 'Channel disconnected: ', e);
+            logger.info('Channel', 'Channel disconnected.');
 
             // BUG: TypeError: this.peers is null
             // Need for more connected peers?

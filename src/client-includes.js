@@ -12,6 +12,8 @@ var files = [
     'util/aop.js',
     'util/observe.js',
     'event/radio.js',
+    //'event/autobahn.js', // include when.js + crypto-js
+    'event/postal.js',
     'util/sha1.js',
     'util/fingerprint.js',
     'util/state-machine.js',

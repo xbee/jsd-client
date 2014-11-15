@@ -9,7 +9,7 @@
 
 (function () {
 
-  var StateMachine = {
+    J.StateMachine = {
 
     //---------------------------------------------------------------------------
 
@@ -191,27 +191,6 @@
 
   //===========================================================================
 
-  //======
-  // NODE
-  //======
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = StateMachine;
-    }
-    exports.StateMachine = StateMachine;
-  }
-  //============
-  // AMD/REQUIRE
-  //============
-  else if (typeof define === 'function' && define.amd) {
-    define(function(require) { return StateMachine; });
-  }
-  //========
-  // BROWSER
-  //========
-  else if (window) {
-    window.StateMachine = StateMachine;
-  }
 
-}());
+})();
 

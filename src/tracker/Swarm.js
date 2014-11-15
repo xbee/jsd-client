@@ -1,51 +1,62 @@
-var util = require('./util.js');
-// an in memory placeholder for the rooms
-var swarms = {};
+//var util = require('./util.js');
+//// an in memory placeholder for the rooms
+//var swarms = {};
+//var J = {};
 
-function Swarm(id, metadata) {
-    this.id = id;
-    this.count = 0;
-    this.peers = {};
-    this.metadata = metadata;
-}
+(function() {
 
-Swarm.prototype = {
-    getCount:function() {
-        return this.count;
-    },
+    J.swarms = {};
 
-    getMetadata:function () {
-        return this.metadata;
-    },
+    J.Swarm = J.Evented.extend({
 
-    getRandomK:function (k) {
-        return util.getRandomK(Object.keys(this.peers), k);
-    },
+        initialize : function(id, metadata) {
+            this.id = id;
+            this.count = 0;
+            this.peers = {};
+            this.metadata = metadata;
+        },
 
-    addPeer:function (id) {
-        if (id) {
-            this.count++;
-            this.peers[id] = "placeholder";
+        getCount : function() {
+            return this.count;
+        },
+
+        getMetadata : function () {
+            return this.metadata;
+        },
+
+        getRandomK : function (k) {
+            return util.getRandomK(Object.keys(this.peers), k);
+        },
+
+        addPeer : function (id) {
+            if (id) {
+                this.count++;
+                this.peers[id] = "placeholder";
+            }
+        },
+
+        removePeer : function (id) {
+            delete this.peers[id];
+            this.count--;
         }
-    },
+    });
 
-    removePeer:function (id) {
-        delete this.peers[id];
-        this.count--;
-    }
-};
+    J.getSwarm = function getSwarm(id) {
+        return J.swarms [id];
+    };
 
-exports.getSwarm = function getSwarm(id) {
-    return swarms [id];
-}
+    J.addSwarm = function (id, metadata) {
+        return J.swarms[id] = new J.Swarm(id, metadata);
+    };
 
-exports.addSwarm = function (id, metadata) {
-    return swarms[id] = new Swarm(id, metadata);
-}
+    J.removePeer = function(id) {
+        for (var swarmId in J.swarms) {
+            var swarm = J.swarms[swarmId];
+            swarm.removePeer(id);
+        }
+    };
 
-exports.removePeer = function(id) {
-    for (var swarmId in swarms) {
-        var swarm = swarms[swarmId];
-        swarm.removePeer(id);
-    }
-}
+})();
+
+
+

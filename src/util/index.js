@@ -1,3 +1,5 @@
+
+
 (function (exports) {
 
     exports.debug = true;
@@ -317,4 +319,35 @@
     exports.sleep = this.sleep;
     exports.bind = this.bind;
 
-})(typeof exports === 'undefined' ? jsd.util : exports);
+    exports.Encrypt = function(theText) {
+        output = new String;
+        Temp = new Array();
+        Temp2 = new Array();
+        TextSize = theText.length;
+        for (i = 0; i < TextSize; i++) {
+            rnd = Math.round(Math.random() * 122) + 68;
+            Temp[i] = theText.charCodeAt(i) + rnd;
+            Temp2[i] = rnd;
+        }
+        for (i = 0; i < TextSize; i++) {
+            output += String.fromCharCode(Temp[i], Temp2[i]);
+        }
+        return output;
+    };
+
+    exports.Decrypt = function(theText) {
+        var output = new String;
+        Temp = new Array();
+        Temp2 = new Array();
+        TextSize = theText.length;
+        for (i = 0; i < TextSize; i++) {
+            Temp[i] = theText.charCodeAt(i);
+            Temp2[i] = theText.charCodeAt(i + 1);
+        }
+        for (i = 0; i < TextSize; i = i+2) {
+            output += String.fromCharCode(Temp[i] - Temp2[i]);
+        }
+        return output;
+    }
+
+})(typeof exports === 'undefined' ? J.Util : exports);

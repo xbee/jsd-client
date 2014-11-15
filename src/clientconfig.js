@@ -1,5 +1,5 @@
 
-jsd.config = {
+J.Options = {
     DEBUG: true,
     LOG_LEVEL:4, // log
     MAX_PENDING_CHUNKS:200, //max number of chunks pending per peer
@@ -13,6 +13,16 @@ jsd.config = {
     STAT_CALC_INTERVAL:1000,
     MONITOR_INTERVAL:1000,
     STUN_SERVERS:['stun.l.google.com:19302'],
+    ICE_SERVER_SETTINGS : {
+        iceServers: [
+            {
+                url: 'stun:stun.l.google.com:19302'
+            },
+            {
+                url: 'stun:stun.turnservers.com:3478'
+            }
+        ]
+    },
     TURN_SERVERS:[],
     TURN_CREDENTIALS:[],
     P2P_PREFETCH_THRESHOLD:100,
@@ -27,3 +37,4 @@ jsd.config = {
     FS_SIZE: 4294967296 //in bytes
 };
 
+jsd.config = J.Options;

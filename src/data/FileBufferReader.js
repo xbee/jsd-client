@@ -23,8 +23,8 @@
 
 //require('binarize')
 
-(function(exports) {
-  var FileBufferReader = function() {
+(function() {
+    J.Data.FileBufferReader = function() {
     var fileBufferReader = this;
     fileBufferReader.chunks = {};
 
@@ -85,7 +85,7 @@
     fileBufferReader.convertToArrayBuffer = FileConverter.ConvertToArrayBuffer;
   };
 
-  var FileSelector = function() {
+    J.Data.FileSelector = function() {
     var selector = this;
 
     selector.selectSingleFile = selectFile;
@@ -118,7 +118,7 @@
     }
   };
 
-  var File = {
+    J.Data.File = {
     Read: function(file, callback, extra) {
       var numOfChunksInSlice;
       var currentPosition = 1;
@@ -282,7 +282,7 @@
 
   // ________________
   // FileConverter.js
-  var FileConverter = {
+    J.Data.FileConverter = {
     ConvertToArrayBuffer: function(object, callback) {
       binarize.pack(object, function(dataView) {
         callback(dataView.buffer);
@@ -303,9 +303,4 @@
     return mergein;
   }
 
-  exports.FileBufferReader = FileBufferReader;
-  exports.FileConverter = FileConverter;
-  exports.FileSelector = FileSelector;
-  exports.File = File;
-
-})(typeof exports === 'undefined' ? jsd.data : exports);
+})();

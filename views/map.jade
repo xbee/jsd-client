@@ -1,0 +1,86 @@
+extends layout
+block header
+    //meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    script(type='text/javascript', src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js')
+    link(rel='stylesheet', href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css')
+
+
+block content
+    #map
+    #left
+        #stats
+            #stat1.stat
+                img.title_icon(src='css/image/peer.png')
+                | Peers Connected
+                span#connection_text.number_txt.centered 1
+            #stat2.stat
+                img.title_icon(src='css/image/upload.png')
+                | Upload
+                span#upload_text.number_txt.centered 0 B
+            #stat3.stat
+                img.title_icon(src='css/image/download.png')
+                | Total Download
+                span#download_text.number_txt.centered 273.61 KB
+            #stat4.stat
+                | Download From Peer
+                span#download_peer_text.number_txt.without_icon
+                    | 0 B
+                    span.percent_text  / 0 %
+                span#downloadPeer(style='width:140px; height:110px')
+                    svg(height='100%', version='1.1', width='100%', xmlns='http://www.w3.org/2000/svg', style='overflow: hidden; position: relative; left: -0.566666px; top: -0.116638px;')
+                        desc Created with Raphaël 2.1.0
+                        defs
+                            filter#downloadPeer-inner-shadow
+                                feoffset(dx='0', dy='3')
+                                fegaussianblur(result='offset-blur', stdDeviation='5')
+                                fecomposite(operator='out', in='SourceGraphic', in2='offset-blur', result='inverse')
+                                feflood(flood-color='black', flood-opacity='0.2', result='color')
+                                fecomposite(operator='in', in='color', in2='inverse', result='shadow')
+                                fecomposite(operator='over', in='shadow', in2='SourceGraphic')
+                        path(style='', fill='#edebeb', stroke='none', d='M35.625,88L15,88A55,55,0,0,1,125,88L104.375,88A34.375,34.375,0,0,0,35.625,88Z', filter='url(#downloadPeer-inner-shadow)')
+                        path(style='', fill='#dd5a46', stroke='none', d='M35.625,88L15,88A55,55,0,0,1,15,88L35.625,88A34.375,34.375,0,0,0,35.625,88Z', filter='url(#downloadPeer-inner-shadow)')
+                        text(style='text-anchor: middle; font: bold 11px Arial; fill-opacity: 1;', x='70', y='16.923076923076923', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='11px', font-weight='bold', font-family='Arial', fill-opacity='1')
+                            tspan(dy='4.0000002934382515') Percent
+                        text(style='text-anchor: middle; font: bold 17px Arial; fill-opacity: 1;', x='70', y='78.57142857142857', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='17px', font-weight='bold', font-family='Arial', fill-opacity='1')
+                            tspan(dy='5.500002179827007') 0
+                        text(style='text-anchor: middle; font: 10px Arial; fill-opacity: 1;', x='70', y='93.16517857142857', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='10px', font-weight='normal', font-family='Arial', fill-opacity='1')
+                            tspan(dy='4.000002179827007') %
+                        text(style='text-anchor: middle; font: 10px Arial; fill-opacity: 1;', x='25.3125', y='97.62499999999997', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='10px', font-weight='normal', font-family='Arial', fill-opacity='1')
+                            tspan(dy='3.9999999999999716') 0
+                        text(style='text-anchor: middle; font: 10px Arial; fill-opacity: 1;', x='114.6875', y='97.62499999999997', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='10px', font-weight='normal', font-family='Arial', fill-opacity='1')
+                            tspan(dy='3.9999999999999716') 100
+            #stat5.stat
+                | Download From Server
+                span#download_server_text.number_txt.without_icon
+                    | 273.61 KB
+                    span.percent_text  / 100 %
+                span#downloadServer(style='width:140px; height:110px')
+                    svg(height='100%', version='1.1', width='100%', xmlns='http://www.w3.org/2000/svg', style='overflow: hidden; position: relative; left: -0.566666px; top: -0.583313px;')
+                        desc Created with Raphaël 2.1.0
+                        defs
+                            filter#downloadServer-inner-shadow
+                                feoffset(dx='0', dy='3')
+                                fegaussianblur(result='offset-blur', stdDeviation='5')
+                                fecomposite(operator='out', in='SourceGraphic', in2='offset-blur', result='inverse')
+                                feflood(flood-color='black', flood-opacity='0.2', result='color')
+                                fecomposite(operator='in', in='color', in2='inverse', result='shadow')
+                                fecomposite(operator='over', in='shadow', in2='SourceGraphic')
+                        path(style='', fill='#edebeb', stroke='none', d='M35.625,88L15,88A55,55,0,0,1,125,88L104.375,88A34.375,34.375,0,0,0,35.625,88Z', filter='url(#downloadServer-inner-shadow)')
+                        path(style='', fill='#2ecc71', stroke='none', d='M35.625,88L15,88A55,55,0,0,1,125,88L104.375,88A34.375,34.375,0,0,0,35.625,88Z', filter='url(#downloadServer-inner-shadow)')
+                        text(style='text-anchor: middle; font: bold 11px Arial; fill-opacity: 1;', x='70', y='16.923076923076923', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='11px', font-weight='bold', font-family='Arial', fill-opacity='1')
+                            tspan(dy='4.0000002934382515') Percent
+                        text(style='text-anchor: middle; font: bold 17px Arial; fill-opacity: 1;', x='70', y='78.57142857142857', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='17px', font-weight='bold', font-family='Arial', fill-opacity='1')
+                            tspan(dy='5.500002179827007') 100
+                        text(style='text-anchor: middle; font: 10px Arial; fill-opacity: 1;', x='70', y='93.16517857142857', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='10px', font-weight='normal', font-family='Arial', fill-opacity='1')
+                            tspan(dy='4.000002179827007') %
+                        text(style='text-anchor: middle; font: 10px Arial; fill-opacity: 1;', x='25.3125', y='97.62499999999997', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='10px', font-weight='normal', font-family='Arial', fill-opacity='1')
+                            tspan(dy='3.9999999999999716') 0
+                        text(style='text-anchor: middle; font: 10px Arial; fill-opacity: 1;', x='114.6875', y='97.62499999999997', text-anchor='middle', font='10px "Arial"', stroke='none', fill='#ffffff', font-size='10px', font-weight='normal', font-family='Arial', fill-opacity='1')
+                            tspan(dy='3.9999999999999716') 100
+            #stat6.stat(onclick='window.open ( document.location.href,"_blank");')
+                img.title_icon.title_peer_icon(src='css/image/addpeer.png')
+                | Add New Peer
+    //script(type='text/javascript', src='lib/Conzole/conzole.js')
+    //script(type='text/javascript', src='/client.js?id=ab95e75b62c50f4c147fed4b9f0249cca9f3012c')
+    script(type='text/javascript', src='js/map.js')
+

@@ -1,8 +1,8 @@
-//require lang_ext for inheritance
-require('../util/lang_ext.js');
-(function (exports) {
-    exports.ITracker = Object.subClass({
-        name:'peer5.core.tracker.ITracker',
+
+
+(function () {
+    J.ITracker = J.Evented.extend({
+
         createSwarm:function(peerId, fileInfo, sender) {
             throw 'unimplemented method';
         },
@@ -27,6 +27,6 @@ require('../util/lang_ext.js');
             throw 'unimplemented method';
         }
 
-
     })
-})(typeof exports === 'undefined' ? peer5.core.tracker : exports);
+
+})();

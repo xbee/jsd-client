@@ -26,6 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
+app.use('/map', routes);
 app.use('/client.js', routes);
 app.use('/tracker.jpg', routes);
 app.use('/users', users);

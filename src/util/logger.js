@@ -1,4 +1,4 @@
-;(function (exports) {
+;(function () {
 
     var MAX_MESSAGES = 100;
 
@@ -256,8 +256,9 @@
         }
     };
 
-    exports.logger = new logger();
+    J.Util.logger = new logger();
+    J.logger = J.Util.logger;
 
-})(typeof exports === 'undefined' ? jsd.util : exports);
+})();
 
 //var logger = jsd.util.logger;

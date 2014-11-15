@@ -23,6 +23,10 @@ router.get('/', function(req, res) {
   res.render('index', { title: 'Express' });
 });
 
+router.get('/map', function(req, res) {
+    res.render('map', { title: 'Express' });
+});
+
 router.get('/client.js', function (req, res) {
   var ua = req.headers['user-agent'];
   var referer = req.headers.referer;

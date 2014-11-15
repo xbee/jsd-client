@@ -1,22 +1,22 @@
 //require('../../core/util/logger.js');
-var ITracker = require('./ITracker.js').ITracker;
-var protocol = require('../protocol/ProtocolMessages');
-var swarms = require('./Swarm.js');
+//var ITracker = require('./ITracker.js').ITracker;
+//var protocol = require('../protocol/ProtocolMessages');
+//var swarms = require('./Swarm.js');
 
-exports.SimpleTracker = ITracker.subClass({
-    name:'jsd.tracker.SimpleTracker',
-    MAX_PEERS_MATCH:1,
+J.SimpleTracker = J.ITracker.extend({
+
+    MAX_PEERS_MATCH : 1,
     createSwarm:function (peerId, fileInfo, sender) {
         if (!fileInfo.swarmId) {
             fileInfo.swarmId = jsd.util.shortId();
         }
 
-        swarms.addSwarm(fileInfo.swarmId, fileInfo);
+        J.addSwarm(fileInfo.swarmId, fileInfo);
         this.join(peerId, fileInfo.swarmId, fileInfo.originBrowser, sender)
     },
 
     join:function (peerId, swarmId, browser, sender) {
-        var swarm = swarms.getSwarm(swarmId);
+        var swarm = J.getSwarm(swarmId);
         if (swarm) {
             sender.send(peerId, swarm.metadata);
             //match only when swarm has peers in it already
@@ -35,7 +35,7 @@ exports.SimpleTracker = ITracker.subClass({
     },
 
     leave:function (peerId, sender) {
-        swarms.removePeer(peerId);
+        J.removePeer(peerId);
     },
 
     validateToken:function (token, domain) {
@@ -43,12 +43,12 @@ exports.SimpleTracker = ITracker.subClass({
     },
 
     report:function(peerId,swarmId,sender){
-        var swarm = swarms.getSwarm(swarmId);
+        var swarm = J.getSwarm(swarmId);
         if (swarm) {
             //match only when swarm has peers in it already
             if (swarm.count > 0) {
                 var peers = swarm.getRandomK(this.MAX_PEERS_MATCH);
-                for(var i=peers.length;i>=0;--i){
+                for(var i=peers.length;i>=0;--i) {
                     if(peers[i]==peerId)
                         peers.splice(i,1);
                 }
@@ -63,5 +63,10 @@ exports.SimpleTracker = ITracker.subClass({
 
 });
 
-var instance = new exports.SimpleTracker();
-exports.instance = instance;
+(function() {
+
+    var tracker = new J.SimpleTracker();
+    J.tracker = tracker;
+
+})();
+

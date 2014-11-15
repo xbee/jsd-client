@@ -1,72 +1,56 @@
 
-PeerEvent = {};
-PeerEvent.CONNECTING = 'peer:connecting';
-PeerEvent.HOLD = 'peer:hold';
-PeerEvent.UNHOLD = 'peer:unhold';
-PeerEvent.REJECT = 'peer:reject';
-PeerEvent.CONNECT = 'peer:connect';
-PeerEvent.DISCONNECT = 'peer:disconnect';
-PeerEvent.MESSAGE = 'peer:message';
-PeerEvent.ADDSTREAM = 'stream:add';
 
-var TIMEOUT_WAIT_TIME = 10000, QUEUE_RETRY_TIME = 75;
-var ICE_SERVER_SETTINGS = {
-    iceServers: [
-        {
-            url: 'stun:stun.l.google.com:19302'
-        },
-        {
-            url: 'stun:stun.turnservers.com:3478'
-        }
-    ]
+J.Rtc.PeerEvent = {
+    CONNECTING : 'peer:connecting',
+    HOLD : 'peer:hold',
+    UNHOLD : 'peer:unhold',
+    REJECT : 'peer:reject',
+    CONNECT : 'peer:connect',
+    DISCONNECT : 'peer:disconnect',
+    MESSAGE : 'peer:message',
+    ADDSTREAM : 'stream:add'
 };
 
-var optionalArgument = {
-    optional: [{
-        DtlsSrtpKeyAgreement: true
-    }]
-};
-
-var offerAnswerConstraints = {
-    optional: [],
-    mandatory: {
-        OfferToReceiveAudio: false,
-        OfferToReceiveVideo: false
-    }
-};
-
-var connectionConstraint = {
-    optional: [
-        { RtpDataChannels: true },
-        { DtlsSrtpKeyAgreement: true }
-    ],
-    mandatory: {
-        OfferToReceiveAudio: false,
-        OfferToReceiveVideo: false
-    }
-};
 
 var channelConstraint;
 
-var webrtcDetectedBrowser = null;
-// Handle vendor prefixes
-if (window.webkitRTCPeerConnection) {
-    RTCPeerConnection = webkitRTCPeerConnection;
-    RTCIceCandidate = window.RTCIceCandidate;
-    RTCSessionDescription = window.RTCSessionDescription;
-    webrtcDetectedBrowser = "chrome";
-} else if (window.mozRTCPeerConnection) {
-    RTCPeerConnection = mozRTCPeerConnection;
-    RTCIceCandidate = mozRTCIceCandidate;
-    RTCSessionDescription = mozRTCSessionDescription;
-    webrtcDetectedBrowser = "firefox";
-}
 
-;(function (exports) {
 
-    var settings = jsd.util.settings;
+J.Rtc.PeerSession = J.Evented.extend({
 
-    function PeerSession(server, peerId) {
+    settings : jsd.util.settings,
+
+    options : {
+        TIMEOUT_WAIT_TIME : 10000,
+        QUEUE_RETRY_TIME : 75,
+        optionalArgument : {
+            optional: [{
+                DtlsSrtpKeyAgreement: true
+            }]
+        },
+
+        offerAnswerConstraints : {
+            optional: [],
+            mandatory: {
+                OfferToReceiveAudio: false,
+                OfferToReceiveVideo: false
+            }
+        },
+
+        connectionConstraint : {
+            optional: [
+                { RtpDataChannels: true },
+                { DtlsSrtpKeyAgreement: true }
+            ],
+            mandatory: {
+                OfferToReceiveAudio: false,
+                OfferToReceiveVideo: false
+            }
+        }
+
+    },
+
+    initialize: function(server, peerId) {
 
         var _self = this;
         /**
@@ -114,20 +98,6 @@ if (window.webkitRTCPeerConnection) {
         if (server)
             this.server = server;
 
-        this.emitter = new EventEmitter2({
-            wildcard: true, // should the event emitter use wildcards.
-            delimiter: ':', // the delimiter used to segment namespaces, defaults to `.`.
-            newListener: false, // if you want to emit the newListener event set to true.
-            maxListeners: 10 // the max number of listeners that can be assigned to an event, defaults to 10.
-        });
-        // emitter.emit(event, [arg1], [arg2], [...])
-        this.emit = this.emitter.emit;
-        this.on = this.emitter.on;
-        this.off = this.emitter.removeListener;
-        this.onAny = this.emitter.onAny;
-        this.offAny = this.emitter.offAny;
-        this.removeAllListeners = this.emitter.removeAllListeners;
-
         // Protocol switch SRTP(=default) or SCTP
         if (settings.protocol.toLowerCase() === 'sctp') {
             this.protocol = 'sctp';
@@ -152,23 +122,23 @@ if (window.webkitRTCPeerConnection) {
             this.protocol = 'srtp';
             logger.debug('Signal '+this.peerId, 'Using SRTP');
         }
-    }
+    },
 
     /**
      * @private
      * @method timerCompleteHandler
      */
-    PeerSession.prototype.timerCompleteHandler = function (e) {
+    timerCompleteHandler : function (e) {
         var _self = this;
         if (!this.isConnected) {
             _self.timeout = Date.now();
             _self.emit('peer:timeout', _self);
         } else
             _self.timeout = undefined;
-    };
+    },
 
     /* Event Handler Start */
-    PeerSession.prototype.iceCandidateHandler = function (e) {
+    iceCandidateHandler : function (e) {
         var self = this;
         //II. The handler is called when network candidates become available.
         if (!e || !e.candidate)
@@ -177,9 +147,9 @@ if (window.webkitRTCPeerConnection) {
 
         // III. In the handler, Alice sends stringified candidate data to Eve, via their signaling channel.
         this.server.sendPeerCandidate(self.peerId, e.candidate);
-    };
+    },
 
-    PeerSession.prototype.dataChannelHandler = function (e) {
+    dataChannelHandler : function (e) {
         var _self = this;
         logger.log('Peer', _self.peerId, 'Received remote DataChannel');
 
@@ -189,9 +159,9 @@ if (window.webkitRTCPeerConnection) {
         _self.channel.onerror = this.channel_ErrorHandler.bind(this);
         _self.channel.onmessage = this.channel_MessageHandler.bind(this);
         _self.channel.onopen = this.channel_OpenHandler.bind(this);
-    };
+    },
 
-    PeerSession.prototype.iceConnectionStateChangeHandler = function (e) {
+    iceConnectionStateChangeHandler : function (e) {
         var _self = this;
 
         // Everything is fine
@@ -205,9 +175,9 @@ if (window.webkitRTCPeerConnection) {
             _self.isConnected = false;
             _self.emit(PeerEvent.DISCONNECT, _self);
         }
-    };
+    },
 
-    function _makeOffer(self) {
+    _makeOffer: function(self) {
         self.connection.createOffer(function (sessionDescription) {
             //3. Alice calls setLocalDescription() with his offer.)
             self.connection.setLocalDescription(sessionDescription);
@@ -217,26 +187,26 @@ if (window.webkitRTCPeerConnection) {
         }, function (err) {
             logger.error('Peer', self.peerId, err, 'Was using', self.protocol, 'protocol.');
         }, connectionConstraint);
-    }
+    },
 
-    PeerSession.prototype.negotiationNeededHandler = function (e) {
+    negotiationNeededHandler : function (e) {
         var _self = this;
         logger.log('Peer '+_self.peerId, 'Negotiation needed');
 
         //2. Alice creates an offer (an SDP session description)
         // with the RTCPeerConnection createOffer() method.
         _makeOffer(_self);
-    };
+    },
 
-    PeerSession.prototype.signalingStateChangeHandler = function (e) {
-    };
+    signalingStateChangeHandler : function (e) {
+    },
 
-    PeerSession.prototype.channel_ErrorHandler = function (e) {
+    channel_ErrorHandler : function (e) {
         var _self = this;
         logger.log('Peer '+_self.peerId, 'Channel has an error', e);
-    };
+    },
 
-    PeerSession.prototype.channel_MessageHandler = function (e) {
+    channel_MessageHandler : function (e) {
         var msg;
         var _self = this;
 
@@ -253,23 +223,22 @@ if (window.webkitRTCPeerConnection) {
         }
 
         _self.emit(PeerEvent.MESSAGE, _.extend(msg, { target: _self }));
-    };
+    },
 
-    PeerSession.prototype.channel_OpenHandler = function (e) {
+    channel_OpenHandler : function (e) {
         var _self = this;
         logger.log('Peer '+_self.peerId, 'DataChannel is open');
 
         _self.isConnected = true;
         _self.emit(PeerEvent.CONNECT, _self);
-    };
+    },
 
-    PeerSession.prototype.channel_CloseHandler = function (e) {
+    channel_CloseHandler : function (e) {
         var _self = this;
         logger.log('Peer', _self.peerId, 'DataChannel is closed', e);
         _self.isConnected = false;
         _self.emit(PeerEvent.DISCONNECT, _self);
-    };
-
+    },
 
     /**
      * Send data via a WebRTC-Channel to a peer
@@ -278,13 +247,13 @@ if (window.webkitRTCPeerConnection) {
      * @param data
      * @param {Boolean} reliable Should a retry occur if the transmission fails?
      */
-    PeerSession.prototype.send = function (data, reliable) {
+    send : function (data, reliable) {
         if (typeof reliable === "undefined") {
             reliable = false;
         }
         var _self = this;
 
-//      _self.channel = answererDataChannel || offererDataChannel;
+    //      _self.channel = answererDataChannel || offererDataChannel;
         var jsonString;
 
         if (!_self.isConnected || _self.channel.readyState !== 'open') {
@@ -313,9 +282,9 @@ if (window.webkitRTCPeerConnection) {
                 }
             }
         }
-    };
+    },
 
-    PeerSession.prototype.sendFile = function (uuid, chunk, pos) {
+    sendFile : function (uuid, chunk, pos) {
         pos = pos || 0;
 
         // Send as blob, wrapped with info
@@ -326,23 +295,23 @@ if (window.webkitRTCPeerConnection) {
         } else {
             this.send({ type: 'file:push', uuid: uuid, chunk: chunk, pos: pos });
         }
-    };
+    },
 
     /**
      * @method serialize
      * @return {Object}
      */
-    PeerSession.prototype.serialize = function () {
+    serialize : function () {
         return {
             uuid: this.uuid,
             server: this.server
         };
-    };
+    },
 
     /**
      * @method broadcast
      */
-    PeerSession.prototype.broadcast = function (type, data) {
+    broadcast : function (type, data) {
         var _self = this;
 
         // Add broadcast prefix?
@@ -351,18 +320,16 @@ if (window.webkitRTCPeerConnection) {
         }
 
         _self.send({ type: type, data: data });
-    };
+    },
 
     /**
      * @method disconnect
      */
-    PeerSession.prototype.disconnect = function () {
+    disconnect : function () {
         var _self = this;
         _self.isConnected = false;
         _self.channel.close();
         _self.connection.close();
-    };
+    }
+});
 
-    exports.PeerSession = PeerSession;
-
-})(typeof exports === 'undefined' ? jsd.core : exports);

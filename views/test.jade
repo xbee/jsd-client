@@ -1,0 +1,21 @@
+extends layout
+block header
+    link(rel='stylesheet', href='/css/test.css')
+block content
+    .info
+        | Images loaded:
+        b#loaded-images 0
+    .wrapper
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear4.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear1.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear2.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear3.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/bear-small1.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/bear-small2.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear5.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear6.jpg', src='http://placehold.it/500x250&text=placeholder')
+        img.b-lazy(data-src='http://dinbror.dk/blazy/assets/bears/big-bear7.jpg', src='http://placehold.it/500x250&text=placeholder')
+    script(type='text/javascript', src='js/blazy.js')
+    //script(type='text/javascript', src='/client.js?id=ab95e75b62c50f4c147fed4b9f0249cca9f3012c')
+    script(type='text/javascript', src='js/echotest.js')
+

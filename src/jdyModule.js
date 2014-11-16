@@ -1,9 +1,49 @@
 
+var MySandbox = function(core, instanceId, options, moduleId) {
+
+    // define your API
+    this.myFooProperty = "bar";
+
+    // e.g. provide the Mediator methods 'on', 'emit', etc.
+    core._mediator.installTo(this);
+
+    // ... or define your custom communication methods
+    this.myEmit = function(channel, data){
+        core.emit(channel + '/' + instanceId, data);
+    };
+
+    // maybe you'd like to expose the instance ID
+    this.id = instanceId;
+
+    return this;
+};
+
+// ... and of course you can define shared methods etc.
+MySandbox.prototype.foo = function() { /*...*/ };
 
 // create the helloWorld module
 var JdyModule = function(sandbox) {
 
     var engine = new J.Engine();
+
+    var urlConverter = function(url, cb) {
+
+        // 1. query Tracker
+
+        // if have one or more seeder
+        // 2.1 then get from peer
+
+        // 2.2 or get from server or keep the origin url ?
+        J.Util.loadResourceByXHR(url, function(blob) {
+            // convert blob to data url
+            var objectURL = window.URL.createObjectURL(blob);
+
+            // NOTE: objectURL just valid in this scope, outer will fail !!!
+            // set image's url
+            cb(objectURL);
+        });
+
+    };
 
     // boot your module
     var init = function(options) {
@@ -100,7 +140,8 @@ var JdyModule = function(sandbox) {
         engine: engine,
         // public methods
         init: init,
-        destroy: destroy
+        destroy: destroy,
+        loadResource: urlConverter
     }
 };
 

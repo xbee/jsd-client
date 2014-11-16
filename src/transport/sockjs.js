@@ -2349,5 +2349,6 @@
 
     exports.SockJS = SockJS;
 
-}) (typeof exports === 'undefined' ? jsd.transport : exports);
+}) (typeof exports === 'undefined' ? J.Transport : exports);
 
+J.SockJS = J.Transport.SockJS;

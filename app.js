@@ -27,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/map', routes);
+app.use('/test', routes);
 app.use('/client.js', routes);
 app.use('/tracker.jpg', routes);
 app.use('/users', users);

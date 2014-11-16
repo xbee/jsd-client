@@ -209,21 +209,28 @@
     exports.d2h = function(d) {return d.toString(16);};
     //exports.h2d = function(h) {return parseInt(h,16);};
 
-    exports.loadResource = function(url, callback) {
+    exports.loadResourceByXHR = function(url, callback) {
         //deferred = Q.defer;
         var oReq = new XMLHttpRequest();
         oReq.open("GET", url, true);
         // oReq.setRequestHeader('Range', 'bytes=100-200');
         oReq.responseType = "blob";
 
-        var blob;
         oReq.onload = function(oEvent) {
-            blob = oReq.response;
+            // blob just valid in this scope
+            var blob = oReq.response;
             // do something with blob
             callback(blob);
         };
 
         oReq.send();
+    };
+
+    exports.is_cached = function(src) {
+        var image = new Image();
+        image.src = src;
+
+        return image.complete || image.width+image.height > 0;
     };
 
     exports.blobToArrayBuffer = function(blob, cb){

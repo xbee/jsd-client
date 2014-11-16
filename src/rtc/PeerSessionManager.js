@@ -1,24 +1,21 @@
 var TIMEOUT_RETRY_TIME = 60000;
 var MAX_RANDOM_ASSESSMENT_DELAY_TIME = 150;
 
-(function (exports) {
+(function () {
     var settings = jsd.util.settings;
 
-    function PeerSessionManager(node) {
-        if (!node) {
-            this._signaler = new SignalSession();
-        } else {
-            this._signaler = node;
-        }
-        // index is peer's id : peerId
-        this._peers = {};
-    }
+    J.Rtc.PeerSessionManager = J.Evented.extend({
 
-    /**
-     * @method add
-     * @param peer
-     */
-    PeerSessionManager.prototype = {
+        initialize: function(node) {
+            if (!node) {
+                this._signaler = new SignalSession();
+            } else {
+                this._signaler = node;
+            }
+            // index is peer's id : peerId
+            this._peers = {};
+        },
+
         add: function (peer) {
             if (!this.getPeerByUuid(peer.peerId)) {
                 this._peers[peer.peerId] = peer;
@@ -194,9 +191,6 @@ var MAX_RANDOM_ASSESSMENT_DELAY_TIME = 150;
         getConnectedPeers: function () {
             return _.where(this._peers, { isConnected: true });
         }
+    });
 
-    };
-
-    exports.PeerSessionManager = PeerSessionManager;
-
-})(typeof exports === 'undefined' ? jsd.core : exports);
+})();

@@ -1,8 +1,8 @@
 
-(function(sa){
+(function(sa) {
 
     // initialize the application
-    var init = function(){
+    var init = function() {
 
         // creata new Core instance
         var core = new sa.Core();

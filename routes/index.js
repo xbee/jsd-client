@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var modes = require('../src/client-includes.js');
+var deps = require('../build/deps.js');
+//var modes = require('../src/client-includes.js');
 var buildify = require('buildify');
 var packer = require('packer');
 
@@ -18,6 +19,7 @@ var CLIENTID = [
   'ed9620446c8cd07e39f3334f45d80540796de4a3'
 ];
 
+
 /* GET home page. */
 router.get('/', function(req, res) {
   res.render('index', { title: 'Express' });
@@ -25,6 +27,10 @@ router.get('/', function(req, res) {
 
 router.get('/map', function(req, res) {
     res.render('map', { title: 'Express' });
+});
+
+router.get('/test', function(req, res) {
+    res.render('test', { title: 'Express' });
 });
 
 router.get('/client.js', function (req, res) {
@@ -57,11 +63,9 @@ router.get('/client.js', function (req, res) {
   var id = req.param('id') || '0000';
   console.log('The client id: ', id);
 
-  var mode = req.query["mode"] || modes.FULL; //default: full client
+  //var mode = req.query["mode"] || modes.FULL; //default: full client
   var files = [];
-  if (modes[mode]) {
-    files = (modes[mode]);
-  }
+  files = deps.getFiles();
 
   var js = buildify().concat(files);
   //js = js.perform(function (content) {

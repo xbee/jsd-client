@@ -24,11 +24,13 @@ MySandbox.prototype.foo = function() { /*...*/ };
 // create the helloWorld module
 var JdyModule = function(sandbox) {
 
-    var engine = new J.Engine();
+    var engine = new J.Engine(sandbox);
 
     var urlConverter = function(url, cb) {
 
         // 1. query Tracker
+        // DoYouHave hash url meta
+
 
         // if have one or more seeder
         // 2.1 then get from peer

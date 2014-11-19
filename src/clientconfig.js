@@ -34,7 +34,32 @@ J.Options = {
     USE_FS:false,
     CACHE_SIZE:50000000, //in bytes
     FS_ROOT_DIR:'jsd/',
-    FS_SIZE: 4294967296 //in bytes
+    FS_SIZE: 4294967296, //in bytes
+
+    authToken: null, // Will never be sent to any peer (private)
+    tokenExpiresAt: 0,
+    maxPeers: 3,
+    maxFactories: 1,
+    maxWorkers: 1,
+    fileStorageSize: 500 * 1024 * 1024, //500MB
+    protocol: 'sctp', //srtp || sctp
+    iceServers: [
+        {
+            'url': 'stun:stun.l.google.com:19302'
+        },
+        {
+            'url': 'stun:stun.turnservers.com:3478'
+        }
+    ],
+    signalServer: {
+        'host': 'localhost',
+        'port': 3081,
+        'isSecure': false
+    },
+    syncInterval: 3600000, //1h
+    apiKey: '1c69f278739ed7653f5a0f2d8ca51c0e41100492',
+    uuid: jsd.util.getUid() //everyone will know (public)
 };
 
 jsd.config = J.Options;
+J.settings = J.Options;

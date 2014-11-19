@@ -201,4 +201,4 @@
     exports.SwarmHealth = SwarmHealth;
     exports.SwarmError = SwarmError;
 })
-(typeof exports === 'undefined' ? jsd.protocol : exports);
+(typeof exports === 'undefined' ? J.Protocol : exports);

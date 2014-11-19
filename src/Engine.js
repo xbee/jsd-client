@@ -59,9 +59,9 @@ J.FileInfo = J.Evented.extend({
 J.Engine = J.Evented.extend({
 
     logger : J.logger,
-    settings : jsd.util.settings,
+    settings : J.settings,
 
-    initialize: function() {
+    initialize: function(sandbox) {
 
         this.pendingSwarms = [];
         this.clientId;
@@ -84,14 +84,14 @@ J.Engine = J.Evented.extend({
         //monitor the sendQueues
         this.cron_interval_id = window.setInterval(this.cron, jsd.config.MONITOR_INTERVAL, this);
 
-        this.settings = jsd.util.settings;
+        this.settings = J.settings;
         this.signaler = {};
         this.files = [];
         // key: filename, value: fileinfo obj
         this.fileInfos = {};
 
-        this.clientId = jsd.util.settings.uuid = jsd.util.getUid();
-        logger.log('Signal', 'Uuid', jsd.util.settings.uuid);
+        this.clientId = J.settings.uuid = jsd.util.getUid();
+        logger.log('Signal', 'Uuid', J.settings.uuid);
 
         try {
             var device = J.Util.getDeviceCapabilities();
@@ -131,7 +131,7 @@ J.Engine = J.Evented.extend({
     },
 
     createSignalSession : function () {
-        var signaler = new jsd.core.SignalSession(settings.uuid, settings.apiKey);
+        var signaler = new J.Signaler(J.settings.uuid, J.settings.apiKey);
         return signaler;
     },
 

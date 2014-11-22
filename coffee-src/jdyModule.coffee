@@ -1,32 +1,23 @@
 
-#= require <scaleApp.coffee>
 
-MySandbox = (core, @instanceId, @options={}, @moduleId) ->
-
-  # e.g. provide the Mediator methods 'on', 'emit', etc.
-  core._mediator.installTo @
-  @
-
-# ... and of course you can define shared methods etc.
-MySandbox::foo = -> #...
-
+#= require <Engine.coffee>
 
 # create the helloWorld module
 JdyModule = (sandbox) ->
 
-  engine = new J.Engine(sandbox)
+  engine = new JEngine(sandbox, {})
 
   urlConverter = (url, cb) ->
 
     # 1. query Tracker
-    queryMsg = new J.Protocol.Query()
+    queryMsg = new JProtocolQuery()
     engine.signaler.send()
 
     # if have one or more seeder
     # 2.1 then get from peer
 
     # 2.2 or get from server or keep the origin url ?
-    J.Util.loadResourceByXHR url, (blob) ->
+    util.loadResourceByXHR url, (blob) ->
 
       # convert blob to data url
       objectURL = window.URL.createObjectURL(blob)
@@ -44,11 +35,11 @@ JdyModule = (sandbox) ->
 
     # start the engine
     try
-      logger = J.logger
+      logger = JLogger.getInstance()
 
       # ----------------- event handlers ----------------------
       #
-      options = signaler_onAuthenticated: (event) ->
+      evts = signaler_onAuthenticated: (event) ->
         peerlistHandler = (e) ->
           response = JSON.parse(e.data)
           if response.cmd is CMD.LIST
@@ -75,7 +66,7 @@ JdyModule = (sandbox) ->
         @signaler.getAllRelatedPeers()
         return
 
-      engine.start options
+      engine.start evts
       window.jce = engine
       peer = null
       getPeer = ->

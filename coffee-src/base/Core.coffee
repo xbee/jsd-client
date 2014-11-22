@@ -71,7 +71,7 @@ class Core
     initInst = (err, instance, opt) =>
       return @_startFail err, cb if err
       try
-        if util.hasArgument instance.init, 2
+        if toolbox.hasArgument instance.init, 2
           # the module wants to init in an asynchronous way
           # therefore define a callback
           instance.init opt, (err) =>
@@ -126,12 +126,12 @@ class Core
       for p in @_plugins when typeof p.plugin?[ev] is "function" then do (p) ->
         fn = p.plugin[ev]
         (next) ->
-          if util.hasArgument fn, 3
+          if toolbox.hasArgument fn, 3
             fn sb, p.options, next
           else
             fn sb, p.options
             next()
-    util.runSeries tasks, cb, true
+    toolbox.runSeries tasks, cb, true
 
   _startAll: (mods=(m for m of @_modules), cb) ->
 
@@ -145,12 +145,12 @@ class Core
         e = new Error "errors occoured in the following modules: #{mdls}"
         e.moduleErrors = modErrors
       cb? e
-    util.doForAll mods, startAction, done, true
+    toolbox.doForAll mods, startAction, done, true
     @
 
   stop: (id, cb=->) ->
     if arguments.length is 0 or typeof id is "function"
-      util.doForAll (x for x of @_instances), (=> @stop arguments...), id, true
+      toolbox.doForAll (x for x of @_instances), (=> @stop arguments...), id, true
 
     else if instance = @_instances[id]
 
@@ -159,7 +159,7 @@ class Core
       @_mediator.off instance
       @_runSandboxPlugins 'destroy', @_sandboxes[id], (err) =>
         # if the module wants destroy in an asynchronous way
-        if util.hasArgument instance.destroy
+        if toolbox.hasArgument instance.destroy
           instance.destroy (err2) =>
             delete @_running[id]
             cb err or err2
@@ -186,7 +186,7 @@ class Core
   boot: (cb) ->
     core  = @
     tasks = for p in @_plugins when p.booted isnt true then do (p) ->
-      if util.hasArgument p.creator, 3
+      if toolbox.hasArgument p.creator, 3
         (next) ->
           plugin = p.creator core, p.options, (err) ->
             if not err
@@ -198,5 +198,5 @@ class Core
           p.plugin = p.creator core, p.options
           p.booted = true
           next()
-    util.runSeries tasks, cb, true
+    toolbox.runSeries tasks, cb, true
     @

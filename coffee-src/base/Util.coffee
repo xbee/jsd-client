@@ -1,3 +1,6 @@
+
+#= require <FingerPrint>
+
 fnRgx =
   ///
     function    # start with 'function'
@@ -86,6 +89,38 @@ doForAll = (args=[], fn, cb, force)->
   tasks = for a in args then do (a) -> (next) -> fn a, next
   util.runParallel tasks, cb, force
 
+browserId = ->
+    #my_hasher = (value, seed) ->
+    #    jsd.util.CryptoJS.SHA1(value).toString jsd.util.CryptoJS.enc.Hex
+    #fp = new Fingerprint({hasher: my_hasher});
+    fp = new FingerPrint()
+    bid = fp.get()
+    return String(bid)
+
+shortId = ->
+    "xxxxxxxx".replace /[xy]/g, (c) ->
+        r = Math.random() * 16 | 0
+        v = (if c is "x" then r else (r & 0x3 | 0x8))
+        v.toString 16
+
+uuid = ->
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace /[xy]/g, (c) ->
+        r = Math.random() * 16 | 0
+        v = (if c is "x" then r else (r & 0x3 | 0x8))
+        v.toString 16
+
+# Merge objects, returning a fresh copy with attributes from both sides.
+# Used every time `Base#compile` is called, to allow properties in the
+# options hash to propagate down the tree without polluting other branches.
+merge = (options, overrides) ->
+    extend (extend {}, options), overrides
+
+# Extend a source object with the properties of another object (shallow copy).
+extend = (object, properties) ->
+    for key, val of properties
+        object[key] = val
+    object
+
 
 clone = (obj) ->
     if not obj? or typeof obj isnt 'object'
@@ -120,12 +155,40 @@ clone = (obj) ->
 #console.log x.foo isnt y.foo, x.foo, y.foo
 ## => true, bar, test
 
-util =
+
+loadResourceByXHR = (url, callback) ->
+
+    #deferred = Q.defer;
+    oReq = new XMLHttpRequest()
+    oReq.open "GET", url, true
+
+    # oReq.setRequestHeader('Range', 'bytes=100-200');
+    oReq.responseType = "blob"
+    oReq.onload = (oEvent) ->
+
+        # blob just valid in this scope
+        blob = oReq.response
+
+        # do something with blob
+        callback blob
+        return
+
+    oReq.send()
+    return
+
+
+toolbox =
   doForAll: doForAll
   runParallel : runParallel
   runSeries : runSeries
   runWaterfall : runWaterfall
   getArgumentNames: getArgumentNames
-  hasArgument: (fn, idx=1) -> util.getArgumentNames(fn).length >= idx
+  hasArgument: (fn, idx=1) -> toolbox.getArgumentNames(fn).length >= idx
+  merge: merge
+  extend: extend
   clone: clone
+  browserId: browserId
+  shortId: shortId
+  uuid: uuid
+  loadResourceByXHR: loadResourceByXHR
 

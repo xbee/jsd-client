@@ -67,14 +67,14 @@ class Mediator
     tasks = for sub in subscribers then do (sub) ->
       (next) ->
         try
-          if util.hasArgument sub.callback, 3
+          if toolbox.hasArgument sub.callback, 3
             sub.callback.apply sub.context, [data, channel, next]
           else
             next null, sub.callback.apply sub.context, [data, channel]
         catch e
           next e
 
-    util.runSeries tasks,((errors, results) ->
+    toolbox.runSeries tasks,((errors, results) ->
       if errors
         e = new Error (x.message for x in errors when x?).join '; '
       cb e), true

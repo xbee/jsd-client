@@ -26,10 +26,19 @@ module.exports = (grunt) ->
               includeFolders:
                   ['coffee-src', 'plugins']
           files:
-              'dist/concatenated.coffee': [
+              'dist/jdy.full.coffee': [
                   'coffee-src/*.coffee',
                   'coffee-src/**/*.coffee'
               ]
+
+    coffee:
+      core:
+          options:
+              join: true
+              expand: true
+              flatten: true
+          files:
+              "dist/jdy.full.js": ["dist/jdy.full.coffee"]
 
     concat:
       options:
@@ -40,36 +49,6 @@ module.exports = (grunt) ->
       full:
         files:
           "dist/scaleApp.full.js": ["dist/scaleApp.full.js"]
-
-    coffee:
-      core:
-        options:
-          join: true
-        files:
-          "dist/scaleApp.js": [
-            "coffee-src/base/Util.coffee"
-            "coffee-src/base/Common.coffee"
-            "coffee-src/base/Mediator.coffee"
-            "coffee-src/base/Core.coffee"
-            "coffee-src/base/scaleApp.coffee" ]
-      full:
-        options:
-          join: true
-        files:
-          "dist/scaleApp.full.js": [
-            "coffee-src/base/Util.coffee"
-            "coffee-src/base/Common.coffee"
-            "coffee-src/base/Mediator.coffee"
-            "coffee-src/base/Core.coffee"
-            "coffee-src/base/scaleApp.coffee"
-            "plugins/src/*.coffee" ]
-      plugins:
-        expand: true
-        flatten: true
-        cwd: 'plugins/src'
-        src: ['*.coffee']
-        dest: 'dist/plugins/'
-        rename: renameCoffe2js
 
     uglify:
       options:
@@ -82,12 +61,9 @@ module.exports = (grunt) ->
 
         codegen:
           quote_keys: false
-      core:
-        files:
-          'dist/scaleApp.min.js': ["dist/scaleApp.js"]
       full:
         files:
-          'dist/scaleApp.full.min.js': ["dist/scaleApp.full.js"]
+          'dist/jdy.full.min.js': ["dist/jdy.full.js"]
       plugins:
         expand: true
         flatten: true
@@ -113,7 +89,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-concat"
   grunt.loadNpmTasks "grunt-coffeescript-concat"
   grunt.loadNpmTasks "grunt-coffeelint"
-  grunt.registerTask "default", [ "coffee", "concat", "uglify" ]
+  grunt.registerTask "default", [ "coffeescript_concat", "coffee", "uglify" ]
 
   # Quick and dirty task to build a custom bundle
   # Does s.o. know how to do that properly?

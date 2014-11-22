@@ -315,14 +315,6 @@ J.Rtc.Signaler = J.Evented.extend({
         if (peer) {
             eventInfo.peer = peer;
             //this.psm.push(peer);
-        } else {
-            if (this.is('disconnected')) {
-                // TODO: need to do something
-//            for (i = 0; i < this.peers.length; i += 1) {
-//              this.peers[i].parallel.triggerEvent(PeerEvent.DISCONNECT);
-//              this.peers[i].triggerEvent(PeerEvent.DISCONNECT);
-//            }
-            }
         }
         // can not use this.emitter.emit , why ?
         // next line is ok

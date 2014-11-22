@@ -1,10 +1,14 @@
+#= require <Sandbox.coffee>
+
 installApp = (sa) ->
 
   # initialize the application
   init = ->
 
     # creata new Core instance
-    core = new sa.Core()
+    core = new sa.Core(JSandbox)
+    options =
+        uuid: toolbox.shortid()
 
     # JdyModule: import from jdyModule.js
     # register the module

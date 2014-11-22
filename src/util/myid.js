@@ -3,10 +3,6 @@
 
 (function () {
 
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     J.Util.getUid = function() {
         var my_hasher = function(value, seed) {
             return jsd.util.CryptoJS.SHA1(value).toString(jsd.util.CryptoJS.enc.Hex);
@@ -17,10 +13,10 @@
         var fp = new Fingerprint();
         var bid = fp.get();
 
-        var sid = getRandomInt(100, 100000);
+        var sid = J.Util.shortId();
         //var sid = fp.murmurhash3_32_gc(ds.toString(), sd);
 
-        return String(sid)+'.'+String(bid);
+        return sid+'.'+String(bid);
     };
 
     J.Util.shortId = function () {

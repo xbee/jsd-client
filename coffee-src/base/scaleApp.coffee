@@ -1,6 +1,7 @@
 
 #= require <Util.coffee>
 #= require <Common.coffee>
+#= require JLogger
 #= require Mediator
 #= require Core
 
@@ -10,7 +11,9 @@ api =
   # current version
   VERSION: "0.4.5"
 
-  util: util
+  toolbox: toolbox
+
+  Logger: JLogger
 
   # the mediator class
   Mediator: Mediator

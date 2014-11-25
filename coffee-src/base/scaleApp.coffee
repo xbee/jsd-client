@@ -15,6 +15,8 @@ api =
 
   Logger: JLogger
 
+  Deferred: JDeferred
+
   # the mediator class
   Mediator: Mediator
 

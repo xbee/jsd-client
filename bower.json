@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "cryptojs": "*",
-    "jhash": "~0.1.5"
+    "jhash": "~0.1.5",
+    "polymer": "Polymer/polymer#~0.5.1"
   }
 }

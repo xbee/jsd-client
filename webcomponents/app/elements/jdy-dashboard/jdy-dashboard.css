@@ -2,6 +2,10 @@
   display: block;
 }
 
+.centered {
+  text-align: center;
+}
+
 #left {
     opacity: 1;
     position: fixed;
@@ -90,10 +94,14 @@ tspan {
 #downloadPeer {
     margin: 0px auto;
     display: block;
+    width:140px;
+    height:110px;
 }
 
 #downloadServer {
     margin: 0px auto;
+    width:140px;
+    height:110px;
 }
 
 .percent_text {

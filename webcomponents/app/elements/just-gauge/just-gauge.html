@@ -1,0 +1,69 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="just-gauge-import.html">
+
+
+<polymer-element name="just-gauge" attributes="width, height">
+  <template>
+    <style>
+      body {
+        text-align: center;
+        font-family: Arial;
+      }
+
+      p {
+        display: block;
+        width: 400px;
+        margin: 2em auto;
+        text-align: center;
+        border-top: 1px soild #CCC;
+        border-bottom: 1px soild #CCC;
+        background: #333333;
+        padding:10px 0px;
+        color: #CCC;
+        text-shadow: 1px 1px 25px #000000;
+        border-radius: 0px 0px 5px 5px;
+        box-shadow: 0px 0px 10px #202020;
+      }
+    </style>
+
+    <link rel="stylesheet" href="just-gauge.css">
+    <div id="{{gid}}" style="width:400px; height:320px"></div>
+  </template>
+  <script>
+    (function () {
+      'use strict';
+
+      Polymer({
+        gid: "g1",
+
+        // define element prototype here
+        ready: function() {
+          this.gage = this.createGage(this.$.g1, "Percent");
+
+          this.setGageValue(85);
+        },
+
+        setGageValue: function(val) {
+          this.gage.refresh(val);
+        },
+
+        createGage: function (el, title) {
+
+          return new JustGage({
+            parentNode: el,
+            label: "%",
+            value: 0,
+            min: 0,
+            max: 100,
+            title: title,
+            valueFontColor: "white",
+            titleFontColor: "white",
+            labelFontColor: "white",
+            levelColors: ["#dd5a46", "#ffcc00", "#2ecc71"]
+          });
+        }
+      });
+
+    })();
+  </script>
+</polymer-element>

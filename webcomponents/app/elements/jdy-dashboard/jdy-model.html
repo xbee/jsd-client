@@ -1,0 +1,68 @@
+<!--
+    @license
+    Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+    This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+    The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+    The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+    Code distributed by Google as part of the polymer project is also
+    subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="jdy-model" attributes="peerNum storageId">
+  <script>
+    // private and static fields
+    var totalDown_ = 0;
+    var totalPeerDown_ = 0;
+    var upload_ = 0;
+    var download_ = 0;
+    var serverDown_ = 0;
+    var serverPercent_ = 0;
+    var peerDown_ = 0;
+    var peerPercent_ = 0;
+
+    Polymer('jdy-model', {
+      // total value should be remembered between sessions
+
+      peerNum: 1,
+      get upload() { return upload_; },
+      get download() { return download_; },
+      get serverDown() { return serverDown_; },
+      get peerDown() { return peerDown_; },
+      get serverPercent() { return serverPercent_; },
+      get peerPercent() { return peerPercent_; },
+
+      addUploadSize: function (sz) {
+        upload_ += sz;
+      },
+      addDownloadSize: function (sz, isFromPeer) {
+        download_ += sz;
+        totalDown_ += sz;
+        if (isFromPeer) {
+          peerDown_ += sz;
+          totalPeerDown_ += sz;
+        } else {
+          serverDown_ += sz;
+        }
+        peerPercent_ = (peerDown_ * 100) / download_;
+        serverPercent_ = (serverDown_ * 100) / download_;
+        if (this.storage) {
+          // TODO: need to encrypt those two values
+          this.storage.value = [totalDown_, totalPeerDown_];
+          this.storage.save();
+        }
+      },
+      ready: function() {
+        this.asyncMethod(function() {
+          [totalDown_, totalPeerDown_] = this.storage.value || [0, 0];
+        });
+      },
+      storageIdChanged: function() {
+        this.storage = document.querySelector('#' + this.storageId);
+        if (this.storage) {
+          [totalDown_, totalPeerDown_] = this.storage.value || [0,0];
+        }
+      }
+    });
+  </script>
+</polymer-element>

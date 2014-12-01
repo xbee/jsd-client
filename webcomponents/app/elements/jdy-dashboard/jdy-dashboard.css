@@ -81,12 +81,12 @@
 
 .number_txt {
     color: #19dcb5;
-    font-family: "futura light";
+    /*font-family: "futura light";*/
 }
 
 
 tspan {
-    font-family: "Lato-Lig";
+    /*font-family: "Lato-Lig";*/
     font-size: 15px;
 }
 #downloadPeer {
@@ -125,6 +125,7 @@ tspan {
         text-align: center;
     }
     .stat {
+        color: whitesmoke;
         padding: 2px 5px 7px 7px;
     }
     #stat1 {

@@ -1,30 +1,31 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../just-gauge/just-gauge.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html" >
+<link rel="import" href="../just-gauge/just-gauge.html" >
+<link rel="import" href="jdy-model.html" >
 
-<polymer-element name="jdy-dashboard" attributes="">
+<polymer-element name="jdy-dashboard" attributes="modelId">
   <template>
     <link rel="stylesheet" href="jdy-dashboard.css">
     <div id="left">
       <div id="stats">
         <div id="stat1" class="stat">
           <img src="images/peer.png" class="title_icon"/>Peers Connected<span
-          id="connection_text" class="number_txt centered">{{peer_num_text}}</span></div>
+          id="connection_text" class="number_txt centered">{{model.peerNum}}</span></div>
         <div id="stat2" class="stat">
           <img src="images/upload.png" class="title_icon"/>Upload<span id="upload_text"
-                                                                       class="number_txt centered">{{upload_text}}</span>
+                                                                       class="number_txt centered">{{bytesToSize(model.upload)}}</span>
         </div>
         <div id="stat3" class="stat">
           <img src="images/download.png" class="title_icon"/>Total Download<span
-          id="download_text" class="number_txt centered">{{download_text}}</span>
+          id="download_text" class="number_txt centered">{{bytesToSize(model.download)}}</span>
         </div>
-        <div id="stat4" class="stat">Download From Peer<span id="download_peer_text" class="number_txt without_icon">0 B<span
-          class="percent_text">{{peer_percent_text}}</span></span>
-          <just-gauge id="downloadPeer" width="140" height="110"></just-gauge>
+        <div id="stat4" class="stat">Download From Peer<span id="download_peer_text" class="number_txt without_icon">{{bytesToSize(model.peerDown)}}<span
+          class="percent_text">{{model.peerPercent}}</span></span>
+          <just-gauge id="downloadPeer" value="{{model.peerPercent}}" width="140" height="110"></just-gauge>
         </div>
         <div id="stat5" class="stat">Download From Server<span id="download_server_text"
-                                                               class="number_txt without_icon">273.61 KB<span
-          class="percent_text">{{server_percent_text}}</span></span>
-          <just-gauge id="downloadServer" width="140" height="110"></just-gauge>
+                                                               class="number_txt without_icon">{{bytesToSize(model.serverDown)}}<span
+          class="percent_text">{{model.serverPercent}}</span></span>
+          <just-gauge id="downloadServer" value="{{model.serverPercent}}" width="140" height="110"></just-gauge>
         </div>
         <div id="stat6" onclick="window.open ( document.location.href,&quot;_blank&quot;);" class="stat">
           <img src="images/addpeer.png" class="title_icon title_peer_icon"/>Add New Peer
@@ -32,49 +33,5 @@
       </div>
     </div>
   </template>
-  <script>
-    (function () {
-      'use strict';
-
-      function bytesToSize(bytes) {
-        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-        if (bytes == 0) return 'n/a';
-        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-        if (i == 0) return bytes + ' ' + sizes[i];
-        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
-      };
-
-      Polymer("jdy-dashboard", {
-        publish: {
-          peerNum: 0,
-          download: 0,
-          upload: 0,
-          serverDown: 0,
-          peerDown: 0,
-          serverPercent: 0,
-          peerPercent: 0
-        },
-
-        // define element prototype here
-        attached: function () {
-
-          this.refresh();
-          this.dServer = this.$.downloadServer;
-          this.dPeer = this.$.downloadPeer;
-        },
-
-        refresh: function() {
-          this.peer_num_text = bytesToSize(this.peerNum);
-          this.upload_text = bytesToSize(this.upload);
-          this.download_text = bytesToSize(this.download);
-          this.peer_percent_text;
-        },
-
-        sayHi: function() {
-          this.fire('said-hello');
-        }
-      });
-
-    })();
-  </script>
+  <script src="js/jdy-dashboard.js"></script>
 </polymer-element>

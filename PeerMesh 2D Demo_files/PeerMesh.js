@@ -52,10 +52,10 @@ var _0x3f27 = [];
 //_0x3f27[50] = "session_id"
 //_0x3f27[51] = "FILE_NOT_FOUND"
 //_0x3f27[52] = "file_not_found"
-_0x3f27[53] = "FILE_FOUND"
-_0x3f27[54] = "file_found"
-_0x3f27[55] = "OFFER_IMAGE_REQUEST"
-_0x3f27[56] = "offer_image_request"
+//_0x3f27[53] = "FILE_FOUND"
+//_0x3f27[54] = "file_found"
+//_0x3f27[55] = "OFFER_IMAGE_REQUEST"
+//_0x3f27[56] = "offer_image_request"
 _0x3f27[57] = "OFFER_CANDIDATE"
 _0x3f27[58] = "offer_candidate"
 _0x3f27[59] = "OFFER_SDP"
@@ -105,11 +105,11 @@ _0x3f27[64] = "answer_sdp"
 //_0x3f27[103] = "lastIndexOf"
 //_0x3f27[104] = "toLowerCase"
 //_0x3f27[105] = "substr"
-_0x3f27[106] = "jpg"
-_0x3f27[107] = "png"
-_0x3f27[108] = "gif"
-_0x3f27[109] = "jpeg"
-_0x3f27[110] = "load"
+//_0x3f27[106] = "jpg"
+//_0x3f27[107] = "png"
+//_0x3f27[108] = "gif"
+//_0x3f27[109] = "jpeg"
+//_0x3f27[110] = "load"
 //_0x3f27[111] = "convertBase64"
 //_0x3f27[112] = "isResponseTypeBase64"
 //_0x3f27[113] = "convertResponseType"
@@ -151,7 +151,7 @@ _0x3f27[145] = "cache"
 //_0x3f27[149] = "getBinaryData"
 //_0x3f27[150] = "convertBase64ToByte"
 //_0x3f27[151] = "putData"
-_0x3f27[152] = "==========="
+//_0x3f27[152] = "==========="
 _0x3f27[153] = " length:"
 //_0x3f27[154] = "put"
 _0x3f27[155] = "browserSupport"
@@ -173,9 +173,9 @@ _0x3f27[170] = "text"
 _0x3f27[171] = "image"
 _0x3f27[172] = "arraybuffer"
 //_0x3f27[173] = "json"
-_0x3f27[174] = "request"
-_0x3f27[175] = "File is in Local Storage!"
-_0x3f27[176] = "Browser Does not support webrtc!"
+//_0x3f27[174] = "request"
+//_0x3f27[175] = "File is in Local Storage!"
+//_0x3f27[176] = "Browser Does not support webrtc!"
 //_0x3f27[177] = "requestPeerServer"
 //_0x3f27[178] = "loadFile"
 //_0x3f27[179] = "initialize"
@@ -205,7 +205,7 @@ _0x3f27[176] = "Browser Does not support webrtc!"
 //_0x3f27[203] = "onmessage";
 //_0x3f27[204] = "getTotalQueueSize";
 //_0x3f27[205] = "getQueueSize";
-_0x3f27[206] = "Total Queue Size:";
+//_0x3f27[206] = "Total Queue Size:";
 _0x3f27[207] = "_";
 //_0x3f27[208] = "fireCallbacks";
 //_0x3f27[209] = "getFileList";
@@ -302,9 +302,9 @@ PeerStatistic["peerDownload"] = 0;
 PeerStatistic["peerPercent"] = 0;
 PeerStatistic["listener"] = null;
 PeerStatistic["isDebug"] = false;
-PeerStatistic["isShowLog"] = false;
-PeerStatistic["consoleTextArea"];
-PeerStatistic["addUploadSize"] = function (sz) {
+PeerStatistic.isShowLog = false;
+PeerStatistic.consoleTextArea;
+PeerStatistic.addUploadSize = function (sz) {
     PeerStatistic['upload'] += sz;
     if (PeerStatistic["listener"] != null) {
         PeerStatistic["listener"]();
@@ -326,12 +326,12 @@ PeerStatistic.addDownloadSize = function (sz, isFromPeer) {
     }
     ;
 };
-PeerStatistic["log"] = function (msg) {
-    if (PeerStatistic["isShowLog"]) {
-        if (PeerStatistic["isDebug"]) {
-            PeerStatistic["consoleTextArea"]["value"] += msg + "\n";
+PeerStatistic.log = function (msg) {
+    if (PeerStatistic.isShowLog) {
+        if (PeerStatistic.isDebug) {
+            PeerStatistic.consoleTextArea.value += msg + "\n";
         } else {
-            console["log"](msg);
+            console.log(msg);
         }
         ;
     }
@@ -343,19 +343,19 @@ var attachMediaStream = null;
 var reattachMediaStream = null;
 var webrtcDetectedBrowser = null;
 if (navigator["mozGetUserMedia"]) {
-    PeerStatistic["log"]("This appears to be Firefox");
+    PeerStatistic.log("This appears to be Firefox");
     webrtcDetectedBrowser = "firefox";
     RTCPeerConnection = mozRTCPeerConnection;
     RTCSessionDescription = mozRTCSessionDescription;
     RTCIceCandidate = mozRTCIceCandidate;
     getUserMedia = navigator["mozGetUserMedia"]["bind"](navigator);
     attachMediaStream = function (_0xb539x9, _0xb539xa) {
-        PeerStatistic["log"]("Attaching media stream");
+        PeerStatistic.log("Attaching media stream");
         _0xb539x9["mozSrcObject"] = _0xb539xa;
         _0xb539x9["play"]();
     };
     reattachMediaStream = function (_0xb539xb, _0xb539xc) {
-        PeerStatistic["log"]("Reattaching media stream");
+        PeerStatistic.log("Reattaching media stream");
         _0xb539xb["mozSrcObject"] = _0xb539xc["mozSrcObject"];
         _0xb539xb["play"]();
     };
@@ -367,7 +367,7 @@ if (navigator["mozGetUserMedia"]) {
     };
 } else {
     if (navigator["webkitGetUserMedia"]) {
-        PeerStatistic["log"]("This appears to be Chrome");
+        PeerStatistic.log("This appears to be Chrome");
         webrtcDetectedBrowser = "chrome";
         RTCPeerConnection = webkitRTCPeerConnection;
         getUserMedia = navigator["webkitGetUserMedia"]["bind"](navigator);
@@ -381,7 +381,7 @@ if (navigator["mozGetUserMedia"]) {
                     if (typeof _0xb539x9["src"] !== "undefined") {
                         _0xb539x9["src"] = URL["createObjectURL"](_0xb539xa);
                     } else {
-                        PeerStatistic["log"]("Error attaching stream to element.");
+                        PeerStatistic.log("Error attaching stream to element.");
                     }
                     ;
                 }
@@ -411,7 +411,7 @@ if (navigator["mozGetUserMedia"]) {
         }
         ;
     } else {
-        PeerStatistic["log"]("Browser does not appear to be WebRTC-capable");
+        PeerStatistic.log("Browser does not appear to be WebRTC-capable");
     }
     ;
 }
@@ -442,8 +442,8 @@ function Queue() {
 PeerAction = {};
 PeerAction.SESSION_ID = "session_id";
 PeerAction.FILE_NOT_FOUND = "file_not_found";
-PeerAction.FILE_FOUND = _0x3f27[54];
-PeerAction.OFFER_IMAGE_REQUEST = _0x3f27[56];
+PeerAction.FILE_FOUND = "file_found";
+PeerAction.OFFER_IMAGE_REQUEST = "offer_image_request";
 PeerAction.OFFER_CANDIDATE = _0x3f27[58];
 PeerAction.OFFER_SDP = _0x3f27[60];
 PeerAction.ANSWER_CANDIDATE = _0x3f27[62];
@@ -453,15 +453,15 @@ PeerAction.REQUEST_IMAGE = "request_image";
 PeerAction.APPLICATION = "appName";
 PeerAction.REQUEST_CON_COUNT = "reqConCount";
 PeerAction.COUNT = "count";
-PeerAction.requestImageObject = function (img) {
-    return {action: PeerAction.REQUEST_IMAGE, file: img};
+PeerAction.requestImageObject = function (url) {
+    return {action: PeerAction.REQUEST_IMAGE, file: url};
 };
-PeerAction.hasImageObject = function (_0xb539x12) {
+PeerAction.hasImageObject = function (req) {
     return {
         action: PeerAction.HAS_IMAGE,
-        size: _0xb539x12.getSize(),
-        hash: _0xb539x12.getHash(),
-        file: _0xb539x12.getUrl()
+        size: req.getSize(),
+        hash: req.getHash(),
+        file: req.getUrl()
     };
 };
 PeerAction.requestFileObject = function (url) {
@@ -494,7 +494,7 @@ PeerRequest.prototype.defineUrlType = function (t) {
                 this.loadMethod = PeerImageUtil.loadImage;
                 this.convertBase64Method = PeerImageUtil.convertByteToBase64;
                 this.convertResponseTypeMethod = function (_0xb539x15) {
-                    return JSON["parse"](PeerBinaryUtil.byteToString(_0xb539x15));
+                    return JSON.parse(PeerBinaryUtil.byteToString(_0xb539x15));
                 };
             } else {
                 if (t != undefined && t == PeerManager.ARRAY_BUFFER_TYPE) {
@@ -516,7 +516,7 @@ PeerRequest.prototype.defineUrlType = function (t) {
                         var _0xb539x16 = this["url"]["lastIndexOf"](".");
                         if (_0xb539x16 > 0) {
                             var _0xb539x17 = this["url"]["substr"](_0xb539x16 + 1)["toLowerCase"]();
-                            if (_0xb539x17 == _0x3f27[106] || _0xb539x17 == _0x3f27[107] || _0xb539x17 == _0x3f27[108] || _0xb539x17 == _0x3f27[109]) {
+                            if (_0xb539x17 == "jpg" || _0xb539x17 == "png" || _0xb539x17 == "gif" || _0xb539x17 == "jpeg") {
                                 this.loadMethod = PeerImageUtil.loadImage;
                                 this.convertBase64Method = PeerImageUtil.convertByteToBase64;
                                 this.convertResponseTypeMethod = PeerImageUtil.convertByteToBase64;
@@ -535,8 +535,8 @@ PeerRequest.prototype.defineUrlType = function (t) {
     }
     ;
 };
-PeerRequest.prototype.load = function (x) {
-    this.loadMethod(this.url, x);
+PeerRequest.prototype.load = function (cb) {
+    this.loadMethod(this.url, cb);
 };
 PeerRequest.prototype.convertBase64 = function (x) {
     return this.convertBase64Method(x);
@@ -559,10 +559,10 @@ PeerRequest.prototype.getHash = function () {
 PeerRequest.prototype.setHash = function (x) {
     this.hash = x;
 };
-PeerRequest["prototype"]["getSize"] = function () {
+PeerRequest.prototype.getSize = function () {
     return this.size;
 };
-PeerRequest["prototype"]["setSize"] = function (sz) {
+PeerRequest.prototype.setSize = function (sz) {
     this.size = sz;
 };
 PeerBinaryUtil = function () {
@@ -715,8 +715,8 @@ PeerDataManager = function () {
     this.cache = [];
     this.size = 0;
 };
-PeerDataManager["prototype"]["contains"] = function (_0xb539x11) {
-    if (this.cache[_0xb539x11] != null || PeerStorage["get"](_0xb539x11) != null) {
+PeerDataManager.prototype.contains = function (key) {
+    if (this.cache[key] != null || PeerStorage.get(key) != null) {
         return true;
     }
     ;
@@ -749,17 +749,17 @@ PeerDataManager.prototype.getBinaryData = function (_0xb539x11) {
     ;
     return _0xb539x33;
 };
-PeerDataManager.prototype.putData = function (_0xb539x12, _0xb539x33) {
-    this.cache[_0xb539x12["getUrl"]()] = _0xb539x33;
-    PeerStatistic["log"](_0x3f27[152] + _0xb539x12["getUrl"]() + _0x3f27[153] + _0xb539x33["byteLength"]);
-    this.size += _0xb539x33["byteLength"];
-    var _0xb539x15 = _0xb539x12["convertBase64"](_0xb539x33);
-    PeerStorage["put"](_0xb539x12["getUrl"](), _0xb539x15, _0xb539x12["getHash"](), _0xb539x33["byteLength"]);
-    if (!_0xb539x12["isResponseTypeBase64"]()) {
-        _0xb539x15 = _0xb539x12.convertResponseType(_0xb539x33);
+PeerDataManager.prototype.putData = function (req, ab) {
+    this.cache[req.getUrl()] = ab;
+    PeerStatistic.log("===========" + req.getUrl() + _0x3f27[153] + ab.byteLength);
+    this.size += ab.byteLength;
+    var sdata = req.convertBase64(ab);
+    PeerStorage.put(req.getUrl(), sdata, req.getHash(), ab.byteLength);
+    if (!req.isResponseTypeBase64()) {
+        sdata = req.convertResponseType(ab);
     }
     ;
-    return _0xb539x15;
+    return sdata;
 };
 PeerManager = function (_0xb539x35, _0xb539x36) {
     this.browserSupport = this.isBrowserSupport();
@@ -779,23 +779,23 @@ PeerManager.TEXT_TYPE = "text";
 PeerManager.IMAGE_TYPE = "image";
 PeerManager.ARRAY_BUFFER_TYPE = "arraybuffer";
 PeerManager.JSON_TYPE = "json";
-PeerManager.prototype.request = function (_0xb539x11, _0xb539x13, _0xb539x14) {
-    var _0xb539x18 = this.dataManager.getData(_0xb539x11, this.requestCallback[_0xb539x11]);
-    var _0xb539x12 = new PeerRequest(_0xb539x11, _0xb539x13, _0xb539x14);
+PeerManager.prototype.request = function (url, cb, dt) {
+    var data = this.dataManager.getData(url, this.requestCallback[url]);
+    var req = new PeerRequest(url, cb, dt);
     var that = this;
-    if (_0xb539x18 != null) {
-        PeerStatistic.log(_0x3f27[175]);
-        _0xb539x13(_0xb539x18);
+    if (data != null) {
+        PeerStatistic.log("File is in Local Storage!");
+        cb(data);
     } else {
         if (!this.browserSupport) {
-            PeerStatistic.log(_0x3f27[176]);
-            _0xb539x12.load(_0xb539x13);
+            PeerStatistic.log("Browser Does not support webrtc!");
+            req.load(cb);
         } else {
-            this.socket.initialize(function (_0xb539x38) {
-                if (_0xb539x38) {
-                    that.requestPeerServer(_0xb539x12);
+            this.socket.initialize(function (isFromPeer) {
+                if (isFromPeer) {
+                    that.requestPeerServer(req);
                 } else {
-                    that.loadFile(_0xb539x12, _0xb539x13);
+                    that.loadFile(req, cb);
                 }
                 ;
             });
@@ -809,42 +809,42 @@ PeerManager.prototype.getConnectionCount = function (_0xb539x13) {
     this.socket.send(act);
     this.connectionCountListener = _0xb539x13;
 };
-PeerManager.prototype.loadFile = function (_0xb539x12, _0xb539x13) {
+PeerManager.prototype.loadFile = function (req, cb) {
     var that = this;
-    var _0xb539x3a = new Date().getTime();
-    _0xb539x12["load"](function (_0xb539x18) {
-        PeerStatistic.addDownloadSize(_0xb539x18.byteLength, false);
-        _0xb539x12.setSize(_0xb539x18.byteLength);
-        var _0xb539x15 = that.dataManager.putData(_0xb539x12, _0xb539x18);
-        _0xb539x3a = new Date().getTime() - _0xb539x3a;
-        PeerStatistic.log("File is load from real server! " + _0xb539x3a + "ms");
-        _0xb539x13(_0xb539x15);
+    var t = new Date().getTime();
+    req.load(function (ab) {
+        PeerStatistic.addDownloadSize(ab.byteLength, false);
+        req.setSize(ab.byteLength);
+        var sdata = that.dataManager.putData(req, ab);
+        t = new Date().getTime() - t;
+        PeerStatistic.log("File is load from real server! " + t + "ms");
+        cb(sdata);
     });
 };
-PeerManager.prototype.requestPeerServer = function (_0xb539x12) {
-    this.requestCallback[_0xb539x12.getUrl()] = _0xb539x12;
-    this.socket.send(PeerAction.requestImageObject(_0xb539x12.getUrl()));
+PeerManager.prototype.requestPeerServer = function (req) {
+    this.requestCallback[req.getUrl()] = req;
+    this.socket.send(PeerAction.requestImageObject(req.getUrl()));
 };
-PeerManager.prototype.fileFound = function (_0xb539x37, _0xb539x33, _0xb539x11) {
-    PeerStatistic.log("file is load from another client" + _0xb539x11);
-    var _0xb539x12 = _0xb539x37["requestCallback"][_0xb539x11];
+PeerManager.prototype.fileFound = function (_0xb539x37, _0xb539x33, url) {
+    PeerStatistic.log("file is load from another client" + url);
+    var req = _0xb539x37.requestCallback[url];
     var cmd = {
         action: PeerAction.HAS_IMAGE,
-        file: _0xb539x11,
+        file: url,
         size: _0xb539x33.length,
-        hash: _0xb539x12.getHash()
+        hash: req.getHash()
     };
     _0xb539x37.socket.send(cmd);
     PeerStatistic.addDownloadSize(_0xb539x33.length, true);
-    var _0xb539x15 = _0xb539x37.dataManager.putData(_0xb539x12, _0xb539x33);
-    _0xb539x12.sendCallback(_0xb539x15);
+    var _0xb539x15 = _0xb539x37.dataManager.putData(req, _0xb539x33);
+    req.sendCallback(_0xb539x15);
 };
-PeerManager.prototype.fileNotFound = function (_0xb539x37, _0xb539x12) {
-    PeerStatistic.log("file not found" + _0xb539x12["getUrl"]());
-    _0xb539x37.loadFile(_0xb539x12, function (_0xb539x18) {
-        _0xb539x37.socket.send(PeerAction.hasImageObject(_0xb539x12));
-        PeerStatistic.log("file is load from server" + _0xb539x12.getUrl());
-        _0xb539x12.sendCallback(_0xb539x18);
+PeerManager.prototype.fileNotFound = function (_0xb539x37, req) {
+    PeerStatistic.log("file not found" + req.getUrl());
+    _0xb539x37.loadFile(req, function (_0xb539x18) {
+        _0xb539x37.socket.send(PeerAction.hasImageObject(req));
+        PeerStatistic.log("file is load from server" + req.getUrl());
+        req.sendCallback(_0xb539x18);
     });
 };
 PeerManager.prototype.isBrowserSupport = function () {
@@ -867,24 +867,24 @@ PeerSocket = function (wshost, appname, pm) {
     this.isInit = false;
     this.callbackList = [];
     var that = this;
-    this.socket.onopen = function (_0xb539x3d) {
-        that.onopen(_0xb539x3d);
+    this.socket.onopen = function (cb) {
+        that.onopen(cb);
     };
-    this.socket.onclose = function (_0xb539x3d) {
-        that.onerror(_0xb539x3d);
+    this.socket.onclose = function (cb) {
+        that.onerror(cb);
     };
-    this.socket.onerror = function (_0xb539x3d) {
-        that.onerror(_0xb539x3d);
+    this.socket.onerror = function (cb) {
+        that.onerror(cb);
     };
-    this.socket.onmessage = function (_0xb539x3) {
-        that.onmessage(_0xb539x3);
+    this.socket.onmessage = function (cb) {
+        that.onmessage(cb);
     };
 };
-PeerSocket.prototype.initialize = function (_0xb539x3e) {
+PeerSocket.prototype.initialize = function (cb) {
     if (this.isInit) {
-        _0xb539x3e(this.isOpened);
+        cb(this.isOpened);
     } else {
-        this.callbackList.push(_0xb539x3e);
+        this.callbackList.push(cb);
     }
     ;
 };
@@ -899,12 +899,12 @@ PeerSocket.prototype.getTotalQueueSize = function () {
 PeerSocket["prototype"]["onopen"] = function (_0xb539x3d) {
     this["isInit"] = true;
     this["isOpened"] = true;
-    var _0xb539x37 = this;
+    var that = this;
     var _0xb539x41 = setInterval(function () {
-        if (_0xb539x37["isInit"] && _0xb539x37["isOpened"]) {
-            var _0xb539x3f = _0xb539x37["getTotalQueueSize"]();
-            PeerStatistic["log"](_0x3f27[206] + _0xb539x3f);
-            _0xb539x37["socket"]["send"](_0x3f27[207] + _0xb539x3f);
+        if (that["isInit"] && that["isOpened"]) {
+            var _0xb539x3f = that["getTotalQueueSize"]();
+            PeerStatistic.log("Total Queue Size:" + _0xb539x3f);
+            that["socket"]["send"](_0x3f27[207] + _0xb539x3f);
         } else {
             clearInterval(_0xb539x41);
         }
@@ -917,7 +917,7 @@ PeerSocket["prototype"]["onopen"] = function (_0xb539x3d) {
         this["send"](_0xb539x3b);
     }
     ;
-    var _0xb539x43 = {action: PeerAction["APPLICATION"], name: _0xb539x37["applicationName"]};
+    var _0xb539x43 = {action: PeerAction["APPLICATION"], name: that["applicationName"]};
     this["send"](_0xb539x43);
 };
 PeerSocket["prototype"]["onerror"] = function (_0xb539x3d) {
@@ -929,10 +929,10 @@ PeerSocket.prototype.onmessage = function (msg) {
     var _0xb539x15 = JSON.parse(msg["data"]);
     if (_0xb539x15 != null) {
         var _0xb539x44 = _0xb539x15["file"];
-        PeerStatistic["log"]("Action:" + _0xb539x15["action"] + " File:" + _0xb539x44);
+        PeerStatistic.log("Action:" + _0xb539x15["action"] + " File:" + _0xb539x44);
         if (_0xb539x15["action"] == PeerAction["SESSION_ID"]) {
             this["id"] = _0xb539x15["id"];
-            PeerStatistic["log"]("Session Id:" + this["id"]);
+            PeerStatistic.log("Session Id:" + this["id"]);
         } else {
             if (_0xb539x15["action"] == PeerAction.REQUEST_CON_COUNT) {
                 if (this["peerManager"]["connectionCountListener"] != null) {
@@ -968,19 +968,19 @@ PeerSocket.prototype.onmessage = function (msg) {
                             this["peerConnectionMap"][_0xb539x15["id"]]["createOffer"]();
                         } else {
                             if (_0xb539x15["action"] == PeerAction["OFFER_CANDIDATE"]) {
-                                var _0xb539x45 = new RTCIceCandidate(JSON["parse"](_0xb539x15["value"]));
+                                var _0xb539x45 = new RTCIceCandidate(JSON.parse(_0xb539x15["value"]));
                                 this["peerConnectionMap"][_0xb539x15["id"]]["createAnswer"](_0xb539x45);
                             } else {
                                 if (_0xb539x15["action"] == PeerAction["OFFER_SDP"]) {
-                                    var _0xb539x46 = new RTCSessionDescription(JSON["parse"](_0xb539x15["value"]));
+                                    var _0xb539x46 = new RTCSessionDescription(JSON.parse(_0xb539x15["value"]));
                                     this["peerConnectionMap"][_0xb539x15["id"]]["setOfferSdp"](_0xb539x46);
                                 } else {
                                     if (_0xb539x15["action"] == PeerAction["ANSWER_CANDIDATE"]) {
-                                        var _0xb539x47 = new RTCIceCandidate(JSON["parse"](_0xb539x15["value"]));
+                                        var _0xb539x47 = new RTCIceCandidate(JSON.parse(_0xb539x15["value"]));
                                         this["peerConnectionMap"][_0xb539x15["id"]]["addCandidate"](_0xb539x47);
                                     } else {
                                         if (_0xb539x15["action"] == PeerAction["ANSWER_SDP"]) {
-                                            var _0xb539x48 = new RTCSessionDescription(JSON["parse"](_0xb539x15["value"]));
+                                            var _0xb539x48 = new RTCSessionDescription(JSON.parse(_0xb539x15["value"]));
                                             this["peerConnectionMap"][_0xb539x15["id"]]["setRemoteDescription"](_0xb539x48);
                                         }
                                         ;
@@ -1004,7 +1004,7 @@ PeerSocket.prototype.onmessage = function (msg) {
     ;
 };
 PeerSocket["prototype"]["send"] = function (_0xb539x3) {
-    this["socket"]["send"](JSON["stringify"](_0xb539x3));
+    this["socket"]["send"](JSON.stringify(_0xb539x3));
 };
 PeerSocket["prototype"]["sendAction"] = function (_0xb539x49, _0xb539x4a, _0xb539x4b) {
     this["send"]({action: _0xb539x49, value: _0xb539x4a, id: _0xb539x4b});
@@ -1063,7 +1063,7 @@ PeerConnection["prototype"]["setFileEventCallback"] = function (_0xb539x37, _0xb
     this["fileNotFoundCallback"] = _0xb539x50;
 };
 PeerConnection["prototype"]["sendJson"] = function (_0xb539x51) {
-    this["channel"]["send"](PeerConnection["STRING_MESSAGE"] + JSON["stringify"](_0xb539x51));
+    this["channel"]["send"](PeerConnection["STRING_MESSAGE"] + JSON.stringify(_0xb539x51));
 };
 PeerConnection["prototype"]["requestFile"] = function (_0xb539x30) {
     this["sendJson"](PeerAction["requestFileObject"](_0xb539x30["getUrl"]()));
@@ -1088,26 +1088,26 @@ PeerConnection["prototype"]["createAnswer"] = function (_0xb539x45) {
         var that = this;
         this["pc"]["createAnswer"](function (_0xb539x52) {
             that["pc"]["setLocalDescription"](_0xb539x52);
-            that["socket"]["sendAction"](PeerAction.ANSWER_SDP, JSON["stringify"](_0xb539x52), that["id"]);
+            that["socket"]["sendAction"](PeerAction.ANSWER_SDP, JSON.stringify(_0xb539x52), that["id"]);
         }, function (_0xb539x53) {
             that["fileNotFoundCallback"](that["fileFoundScope"], that["request"]);
         });
         this["pc"]["onicecandidate"] = function (_0xb539x3d) {
             if (_0xb539x3d["candidate"]) {
-                PeerStatistic["log"](_0x3f27[248] + _0xb539x3d["candidate"]);
-                that["socket"]["sendAction"](PeerAction.ANSWER_CANDIDATE, JSON["stringify"](_0xb539x3d["candidate"]), that["id"]);
+                PeerStatistic.log(_0x3f27[248] + _0xb539x3d["candidate"]);
+                that["socket"]["sendAction"](PeerAction.ANSWER_CANDIDATE, JSON.stringify(_0xb539x3d["candidate"]), that["id"]);
             }
             ;
         };
         this["pc"]["ondatachannel"] = function (_0xb539x54) {
-            PeerStatistic["log"](_0x3f27[250]);
+            PeerStatistic.log(_0x3f27[250]);
             receiveChannel = _0xb539x54["channel"];
             that["channel"] = receiveChannel;
             receiveChannel["binaryType"] = "arraybuffer";
             receiveChannel["onopen"] = function (_0xb539x54) {
                 var _0xb539x31 = new Date()["getTime"]() - that[_0x3f27[231]];
                 that[_0x3f27[231]] = new Date()["getTime"]();
-                PeerStatistic["log"](_0x3f27[252] + _0xb539x31 + _0x3f27[253]);
+                PeerStatistic.log(_0x3f27[252] + _0xb539x31 + _0x3f27[253]);
                 that["isInit"] = true;
                 that["isOpened"] = true;
                 that["fireCallbacks"](true);
@@ -1133,10 +1133,10 @@ PeerConnection.prototype.addCandidate = function (candi) {
 PeerConnection.prototype.createOffer = function () {
     var that = this;
     this["pc"]["onicecandidate"] = function (_0xb539x3d) {
-        PeerStatistic["log"](_0x3f27[255] + _0xb539x3d["candidate"]);
+        PeerStatistic.log(_0x3f27[255] + _0xb539x3d["candidate"]);
         if (_0xb539x3d["candidate"]) {
-            PeerStatistic["log"](_0x3f27[248] + _0xb539x3d["candidate"]);
-            that["socket"]["sendAction"](PeerAction.OFFER_CANDIDATE, JSON["stringify"](_0xb539x3d["candidate"]), that["id"]);
+            PeerStatistic.log(_0x3f27[248] + _0xb539x3d["candidate"]);
+            that["socket"]["sendAction"](PeerAction.OFFER_CANDIDATE, JSON.stringify(_0xb539x3d["candidate"]), that["id"]);
         }
         ;
     };
@@ -1152,25 +1152,25 @@ PeerConnection.prototype.createOffer = function () {
     _0xb539x58["binaryType"] = "arraybuffer";
     _0xb539x58["onopen"] = function () {
         that["sendFile"](that["request"]);
-        PeerStatistic["log"](_0x3f27[259]);
+        PeerStatistic.log(_0x3f27[259]);
         that["isInit"] = true;
         that["isOpened"] = true;
         that["fireCallbacks"](true);
-        PeerStatistic["log"](_0x3f27[252]);
+        PeerStatistic.log(_0x3f27[252]);
     };
     _0xb539x58["onmessage"] = function (_0xb539x54) {
         that["onMessage"](_0xb539x54);
-        PeerStatistic["log"](_0x3f27[260]);
+        PeerStatistic.log(_0x3f27[260]);
     };
     this["pc"]["oniceconnectionstatechange"] = function (_0xb539x3d) {
-        PeerStatistic["log"](_0x3f27[255] + _0xb539x3d);
+        PeerStatistic.log(_0x3f27[255] + _0xb539x3d);
     };
     this["pc"]["createOffer"](function (sdp) {
-        PeerStatistic["log"](_0x3f27[262]);
+        PeerStatistic.log(_0x3f27[262]);
         that["pc"]["setLocalDescription"](sdp);
-        that["socket"]["sendAction"](PeerAction.OFFER_SDP, JSON["stringify"](sdp), that["id"]);
+        that["socket"]["sendAction"](PeerAction.OFFER_SDP, JSON.stringify(sdp), that["id"]);
     }, function (_0xb539x53) {
-        PeerStatistic["log"](_0x3f27[263]);
+        PeerStatistic.log(_0x3f27[263]);
         that["fileNotFoundCallback"](that["fileFoundScope"], that["request"]);
     });
 };
@@ -1213,12 +1213,12 @@ PeerConnection.prototype.sendNextMessage = function () {
 };
 PeerConnection.prototype.onMessage = function (_0xb539x54) {
     if (_0xb539x54["data"]["slice"](0, PeerConnection["STRING_MESSAGE"]["length"]) == PeerConnection["STRING_MESSAGE"]) {
-        var _0xb539x15 = JSON["parse"](_0xb539x54["data"]["slice"](PeerConnection["STRING_MESSAGE"]["length"], _0xb539x54["data"]["length"]));
+        var _0xb539x15 = JSON.parse(_0xb539x54["data"]["slice"](PeerConnection["STRING_MESSAGE"]["length"], _0xb539x54["data"]["length"]));
         if (_0xb539x15["action"] == PeerConnection["ACTION_REQUEST_FILE"]) {
             this["sendFile"](this["peerManager"]["requestCallback"][_0xb539x15["url"]]);
         }
         ;
-        PeerStatistic["log"]("channel action" + _0xb539x15["action"]);
+        PeerStatistic.log("channel action" + _0xb539x15["action"]);
     } else {
         var _0xb539x1f = new Uint8Array(_0xb539x54["data"]);
         var _0xb539x5c = new PeerBinaryUtil.ByteArray(PeerBinaryUtil.LONG_BYTE_LENGTH);
@@ -1236,7 +1236,7 @@ PeerConnection.prototype.onMessage = function (_0xb539x54) {
         if (_0xb539x61) {
             this["fileFoundCallback"](this["fileFoundScope"], _0xb539x60["getArray"](), _0xb539x60["getUrl"]());
             var _0xb539x31 = new Date()["getTime"]() - this[_0x3f27[231]];
-            PeerStatistic["log"]("message" + _0xb539x31 + _0x3f27[253]);
+            PeerStatistic.log("message" + _0xb539x31 + _0x3f27[253]);
         }
         ;
     }
@@ -1253,36 +1253,36 @@ PeerStorage = function () {
     this.fileList;
 };
 PeerStorage.ITEMS_KEY = "PeerFiles";
-PeerStorage["FILE_PREFIX"] = "Peer:";
+PeerStorage.FILE_PREFIX = "Peer:";
 PeerStorage.getFileList = function () {
     if (typeof (Storage) !== "undefined") {
         var _0xb539x62 = localStorage.getItem(PeerStorage.ITEMS_KEY);
         if (_0xb539x62 != null) {
-            this["fileList"] = JSON["parse"](_0xb539x62);
+            this.fileList = JSON.parse(_0xb539x62);
         } else {
-            this["fileList"] = new Array();
+            this.fileList = new Array();
         }
         ;
     }
     ;
-    return this["fileList"];
+    return this.fileList;
 };
-PeerStorage["get"] = function (_0xb539x11) {
+PeerStorage.get = function (_0xb539x11) {
     if (typeof (Storage) !== "undefined") {
     }
     ;
     return null;
 };
-PeerStorage["put"] = function (_0xb539x11, _0xb539x18, _0xb539x19, _0xb539x1) {
+PeerStorage.put = function (url, data, hash, size) {
     var _0xb539x63 = true;
-    _0xb539x63 &= PeerStorage["putLocalStorage"](PeerStorage["FILE_PREFIX"] + _0xb539x11, _0xb539x18);
-    if (this["fileList"] == null) {
-        this["fileList"] = new Array();
+    _0xb539x63 &= PeerStorage.putLocalStorage(PeerStorage.FILE_PREFIX + url, data);
+    if (this.fileList == null) {
+        this.fileList = new Array();
     }
     ;
-    var _0xb539x64 = {url: _0xb539x11, hash: _0xb539x19, size: _0xb539x1};
-    this["fileList"]["push"](_0xb539x64);
-    _0xb539x63 &= PeerStorage["putLocalStorage"](PeerStorage.ITEMS_KEY, JSON["stringify"](this["fileList"]));
+    var _0xb539x64 = {url: url, hash: hash, size: size};
+    this.fileList["push"](_0xb539x64);
+    _0xb539x63 &= PeerStorage.putLocalStorage(PeerStorage.ITEMS_KEY, JSON.stringify(this.fileList));
     return false;
 };
 PeerStorage["putLocalStorage"] = function (_0xb539x65, _0xb539x18) {
@@ -1291,7 +1291,7 @@ PeerStorage["putLocalStorage"] = function (_0xb539x65, _0xb539x18) {
             return true;
         } catch (e) {
             if (e["QUOTA_EXCEEDED_ERR"] == e["code"]) {
-                PeerStatistic["log"](e["message"]);
+                PeerStatistic.log(e["message"]);
             }
             ;
         }

@@ -19,27 +19,6 @@
       this.model = document.querySelector('#' + this.modelId);
     },
 
-    /*
-      pn: peerNum
-      up: upload
-      dwn: download
-      pd: peerDown
-      sd: serverDown
-      pp: peerPercent
-      sp: serverPercent
-     */
-    refresh: function() {
-      this.peer_num_text = String(this.model.peerNum);
-      this.upload_text = this.bytesToSize(this.model.upload);
-      this.download_text = this.bytesToSize(this.model.download);
-      this.peer_down_text = this.bytesToSize(this.model.peerDown);
-      this.server_down_text = this.bytesToSize(this.model.serverDown);
-      this.peer_percent_text = String(this.model.peerPercent);
-      this.server_percent_text = String(this.model.serverPercent);
-      this.dPeer.value = this.model.peerPercent;
-      this.dServer.value = this.model.serverPercent;
-    },
-
     sayHi: function() {
       this.fire('said-hello');
     },

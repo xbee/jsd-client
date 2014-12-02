@@ -34,6 +34,7 @@
 
       addUploadSize: function (sz) {
         upload_ += sz;
+        return;
       },
       addDownloadSize: function (sz, isFromPeer) {
         download_ += sz;
@@ -51,6 +52,7 @@
           this.storage.value = [totalDown_, totalPeerDown_];
           this.storage.save();
         }
+        return;
       },
       ready: function() {
         this.asyncMethod(function() {

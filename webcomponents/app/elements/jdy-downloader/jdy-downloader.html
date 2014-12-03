@@ -1,0 +1,89 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="jdy-downloader" attributes="">
+  <template>
+    <link rel="stylesheet" href="jdy-downloader.css">
+    <div class="p5-dl-container">
+      <div class="p5-dl-main-wrapper">
+      <ul class="p5-dl-main">
+        <li class="p5-dl-pane p5-dl-only-child">
+          <canvas class="boxes" width="882" height="6"></canvas>
+          <span class="p5-dl-button p5-dl-close-pane"></span>
+          <div class="p5-dl-progress">
+            <div class="p5-dl-progress-fill" style="height: 37.5px;"></div>
+            <span class="p5-dl-progress-label">50%</span>
+            <span class="p5-dl-button p5-dl-pause"></span>
+            <span class="p5-dl-button p5-dl-play"></span>
+            <span class="p5-dl-button p5-dl-done p5-dl-hide"></span>
+          </div>
+        <div class="p5-dl-meta">
+          <h1 class="p5-dl-file">
+            <span class="p5-dl-filename p5-dl-ellipsis">faif-2.0</span>
+            <span class="p5-dl-file-ext p5-dl-em">.pdf</span>
+          </h1>
+
+          <div class="p5-dl-stats">
+            <div class="p5-dl-peers-speed">
+              <span class="p5-dl-stats-datum p5-dl-stats-peers">
+                <span class="p5-dl-stats-peers-content">0 Peers</span>
+              </span>
+              <span class="p5-dl-stats-datum p5-dl-stats-speed p5-dl-stats-speed-content">11 B/s</span>
+              <span class="p5-dl-extra-speed p5-dl-extra-speed-content"></span>
+            </div><span class="p5-dl-stats-datum p5-dl-stats-time p5-dl-stats-time-content">00:00:00</span>
+            <span class="p5-dl-stats-datum p5-dl-stats-size">
+              <span class="p5-dl-stats-size-content">1.1 MB/</span>
+              <span class="p5-dl-stats-size-total p5-dl-stats-size-total-content">2 MB</span>
+            </span>
+            <div class="p5-dl-stats-message"></div>
+          </div>
+        </div>
+      </li>
+      </ul>
+    </div>
+      <div class="p5-dl-scroller"><span class="p5-dl-grip"></span></div>
+      <div class="p5-dl-feedback">
+        <form action="//peer5.com/feedback-form" method="post" class="p5-dl-feedback-form">
+          <div class="p5-dl-feedback-left">
+            <span class="p5-dl-need-help">ANY FEEDBACK?</span>
+            <ul>
+              <li>
+                <label><input type="radio" value="1" name="rating"></label>
+              </li>
+              <li>
+                <label><input type="radio" value="2" name="rating"></label>
+              </li>
+              <li>
+                <label><input type="radio" value="3" name="rating"></label>
+              </li>
+              <li>
+                <label><input type="radio" value="4" name="rating"></label>
+              </li>
+              <li>
+                <label><input type="radio" value="5" name="rating"></label>
+              </li>
+            </ul>
+            <span class="p5-dl-feedback-open"></span>
+
+            <a href="https://www.peer5.com" target="_blank">
+              <div class="p5-dl-brand"></div>
+            </a>
+          </div>
+          <div class="p5-dl-feedback-right">
+            <textarea placeholder="YOUR FEEDBACK HERE" name="comment" class="p5-dl-feedback-comment"></textarea>
+            <span class="p5-dl-feedback-submit">SUBMIT</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </template>
+  <script>
+    (function () {
+      'use strict';
+
+      Polymer({
+        // define element prototype here
+      });
+
+    })();
+  </script>
+</polymer-element>

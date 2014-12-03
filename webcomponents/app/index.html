@@ -22,18 +22,19 @@
 
 <body unresolved>
 
-  <!--<div class="hero-unit">-->
-    <!--<yo-greeting></yo-greeting>-->
-    <!--<p>You now have</p>-->
-    <!--<yo-list></yo-list>-->
-    <!--<just-gauge id="g1" width="300" height="250"></just-gauge>-->
-    <!--&lt;!&ndash;<just-gauge id="g2" width="350" height="300"></just-gauge>&ndash;&gt;-->
-  <!--</div>-->
+  <div class="hero-unit">
+    <yo-greeting></yo-greeting>
+    <p>You now have</p>
+    <yo-list></yo-list>
+    <just-gauge id="g1" width="300" height="250"></just-gauge>
+    <jquery-percentageloader width="150" height="120" progress="0.5" value="10240000"></jquery-percentageloader>
+    <!--<just-gauge id="g2" width="350" height="300"></just-gauge>-->
+  </div>
 
-  <core-localstorage id="storage" name="jdy-peerstat"></core-localstorage>
-  <jdy-model id="peerstat" storageId="storage"></jdy-model>
-  <jdy-dashboard modelId="peerstat"></jdy-dashboard>
-  <leaflet-map longitude="77.2" latitude="28.4" zoom="12"></leaflet-map>
+  <!--<core-localstorage id="storage" name="jdy-peerstat"></core-localstorage>-->
+  <!--<jdy-model id="peerstat" storageId="storage"></jdy-model>-->
+  <!--<jdy-dashboard modelId="peerstat"></jdy-dashboard>-->
+  <!--<leaflet-map longitude="77.2" latitude="28.4" zoom="12"></leaflet-map>-->
 
   <!-- build:js scripts/app.js -->
   <script src="scripts/app.js"></script>

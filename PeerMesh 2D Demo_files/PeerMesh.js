@@ -56,14 +56,14 @@ var _0x3f27 = [];
 //_0x3f27[54] = "file_found"
 //_0x3f27[55] = "OFFER_IMAGE_REQUEST"
 //_0x3f27[56] = "offer_image_request"
-_0x3f27[57] = "OFFER_CANDIDATE"
-_0x3f27[58] = "offer_candidate"
-_0x3f27[59] = "OFFER_SDP"
-_0x3f27[60] = "offer_sdp"
-_0x3f27[61] = "ANSWER_CANDIDATE"
-_0x3f27[62] = "answer_candidate"
-_0x3f27[63] = "ANSWER_SDP"
-_0x3f27[64] = "answer_sdp"
+//_0x3f27[57] = "OFFER_CANDIDATE"
+//_0x3f27[58] = "offer_candidate"
+//_0x3f27[59] = "OFFER_SDP"
+//_0x3f27[60] = "offer_sdp"
+//_0x3f27[61] = "ANSWER_CANDIDATE"
+//_0x3f27[62] = "answer_candidate"
+//_0x3f27[63] = "ANSWER_SDP"
+//_0x3f27[64] = "answer_sdp"
 //_0x3f27[65] = "HAS_IMAGE"
 //_0x3f27[66] = "has_image"
 //_0x3f27[67] = "REQUEST_IMAGE"
@@ -117,7 +117,7 @@ _0x3f27[64] = "answer_sdp"
 //_0x3f27[115] = "setHash"
 //_0x3f27[116] = "setSize"
 //_0x3f27[117] = "charCodeAt"
-_0x3f27[118] = "LONG_BYTE_LENGTH"
+//_0x3f27[118] = "LONG_BYTE_LENGTH"
 //_0x3f27[119] = "longToByteArray"
 //_0x3f27[120] = "byteArrayToLong"
 //_0x3f27[121] = "calculateLoopSize"
@@ -134,17 +134,17 @@ _0x3f27[131] = " MB"
 _0x3f27[132] = " GB"
 _0x3f27[133] = " TB"
 //_0x3f27[134] = "ByteArray"
-_0x3f27[135] = "buf"
-_0x3f27[136] = "bufView"
+//_0x3f27[135] = "buf"
+//_0x3f27[136] = "bufView"
 //_0x3f27[137] = "index"
 //_0x3f27[138] = "addArray"
 //_0x3f27[139] = "getArray"
 //_0x3f27[140] = "getArrayBuffer"
 //_0x3f27[141] = "getLong"
 //_0x3f27[142] = "FileByteArray"
-_0x3f27[143] = "loopSize"
-_0x3f27[144] = "SLICE"
-_0x3f27[145] = "cache"
+//_0x3f27[143] = "loopSize"
+//_0x3f27[144] = "SLICE"
+//_0x3f27[145] = "cache"
 //_0x3f27[146] = "contains"
 //_0x3f27[147] = "get"
 //_0x3f27[148] = "getData"
@@ -152,11 +152,11 @@ _0x3f27[145] = "cache"
 //_0x3f27[150] = "convertBase64ToByte"
 //_0x3f27[151] = "putData"
 //_0x3f27[152] = "==========="
-_0x3f27[153] = " length:"
+//_0x3f27[153] = " length:"
 //_0x3f27[154] = "put"
-_0x3f27[155] = "browserSupport"
-_0x3f27[156] = "isBrowserSupport"
-_0x3f27[157] = "applicationName"
+//_0x3f27[155] = "browserSupport"
+//_0x3f27[156] = "isBrowserSupport"
+//_0x3f27[157] = "applicationName"
 //_0x3f27[158] = "peerServerUrl"
 //_0x3f27[159] = "PEER_WEBSOCKET_URL"
 //_0x3f27[160] = "dataManager"
@@ -167,11 +167,11 @@ _0x3f27[157] = "applicationName"
 //_0x3f27[165] = "replace"
 //_0x3f27[166] = "origin"
 //_0x3f27[167] = "/PeerMeshServer"
-_0x3f27[168] = "/signaling"
-_0x3f27[169] = "blob"
-_0x3f27[170] = "text"
-_0x3f27[171] = "image"
-_0x3f27[172] = "arraybuffer"
+//_0x3f27[168] = "/signaling"
+//_0x3f27[169] = "blob"
+//_0x3f27[170] = "text"
+//_0x3f27[171] = "image"
+//_0x3f27[172] = "arraybuffer"
 //_0x3f27[173] = "json"
 //_0x3f27[174] = "request"
 //_0x3f27[175] = "File is in Local Storage!"
@@ -206,7 +206,7 @@ _0x3f27[172] = "arraybuffer"
 //_0x3f27[204] = "getTotalQueueSize";
 //_0x3f27[205] = "getQueueSize";
 //_0x3f27[206] = "Total Queue Size:";
-_0x3f27[207] = "_";
+//_0x3f27[207] = "_";
 //_0x3f27[208] = "fireCallbacks";
 //_0x3f27[209] = "getFileList";
 //_0x3f27[210] = "data";
@@ -230,39 +230,39 @@ _0x3f27[207] = "_";
 //_0x3f27[228] = "isSendingMessage"
 //_0x3f27[229] = "intervalId"
 //_0x3f27[230] = "channel"
-_0x3f27[231] = "t"
+//_0x3f27[231] = "t"
 //_0x3f27[232] = "stun:stun.l.google.com:19302"
 //_0x3f27[233] = "turn:numb.viagenie.ca"
-_0x3f27[234] = "Breakfast1905!"
-_0x3f27[235] = "emreesirik@gmail.com"
-_0x3f27[236] = "mozRTCPeerConnection"
+//_0x3f27[234] = "Breakfast1905!"
+//_0x3f27[235] = "emreesirik@gmail.com"
+//_0x3f27[236] = "mozRTCPeerConnection"
 //_0x3f27[237] = "pc"
 //_0x3f27[238] = "candidates"
 //_0x3f27[239] = "STRING_MESSAGE"
-_0x3f27[240] = "js:"
-_0x3f27[241] = "request_file"
+//_0x3f27[240] = "js:"
+//_0x3f27[241] = "request_file"
 //_0x3f27[242] = "sendJson"
 //_0x3f27[243] = "offerSdp"
 //_0x3f27[244] = "addIceCandidate"
 //_0x3f27[245] = "setLocalDescription"
 //_0x3f27[246] = "onicecandidate"
 //_0x3f27[247] = "candidate"
-_0x3f27[248] = "Offer with ICE candidates: "
+//_0x3f27[248] = "Offer with ICE candidates: "
 //_0x3f27[249] = "ondatachannel"
-_0x3f27[250] = "channel on data"
+//_0x3f27[250] = "channel on data"
 //_0x3f27[251] = "binaryType"
-_0x3f27[252] = "channel opened"
-_0x3f27[253] = " ms."
+//_0x3f27[252] = "channel opened"
+//_0x3f27[253] = " ms."
 //_0x3f27[254] = "onMessage"
-_0x3f27[255] = "---onicecandidate_"
+//_0x3f27[255] = "---onicecandidate_"
 //_0x3f27[256] = "sendChannel"
 //_0x3f27[257] = "createDataChannel"
 //_0x3f27[258] = "sendFile"
-_0x3f27[259] = "---channel_open"
-_0x3f27[260] = "---channel_onmessage"
-_0x3f27[261] = "oniceconnectionstatechange"
-_0x3f27[262] = "---createoffer_"
-_0x3f27[263] = "---errorrr_"
+//_0x3f27[259] = "---channel_open"
+//_0x3f27[260] = "---channel_onmessage"
+//_0x3f27[261] = "oniceconnectionstatechange"
+//_0x3f27[262] = "---createoffer_"
+//_0x3f27[263] = "---errorrr_"
 //_0x3f27[264] = "splitDataAndPutQueue"
 //_0x3f27[265] = "enqueueMessage"
 //_0x3f27[266] = "sendNextMessage"
@@ -294,20 +294,20 @@ _0x3f27[263] = "---errorrr_"
 
 PeerStatistic = function () {
 };
-PeerStatistic["upload"] = 0;
-PeerStatistic["totalDownload"] = 0;
-PeerStatistic["imageServerDownload"] = 0;
-PeerStatistic["imageServerPercent"] = 0;
-PeerStatistic["peerDownload"] = 0;
-PeerStatistic["peerPercent"] = 0;
-PeerStatistic["listener"] = null;
-PeerStatistic["isDebug"] = false;
+PeerStatistic.upload = 0;
+PeerStatistic.totalDownload = 0;
+PeerStatistic.imageServerDownload = 0;
+PeerStatistic.imageServerPercent = 0;
+PeerStatistic.peerDownload = 0;
+PeerStatistic.peerPercent = 0;
+PeerStatistic.listener = null;
+PeerStatistic.isDebug = false;
 PeerStatistic.isShowLog = false;
-PeerStatistic.consoleTextArea;
+PeerStatistic.consoleTextArea = null;
 PeerStatistic.addUploadSize = function (sz) {
-    PeerStatistic['upload'] += sz;
-    if (PeerStatistic["listener"] != null) {
-        PeerStatistic["listener"]();
+    PeerStatistic.upload += sz;
+    if (PeerStatistic.listener != null) {
+        PeerStatistic.listener();
     }
     ;
 };
@@ -319,10 +319,10 @@ PeerStatistic.addDownloadSize = function (sz, isFromPeer) {
         PeerStatistic.imageServerDownload += sz;
     }
     ;
-    PeerStatistic["peerPercent"] = (PeerStatistic["peerDownload"] * 100) / PeerStatistic["totalDownload"];
-    PeerStatistic["imageServerPercent"] = (PeerStatistic["imageServerDownload"] * 100) / PeerStatistic["totalDownload"];
-    if (PeerStatistic["listener"] != null) {
-        PeerStatistic["listener"]();
+    PeerStatistic.peerPercent = (PeerStatistic.peerDownload * 100) / PeerStatistic.totalDownload;
+    PeerStatistic.imageServerPercent = (PeerStatistic.imageServerDownload * 100) / PeerStatistic.totalDownload;
+    if (PeerStatistic.listener != null) {
+        PeerStatistic.listener();
     }
     ;
 };
@@ -342,22 +342,22 @@ var getUserMedia = null;
 var attachMediaStream = null;
 var reattachMediaStream = null;
 var webrtcDetectedBrowser = null;
-if (navigator["mozGetUserMedia"]) {
+if (navigator.mozGetUserMedia) {
     PeerStatistic.log("This appears to be Firefox");
     webrtcDetectedBrowser = "firefox";
     RTCPeerConnection = mozRTCPeerConnection;
     RTCSessionDescription = mozRTCSessionDescription;
     RTCIceCandidate = mozRTCIceCandidate;
-    getUserMedia = navigator["mozGetUserMedia"]["bind"](navigator);
+    getUserMedia = navigator.mozGetUserMedia.bind(navigator);
     attachMediaStream = function (_0xb539x9, _0xb539xa) {
         PeerStatistic.log("Attaching media stream");
-        _0xb539x9["mozSrcObject"] = _0xb539xa;
-        _0xb539x9["play"]();
+        _0xb539x9.mozSrcObject = _0xb539xa;
+        _0xb539x9.play();
     };
-    reattachMediaStream = function (_0xb539xb, _0xb539xc) {
+    reattachMediaStream = function (b, c) {
         PeerStatistic.log("Reattaching media stream");
-        _0xb539xb["mozSrcObject"] = _0xb539xc["mozSrcObject"];
-        _0xb539xb["play"]();
+        b.mozSrcObject = c.mozSrcObject;
+        b.play();
     };
     MediaStream["prototype"]["getVideoTracks"] = function () {
         return [];
@@ -379,7 +379,7 @@ if (navigator["mozGetUserMedia"]) {
                     _0xb539x9["mozSrcObject"] = _0xb539xa;
                 } else {
                     if (typeof _0xb539x9["src"] !== "undefined") {
-                        _0xb539x9["src"] = URL["createObjectURL"](_0xb539xa);
+                        _0xb539x9["src"] = URL.createObjectURL(_0xb539xa);
                     } else {
                         PeerStatistic.log("Error attaching stream to element.");
                     }
@@ -390,7 +390,7 @@ if (navigator["mozGetUserMedia"]) {
             ;
         };
         reattachMediaStream = function (_0xb539xb, _0xb539xc) {
-            _0xb539xb["src"] = _0xb539xc["src"];
+            _0xb539xb.src = _0xb539xc.src;
         };
         if (!webkitMediaStream["prototype"]["getVideoTracks"]) {
             webkitMediaStream["prototype"]["getVideoTracks"] = function () {
@@ -418,25 +418,25 @@ if (navigator["mozGetUserMedia"]) {
 ;
 function Queue() {
     var ary = [], top = 0;
-    this["getLength"] = function () {
-        return ary["length"] - top;
+    this.getLength = function () {
+        return ary.length - top;
     };
-    this["isEmpty"] = function () {
-        return 0 == ary["length"];
+    this.isEmpty = function () {
+        return 0 == ary.length;
     };
-    this["enqueue"] = function (_0xb539xf) {
-        ary["push"](_0xb539xf);
+    this.enqueue = function (_0xb539xf) {
+        ary.push(_0xb539xf);
     };
-    this["dequeue"] = function () {
-        if (0 != ary["length"]) {
+    this.dequeue = function () {
+        if (0 != ary.length) {
             var _0xb539x10 = ary[top];
-            2 * ++top >= ary["length"] && (ary = ary["slice"](top), top = 0);
+            2 * ++top >= ary.length && (ary = ary.slice(top), top = 0);
             return _0xb539x10;
         }
         ;
     };
-    this["peek"] = function () {
-        return 0 < ary["length"] ? ary[top] : void 0;
+    this.peek = function () {
+        return 0 < ary.length ? ary[top] : void 0;
     };
 };
 PeerAction = {};
@@ -444,10 +444,10 @@ PeerAction.SESSION_ID = "session_id";
 PeerAction.FILE_NOT_FOUND = "file_not_found";
 PeerAction.FILE_FOUND = "file_found";
 PeerAction.OFFER_IMAGE_REQUEST = "offer_image_request";
-PeerAction.OFFER_CANDIDATE = _0x3f27[58];
-PeerAction.OFFER_SDP = _0x3f27[60];
-PeerAction.ANSWER_CANDIDATE = _0x3f27[62];
-PeerAction.ANSWER_SDP = _0x3f27[64];
+PeerAction.OFFER_CANDIDATE = "offer_candidate";
+PeerAction.OFFER_SDP = "offer_sdp";
+PeerAction.ANSWER_CANDIDATE = "answer_candidate";
+PeerAction.ANSWER_SDP = "answer_sdp";
 PeerAction.HAS_IMAGE = "has_image";
 PeerAction.REQUEST_IMAGE = "request_image";
 PeerAction.APPLICATION = "appName";
@@ -486,26 +486,26 @@ PeerRequest.prototype.defineUrlType = function (t) {
         if (t != undefined && t == PeerManager.TEXT_TYPE) {
             this.loadMethod = PeerImageUtil.loadImage;
             this.convertBase64Method = PeerImageUtil.convertByteToBase64;
-            this.convertResponseTypeMethod = function (_0xb539x15) {
-                return PeerBinaryUtil.byteToString(_0xb539x15);
+            this.convertResponseTypeMethod = function (rt) {
+                return PeerBinaryUtil.byteToString(rt);
             };
         } else {
             if (t != undefined && t == PeerManager.JSON_TYPE) {
                 this.loadMethod = PeerImageUtil.loadImage;
                 this.convertBase64Method = PeerImageUtil.convertByteToBase64;
-                this.convertResponseTypeMethod = function (_0xb539x15) {
-                    return JSON.parse(PeerBinaryUtil.byteToString(_0xb539x15));
+                this.convertResponseTypeMethod = function (rt) {
+                    return JSON.parse(PeerBinaryUtil.byteToString(rt));
                 };
             } else {
                 if (t != undefined && t == PeerManager.ARRAY_BUFFER_TYPE) {
                     this.loadMethod = PeerImageUtil.loadImage;
                     this.convertBase64Method = PeerImageUtil.convertByteToBase64;
-                    this.convertResponseTypeMethod = function (_0xb539x15) {
-                        if (_0xb539x15 instanceof ArrayBuffer) {
-                            return _0xb539x15;
+                    this.convertResponseTypeMethod = function (rt) {
+                        if (rt instanceof ArrayBuffer) {
+                            return rt;
                         }
                         ;
-                        return _0xb539x15["buffer"];
+                        return rt.buffer;
                     };
                 } else {
                     if (t != undefined && t == PeerManager.IMAGE_TYPE) {
@@ -513,10 +513,10 @@ PeerRequest.prototype.defineUrlType = function (t) {
                         this.convertBase64Method = PeerImageUtil.convertByteToBase64;
                         this.convertResponseTypeMethod = PeerImageUtil.convertByteToBase64;
                     } else {
-                        var _0xb539x16 = this["url"]["lastIndexOf"](".");
-                        if (_0xb539x16 > 0) {
-                            var _0xb539x17 = this["url"]["substr"](_0xb539x16 + 1)["toLowerCase"]();
-                            if (_0xb539x17 == "jpg" || _0xb539x17 == "png" || _0xb539x17 == "gif" || _0xb539x17 == "jpeg") {
+                        var idx = this.url.lastIndexOf(".");
+                        if (idx > 0) {
+                            var ext = this.url.substr(idx + 1).toLowerCase();
+                            if (ext == "jpg" || ext == "png" || ext == "gif" || ext == "jpeg") {
                                 this.loadMethod = PeerImageUtil.loadImage;
                                 this.convertBase64Method = PeerImageUtil.convertByteToBase64;
                                 this.convertResponseTypeMethod = PeerImageUtil.convertByteToBase64;
@@ -568,31 +568,31 @@ PeerRequest.prototype.setSize = function (sz) {
 PeerBinaryUtil = function () {
 };
 PeerBinaryUtil.calculateHash = function (data) {
-    var _0xb539x19 = 0, _0xb539x1b, _0xb539x1c, _0xb539x1d;
+    var result = 0, idx, ch, len;
     if (data.length == 0) {
-        return _0xb539x19;
+        return result;
     }
     ;
-    for (_0xb539x1b = 0, _0xb539x1d = data.length; _0xb539x1b < _0xb539x1d; _0xb539x1b++) {
-        _0xb539x1c = data.charCodeAt(_0xb539x1b);
-        _0xb539x19 = ((_0xb539x19 << 5) - _0xb539x19) + _0xb539x1c;
-        _0xb539x19 |= 0;
+    for (idx = 0, len = data.length; idx < len; idx++) {
+        ch = data.charCodeAt(idx);
+        result = ((result << 5) - result) + ch;
+        result |= 0;
     }
     ;
-    if (_0xb539x19 < 0) {
-        _0xb539x19 *= -1;
+    if (result < 0) {
+        result *= -1;
     }
     ;
-    return _0xb539x19;
+    return result;
 };
-PeerBinaryUtil["LONG_BYTE_LENGTH"] = 8;
-PeerBinaryUtil["longToByteArray"] = function (ln) {
+PeerBinaryUtil.LONG_BYTE_LENGTH = 8;
+PeerBinaryUtil.longToByteArray = function (ln) {
     var ary = [0, 0, 0, 0, 0, 0, 0, 0];
     if (ln < 0) {
         ln *= -1;
     }
     ;
-    for (var idx = 0; idx < ary["length"]; idx++) {
+    for (var idx = 0; idx < ary.length; idx++) {
         var v = ln & 0xff;
         ary[idx] = v;
         ln = (ln - v) / 256;
@@ -600,37 +600,37 @@ PeerBinaryUtil["longToByteArray"] = function (ln) {
     ;
     return ary;
 };
-PeerBinaryUtil["byteArrayToLong"] = function (_0xb539x1f) {
-    var _0xb539x18 = 0;
-    for (var _0xb539x1b = _0xb539x1f["length"] - 1; _0xb539x1b >= 0; _0xb539x1b--) {
-        _0xb539x18 = (_0xb539x18 * 256) + _0xb539x1f[_0xb539x1b];
+PeerBinaryUtil.byteArrayToLong = function (bary) {
+    var result = 0;
+    for (var idx = bary.length - 1; idx >= 0; idx--) {
+        result = (result * 256) + bary[idx];
     }
     ;
-    return _0xb539x18;
+    return result;
 };
-PeerBinaryUtil["calculateLoopSize"] = function (_0xb539x1, _0xb539x21) {
-    var _0xb539x22 = _0xb539x1 % _0xb539x21;
-    return _0xb539x22 == 0 ? _0xb539x1 / _0xb539x21 : ((_0xb539x1 - _0xb539x22) / _0xb539x21) + 1;
+PeerBinaryUtil.calculateLoopSize = function (total, usize) {
+    var rem = total % usize;
+    return rem == 0 ? total / usize : ((total - rem) / usize) + 1;
 };
 PeerBinaryUtil.byteToString = function (bts) {
-    if (bts["buffer"] != undefined) {
-        bts = bts["buffer"];
+    if (bts.buffer != undefined) {
+        bts = bts.buffer;
     }
     ;
     var _0xb539x24 = 0x8000;
     var _0xb539x16 = 0;
-    var _0xb539x25 = bts["byteLength"];
+    var _0xb539x25 = bts.byteLength;
     var _0xb539x26 = "";
     var _0xb539x27;
     while (_0xb539x16 < _0xb539x25) {
-        _0xb539x27 = bts["slice"](_0xb539x16, Math["min"](_0xb539x16 + _0xb539x24, _0xb539x25));
-        _0xb539x26 += String["fromCharCode"]["apply"](null, new Uint8Array(_0xb539x27));
+        _0xb539x27 = bts.slice(_0xb539x16, Math.min(_0xb539x16 + _0xb539x24, _0xb539x25));
+        _0xb539x26 += String.fromCharCode.apply(null, new Uint8Array(_0xb539x27));
         _0xb539x16 += _0xb539x24;
     }
     ;
     return _0xb539x26;
 };
-PeerBinaryUtil["bytesToSize"] = function (sz, dignum) {
+PeerBinaryUtil.bytesToSize = function (sz, dignum) {
     var kb = 1024;
     var mb = kb * 1024;
     var gb = mb * 1024;
@@ -662,54 +662,54 @@ PeerBinaryUtil["bytesToSize"] = function (sz, dignum) {
     }
     ;
 };
-PeerBinaryUtil["ByteArray"] = function (bts) {
-    this["buf"] = new ArrayBuffer(bts);
-    this["bufView"] = new Uint8Array(this["buf"]);
-    this["index"] = 0;
+PeerBinaryUtil.ByteArray = function (bts) {
+    this.buf = new ArrayBuffer(bts);
+    this.bufView = new Uint8Array(this.buf);
+    this.index = 0;
 };
-PeerBinaryUtil["ByteArray"]["prototype"]["addArray"] = function (_0xb539x23, _0xb539x2d, _0xb539x2e) {
+PeerBinaryUtil.ByteArray.prototype.addArray = function (_0xb539x23, _0xb539x2d, _0xb539x2e) {
     var _0xb539x1b = _0xb539x2d == undefined ? 0 : _0xb539x2d;
-    var _0xb539x2f = _0xb539x2e == undefined ? _0xb539x23["length"] : _0xb539x2e;
-    for (; _0xb539x1b < _0xb539x2f; _0xb539x1b++, this["index"]++) {
-        this["bufView"][this["index"]] = _0xb539x23[_0xb539x1b];
+    var _0xb539x2f = _0xb539x2e == undefined ? _0xb539x23.length : _0xb539x2e;
+    for (; _0xb539x1b < _0xb539x2f; _0xb539x1b++, this.index++) {
+        this.bufView[this.index] = _0xb539x23[_0xb539x1b];
     }
     ;
 };
-PeerBinaryUtil["ByteArray"]["prototype"]["getArray"] = function () {
-    return this["bufView"];
+PeerBinaryUtil.ByteArray.prototype.getArray = function () {
+    return this.bufView;
 };
-PeerBinaryUtil["ByteArray"]["prototype"]["getArrayBuffer"] = function () {
-    return this["buf"];
+PeerBinaryUtil.ByteArray.prototype.getArrayBuffer = function () {
+    return this.buf;
 };
-PeerBinaryUtil["ByteArray"]["prototype"]["getLong"] = function () {
-    return PeerBinaryUtil["byteArrayToLong"](this["bufView"]);
+PeerBinaryUtil.ByteArray.prototype.getLong = function () {
+    return PeerBinaryUtil.byteArrayToLong(this.bufView);
 };
-PeerBinaryUtil["FileByteArray"] = function (_0xb539x30) {
-    this["url"] = _0xb539x30["getUrl"]();
-    this["buf"] = new ArrayBuffer(_0xb539x30["getSize"]());
-    this["bufView"] = new Uint8Array(this["buf"]);
-    this["index"] = 0;
-    this["loopSize"] = PeerBinaryUtil["calculateLoopSize"](_0xb539x30["getSize"](), PeerConnection.SLICE);
+PeerBinaryUtil.FileByteArray = function (req) {
+    this.url = req.getUrl();
+    this.buf = new ArrayBuffer(req.getSize());
+    this.bufView = new Uint8Array(this.buf);
+    this.index = 0;
+    this.loopSize = PeerBinaryUtil.calculateLoopSize(req.getSize(), PeerConnection.SLICE);
 };
-PeerBinaryUtil["FileByteArray"]["prototype"]["push"] = function (_0xb539x16, _0xb539x1f, _0xb539x2d, _0xb539x2e) {
-    var _0xb539x1b = _0xb539x16 * PeerConnection["SLICE"];
+PeerBinaryUtil.FileByteArray.prototype.push = function (_0xb539x16, _0xb539x1f, _0xb539x2d, _0xb539x2e) {
+    var _0xb539x1b = _0xb539x16 * PeerConnection.SLICE;
     var _0xb539x31 = (_0xb539x2e - _0xb539x2d) + _0xb539x1b;
     for (var _0xb539x32 = _0xb539x2d; _0xb539x1b < _0xb539x31; _0xb539x1b++, _0xb539x32++) {
-        this["bufView"][_0xb539x1b] = _0xb539x1f[_0xb539x32];
+        this.bufView[_0xb539x1b] = _0xb539x1f[_0xb539x32];
     }
     ;
-    this["index"]++;
-    if (this["loopSize"] == this["index"]) {
+    this.index++;
+    if (this.loopSize == this.index) {
         return true;
     }
     ;
     return false;
 };
-PeerBinaryUtil["FileByteArray"]["prototype"]["getUrl"] = function () {
-    return this["url"];
+PeerBinaryUtil.FileByteArray.prototype.getUrl = function () {
+    return this.url;
 };
-PeerBinaryUtil["FileByteArray"]["prototype"]["getArray"] = function () {
-    return this["bufView"];
+PeerBinaryUtil.FileByteArray.prototype.getArray = function () {
+    return this.bufView;
 };
 PeerDataManager = function () {
     this.cache = [];
@@ -738,20 +738,20 @@ PeerDataManager.prototype.getData = function (key, req) {
     ;
     return result;
 };
-PeerDataManager.prototype.getBinaryData = function (_0xb539x11) {
-    var _0xb539x33 = this.cache[_0xb539x11];
-    if (_0xb539x33 == null) {
-        var _0xb539x34 = PeerStorage["get"](_0xb539x11);
-        _0xb539x33 = PeerImageUtil["convertBase64ToByte"](_0xb539x34);
+PeerDataManager.prototype.getBinaryData = function (key) {
+    var result = this.cache[key];
+    if (result == null) {
+        var data = PeerStorage.get(key);
+        result = PeerImageUtil.convertBase64ToByte(data);
     } else {
-        _0xb539x33 = new Uint8Array(_0xb539x33);
+        result = new Uint8Array(result);
     }
     ;
-    return _0xb539x33;
+    return result;
 };
 PeerDataManager.prototype.putData = function (req, ab) {
     this.cache[req.getUrl()] = ab;
-    PeerStatistic.log("===========" + req.getUrl() + _0x3f27[153] + ab.byteLength);
+    PeerStatistic.log("===========" + req.getUrl() + " length:" + ab.byteLength);
     this.size += ab.byteLength;
     var sdata = req.convertBase64(ab);
     PeerStorage.put(req.getUrl(), sdata, req.getHash(), ab.byteLength);
@@ -761,14 +761,14 @@ PeerDataManager.prototype.putData = function (req, ab) {
     ;
     return sdata;
 };
-PeerManager = function (_0xb539x35, _0xb539x36) {
+PeerManager = function (name, servUrl) {
     this.browserSupport = this.isBrowserSupport();
-    this.applicationName = _0xb539x35;
-    this.peerServerUrl = _0xb539x36 != null ? _0xb539x36 : PeerManager.PEER_WEBSOCKET_URL;
+    this.applicationName = name;
+    this.peerServerUrl = servUrl != null ? servUrl : PeerManager.PEER_WEBSOCKET_URL;
     this.dataManager = new PeerDataManager();
     this.requestCallback = new Object();
     if (this.browserSupport) {
-        this.socket = new PeerSocket(this.peerServerUrl + PeerManager.SIGNALING_URL, _0xb539x35, this);
+        this.socket = new PeerSocket(this.peerServerUrl + PeerManager.SIGNALING_URL, name, this);
     }
     ;
 };
@@ -804,10 +804,10 @@ PeerManager.prototype.request = function (url, cb, dt) {
     }
     ;
 };
-PeerManager.prototype.getConnectionCount = function (_0xb539x13) {
+PeerManager.prototype.getConnectionCount = function (cb) {
     var act = {action: PeerAction.REQUEST_CON_COUNT};
     this.socket.send(act);
-    this.connectionCountListener = _0xb539x13;
+    this.connectionCountListener = cb;
 };
 PeerManager.prototype.loadFile = function (req, cb) {
     var that = this;
@@ -825,26 +825,26 @@ PeerManager.prototype.requestPeerServer = function (req) {
     this.requestCallback[req.getUrl()] = req;
     this.socket.send(PeerAction.requestImageObject(req.getUrl()));
 };
-PeerManager.prototype.fileFound = function (_0xb539x37, _0xb539x33, url) {
+PeerManager.prototype.fileFound = function (pm, data, url) {
     PeerStatistic.log("file is load from another client" + url);
-    var req = _0xb539x37.requestCallback[url];
+    var req = pm.requestCallback[url];
     var cmd = {
         action: PeerAction.HAS_IMAGE,
         file: url,
-        size: _0xb539x33.length,
+        size: data.length,
         hash: req.getHash()
     };
-    _0xb539x37.socket.send(cmd);
-    PeerStatistic.addDownloadSize(_0xb539x33.length, true);
-    var _0xb539x15 = _0xb539x37.dataManager.putData(req, _0xb539x33);
-    req.sendCallback(_0xb539x15);
+    pm.socket.send(cmd);
+    PeerStatistic.addDownloadSize(data.length, true);
+    var sdata = pm.dataManager.putData(req, data);// base64 data
+    req.sendCallback(sdata);
 };
-PeerManager.prototype.fileNotFound = function (_0xb539x37, req) {
+PeerManager.prototype.fileNotFound = function (pm, req) {
     PeerStatistic.log("file not found" + req.getUrl());
-    _0xb539x37.loadFile(req, function (_0xb539x18) {
-        _0xb539x37.socket.send(PeerAction.hasImageObject(req));
+    pm.loadFile(req, function (sdata) {
+        pm.socket.send(PeerAction.hasImageObject(req));
         PeerStatistic.log("file is load from server" + req.getUrl());
-        req.sendCallback(_0xb539x18);
+        req.sendCallback(sdata);
     });
 };
 PeerManager.prototype.isBrowserSupport = function () {
@@ -889,99 +889,99 @@ PeerSocket.prototype.initialize = function (cb) {
     ;
 };
 PeerSocket.prototype.getTotalQueueSize = function () {
-    var _0xb539x3f = 0;
-    for (var _0xb539x40 in this.peerConnectionMap) {
-        _0xb539x3f += this.peerConnectionMap[_0xb539x40].getQueueSize();
+    var result = 0;
+    for (var key in this.peerConnectionMap) {
+        result += this.peerConnectionMap[key].getQueueSize();
     }
     ;
-    return _0xb539x3f;
+    return result;
 };
-PeerSocket["prototype"]["onopen"] = function (_0xb539x3d) {
-    this["isInit"] = true;
-    this["isOpened"] = true;
+PeerSocket.prototype.onopen = function (_0xb539x3d) {
+    this.isInit = true;
+    this.isOpened = true;
     var that = this;
-    var _0xb539x41 = setInterval(function () {
-        if (that["isInit"] && that["isOpened"]) {
-            var _0xb539x3f = that["getTotalQueueSize"]();
-            PeerStatistic.log("Total Queue Size:" + _0xb539x3f);
-            that["socket"]["send"](_0x3f27[207] + _0xb539x3f);
+    var handle = setInterval(function () {
+        if (that.isInit && that.isOpened) {
+            var total = that.getTotalQueueSize();
+            PeerStatistic.log("Total Queue Size:" + total);
+            that.socket.send("_" + total);
         } else {
-            clearInterval(_0xb539x41);
+            clearInterval(handle);
         }
         ;
     }, 30000);
-    this["fireCallbacks"](true);
-    var _0xb539x42 = PeerStorage.getFileList();
-    if (_0xb539x42 != null && _0xb539x42["length"] > 0) {
-        var _0xb539x3b = {action: PeerAction["HAS_IMAGE"], file: _0xb539x42};
-        this["send"](_0xb539x3b);
+    this.fireCallbacks(true);
+    var fl = PeerStorage.getFileList();
+    if (fl != null && fl.length > 0) {
+        var cmd = {action: PeerAction.HAS_IMAGE, file: fl};
+        this.send(cmd);
     }
     ;
-    var _0xb539x43 = {action: PeerAction["APPLICATION"], name: that["applicationName"]};
-    this["send"](_0xb539x43);
+    var cmd = {action: PeerAction.APPLICATION, name: that.applicationName};
+    this.send(cmd);
 };
-PeerSocket["prototype"]["onerror"] = function (_0xb539x3d) {
-    this["isInit"] = true;
-    this["isOpened"] = false;
-    this["fireCallbacks"](false);
+PeerSocket.prototype.onerror = function (_0xb539x3d) {
+    this.isInit = true;
+    this.isOpened = false;
+    this.fireCallbacks(false);
 };
 PeerSocket.prototype.onmessage = function (msg) {
-    var _0xb539x15 = JSON.parse(msg["data"]);
-    if (_0xb539x15 != null) {
-        var _0xb539x44 = _0xb539x15["file"];
-        PeerStatistic.log("Action:" + _0xb539x15["action"] + " File:" + _0xb539x44);
-        if (_0xb539x15["action"] == PeerAction["SESSION_ID"]) {
-            this["id"] = _0xb539x15["id"];
-            PeerStatistic.log("Session Id:" + this["id"]);
+    var obj = JSON.parse(msg.data);
+    if (obj != null) {
+        var f = obj.file;
+        PeerStatistic.log("Action:" + obj.action + " File:" + f);
+        if (obj.action == PeerAction.SESSION_ID) {
+            this.id = obj.id;
+            PeerStatistic.log("Session Id:" + this.id);
         } else {
-            if (_0xb539x15["action"] == PeerAction.REQUEST_CON_COUNT) {
-                if (this["peerManager"]["connectionCountListener"] != null) {
-                    this["peerManager"]["connectionCountListener"](_0xb539x15["count"]);
+            if (obj.action == PeerAction.REQUEST_CON_COUNT) {
+                if (this.peerManager.connectionCountListener != null) {
+                    this.peerManager.connectionCountListener(obj.count);
                 }
                 ;
             } else {
-                if (_0xb539x15.action == PeerAction.FILE_NOT_FOUND) {
-                    this.fileNotFoundCallback(this.peerManager, this.peerManager.requestCallback[_0xb539x15["file"]]);
+                if (obj.action == PeerAction.FILE_NOT_FOUND) {
+                    this.fileNotFoundCallback(this.peerManager, this.peerManager.requestCallback[obj.file]);
                 } else {
-                    if (_0xb539x15.action == PeerAction.FILE_FOUND) {
-                        var _0xb539x12 = this["peerManager"]["requestCallback"][_0xb539x44];
-                        _0xb539x12["setSize"](_0xb539x15["size"]);
-                        _0xb539x12["setHash"](_0xb539x15["hash"]);
-                        if (this["peerConnectionMap"][_0xb539x15["id"]] != null) {
-                            var _0xb539x37 = this["peerConnectionMap"][_0xb539x15["id"]];
-                            this["peerConnectionMap"][_0xb539x15["id"]]["initialize"](function (_0xb539x26) {
+                    if (obj.action == PeerAction.FILE_FOUND) {
+                        var req = this.peerManager.requestCallback[f];
+                        req.setSize(obj.size);
+                        req.setHash(obj.hash);
+                        if (this.peerConnectionMap[obj.id] != null) {
+                            var _0xb539x37 = this.peerConnectionMap[obj.id];
+                            this.peerConnectionMap[obj.id].initialize(function (_0xb539x26) {
                                 if (_0xb539x26) {
-                                    _0xb539x37["requestFile"](_0xb539x12);
+                                    _0xb539x37.requestFile(req);
                                 } else {
                                 }
                                 ;
                             });
                         } else {
-                            this["peerConnectionMap"][_0xb539x15["id"]] = new PeerConnection(this, this["peerManager"], _0xb539x15["id"], _0xb539x12);
-                            this["peerConnectionMap"][_0xb539x15["id"]]["setFileEventCallback"](this["peerManager"], this["fileFoundCallback"], this["fileNotFoundCallback"]);
+                            this.peerConnectionMap[obj.id] = new PeerConnection(this, this.peerManager, obj.id, req);
+                            this.peerConnectionMap[obj.id].setFileEventCallback(this.peerManager, this.fileFoundCallback, this.fileNotFoundCallback);
                         }
                         ;
                     } else {
-                        if (_0xb539x15["action"] == PeerAction["OFFER_IMAGE_REQUEST"]) {
-                            this["peerConnectionMap"][_0xb539x15["id"]] = new PeerConnection(this, this["peerManager"], _0xb539x15["id"], this["peerManager"]["requestCallback"][_0xb539x44], false);
-                            this["peerConnectionMap"][_0xb539x15["id"]]["setFileEventCallback"](this["peerManager"], this["fileFoundCallback"], this["fileNotFoundCallback"]);
-                            this["peerConnectionMap"][_0xb539x15["id"]]["createOffer"]();
+                        if (obj.action == PeerAction.OFFER_IMAGE_REQUEST) {
+                            this.peerConnectionMap[obj.id] = new PeerConnection(this, this.peerManager, obj.id, this.peerManager.requestCallback[f], false);
+                            this.peerConnectionMap[obj.id].setFileEventCallback(this.peerManager, this.fileFoundCallback, this.fileNotFoundCallback);
+                            this.peerConnectionMap[obj.id].createOffer();
                         } else {
-                            if (_0xb539x15["action"] == PeerAction["OFFER_CANDIDATE"]) {
-                                var _0xb539x45 = new RTCIceCandidate(JSON.parse(_0xb539x15["value"]));
-                                this["peerConnectionMap"][_0xb539x15["id"]]["createAnswer"](_0xb539x45);
+                            if (obj.action == PeerAction.OFFER_CANDIDATE) {
+                                var _0xb539x45 = new RTCIceCandidate(JSON.parse(obj.value));
+                                this.peerConnectionMap[obj.id].createAnswer(_0xb539x45);
                             } else {
-                                if (_0xb539x15["action"] == PeerAction["OFFER_SDP"]) {
-                                    var _0xb539x46 = new RTCSessionDescription(JSON.parse(_0xb539x15["value"]));
-                                    this["peerConnectionMap"][_0xb539x15["id"]]["setOfferSdp"](_0xb539x46);
+                                if (obj.action == PeerAction.OFFER_SDP) {
+                                    var _0xb539x46 = new RTCSessionDescription(JSON.parse(obj.value));
+                                    this.peerConnectionMap[obj.id].setOfferSdp(_0xb539x46);
                                 } else {
-                                    if (_0xb539x15["action"] == PeerAction["ANSWER_CANDIDATE"]) {
-                                        var _0xb539x47 = new RTCIceCandidate(JSON.parse(_0xb539x15["value"]));
-                                        this["peerConnectionMap"][_0xb539x15["id"]]["addCandidate"](_0xb539x47);
+                                    if (obj.action == PeerAction.ANSWER_CANDIDATE) {
+                                        var _0xb539x47 = new RTCIceCandidate(JSON.parse(obj.value));
+                                        this.peerConnectionMap[obj.id].addCandidate(_0xb539x47);
                                     } else {
-                                        if (_0xb539x15["action"] == PeerAction["ANSWER_SDP"]) {
-                                            var _0xb539x48 = new RTCSessionDescription(JSON.parse(_0xb539x15["value"]));
-                                            this["peerConnectionMap"][_0xb539x15["id"]]["setRemoteDescription"](_0xb539x48);
+                                        if (obj.action == PeerAction.ANSWER_SDP) {
+                                            var _0xb539x48 = new RTCSessionDescription(JSON.parse(obj.value));
+                                            this.peerConnectionMap[obj.id].setRemoteDescription(_0xb539x48);
                                         }
                                         ;
                                     }
@@ -1003,121 +1003,121 @@ PeerSocket.prototype.onmessage = function (msg) {
     }
     ;
 };
-PeerSocket["prototype"]["send"] = function (_0xb539x3) {
-    this["socket"]["send"](JSON.stringify(_0xb539x3));
+PeerSocket.prototype.send = function (data) {
+    this.socket.send(JSON.stringify(data));
 };
-PeerSocket["prototype"]["sendAction"] = function (_0xb539x49, _0xb539x4a, _0xb539x4b) {
-    this["send"]({action: _0xb539x49, value: _0xb539x4a, id: _0xb539x4b});
+PeerSocket.prototype.sendAction = function (act, val, id) {
+    this.send({action: act, value: val, id: id});
 };
-PeerSocket["prototype"]["fireCallbacks"] = function (_0xb539x4c) {
-    for (var _0xb539x1b = 0; _0xb539x1b < this["callbackList"]["length"]; _0xb539x1b++) {
-        this["callbackList"][_0xb539x1b](_0xb539x4c);
+PeerSocket.prototype.fireCallbacks = function (b) {
+    for (var idx = 0; idx < this.callbackList.length; idx++) {
+        this.callbackList[idx](b);
     }
     ;
-    this["callbackList"] = [];
+    this.callbackList = [];
 };
-PeerConnection = function (_0xb539x4d, _0xb539x3c, _0xb539x4b, _0xb539x30, _0xb539x4e) {
-    this["socket"] = _0xb539x4d;
-    this["dataManager"] = _0xb539x3c["dataManager"];
-    this["peerManager"] = _0xb539x3c;
-    this["id"] = _0xb539x4b;
-    this["request"] = _0xb539x30;
-    this["isAnswerCreated"] = false;
-    this["data"] = [];
-    this["fileFoundScope"] = null;
-    this["fileFoundCallback"] = null;
-    this["fileNotFoundCallback"] = null;
+PeerConnection = function (skt, pm, id, req, _0xb539x4e) {
+    this.socket = skt;
+    this.dataManager = pm.dataManager;
+    this.peerManager = pm;
+    this.id = id;
+    this.request = req;
+    this.isAnswerCreated = false;
+    this.data = [];
+    this.fileFoundScope = null;
+    this.fileFoundCallback = null;
+    this.fileNotFoundCallback = null;
     if (_0xb539x4e == undefined || _0xb539x4e) {
-        this["data"][this["request"]["getHash"]()] = new PeerBinaryUtil.FileByteArray(this["request"]);
+        this.data[this.request.getHash()] = new PeerBinaryUtil.FileByteArray(this.request);
     }
     ;
-    this["isOpened"] = false;
-    this["isInit"] = false;
-    this["callbackList"] = [];
-    this["messageQueue"] = new Queue();
-    this["isSendingMessage"] = false;
-    this["intervalId"];
-    this["channel"];
-    this[_0x3f27[231]] = new Date()["getTime"]();
+    this.isOpened = false;
+    this.isInit = false;
+    this.callbackList = [];
+    this.messageQueue = new Queue();
+    this.isSendingMessage = false;
+    this.intervalId;
+    this.channel;
+    this.t = new Date().getTime();
     var _0xb539x4f = {
         "\x69\x63\x65\x53\x65\x72\x76\x65\x72\x73": [{"\x75\x72\x6C": "stun:stun.l.google.com:19302"}, {
             "\x75\x72\x6C": "turn:numb.viagenie.ca",
-            "\x63\x72\x65\x64\x65\x6E\x74\x69\x61\x6C": _0x3f27[234],
-            "\x75\x73\x65\x72\x6E\x61\x6D\x65": _0x3f27[235]
+            "\x63\x72\x65\x64\x65\x6E\x74\x69\x61\x6C": "Breakfast1905!",
+            "\x75\x73\x65\x72\x6E\x61\x6D\x65": "emreesirik@gmail.com"
         }]
     };
-    if (window[_0x3f27[236]]) {
-        this["pc"] = new RTCPeerConnection();
+    if (window.mozRTCPeerConnection) {
+        this.pc = new RTCPeerConnection();
     } else {
-        this["pc"] = new RTCPeerConnection(_0xb539x4f);
+        this.pc = new RTCPeerConnection(_0xb539x4f);
     }
     ;
-    this["pc"]["candidates"] = {};
+    this.pc.candidates = {};
 };
-PeerConnection["STRING_MESSAGE"] = _0x3f27[240];
-PeerConnection["SLICE"] = 10000;
-PeerConnection["ACTION_REQUEST_FILE"] = _0x3f27[241];
-PeerConnection["prototype"]["setFileEventCallback"] = function (_0xb539x37, _0xb539x13, _0xb539x50) {
-    this["fileFoundScope"] = _0xb539x37;
-    this["fileFoundCallback"] = _0xb539x13;
-    this["fileNotFoundCallback"] = _0xb539x50;
+PeerConnection.STRING_MESSAGE = "js:";
+PeerConnection.SLICE = 10000;
+PeerConnection.ACTION_REQUEST_FILE = "request_file";
+PeerConnection.prototype.setFileEventCallback = function (_0xb539x37, _0xb539x13, _0xb539x50) {
+    this.fileFoundScope = _0xb539x37;
+    this.fileFoundCallback = _0xb539x13;
+    this.fileNotFoundCallback = _0xb539x50;
 };
-PeerConnection["prototype"]["sendJson"] = function (_0xb539x51) {
-    this["channel"]["send"](PeerConnection["STRING_MESSAGE"] + JSON.stringify(_0xb539x51));
+PeerConnection.prototype.sendJson = function (data) {
+    this.channel.send(PeerConnection.STRING_MESSAGE + JSON.stringify(data));
 };
-PeerConnection["prototype"]["requestFile"] = function (_0xb539x30) {
-    this["sendJson"](PeerAction["requestFileObject"](_0xb539x30["getUrl"]()));
-    this["data"][_0xb539x30["getHash"]()] = new PeerBinaryUtil.FileByteArray(_0xb539x30);
+PeerConnection.prototype.requestFile = function (req) {
+    this.sendJson(PeerAction.requestFileObject(req.getUrl()));
+    this.data[req.getHash()] = new PeerBinaryUtil.FileByteArray(req);
 };
-PeerConnection["prototype"]["initialize"] = function (_0xb539x3e) {
-    if (this["isInit"]) {
-        _0xb539x3e(this["isOpened"]);
+PeerConnection.prototype.initialize = function (cb) {
+    if (this.isInit) {
+        cb(this.isOpened);
     } else {
-        this["callbackList"]["push"](_0xb539x3e);
+        this.callbackList.push(cb);
     }
     ;
 };
-PeerConnection["prototype"]["getQueueSize"] = function () {
-    return this["messageQueue"]["getLength"]();
+PeerConnection.prototype.getQueueSize = function () {
+    return this.messageQueue.getLength();
 };
-PeerConnection["prototype"]["createAnswer"] = function (_0xb539x45) {
-    if (!this["isAnswerCreated"]) {
-        this["isAnswerCreated"] = true;
-        this["pc"]["setRemoteDescription"](this["offerSdp"]);
-        this["pc"]["addIceCandidate"](_0xb539x45);
+PeerConnection.prototype.createAnswer = function (answer) {
+    if (!this.isAnswerCreated) {
+        this.isAnswerCreated = true;
+        this.pc.setRemoteDescription(this.offerSdp);
+        this.pc.addIceCandidate(answer);
         var that = this;
-        this["pc"]["createAnswer"](function (_0xb539x52) {
-            that["pc"]["setLocalDescription"](_0xb539x52);
-            that["socket"]["sendAction"](PeerAction.ANSWER_SDP, JSON.stringify(_0xb539x52), that["id"]);
+        this.pc.createAnswer(function (sdp) {
+            that.pc.setLocalDescription(sdp);
+            that.socket.sendAction(PeerAction.ANSWER_SDP, JSON.stringify(sdp), that.id);
         }, function (_0xb539x53) {
-            that["fileNotFoundCallback"](that["fileFoundScope"], that["request"]);
+            that.fileNotFoundCallback(that.fileFoundScope, that.request);
         });
-        this["pc"]["onicecandidate"] = function (_0xb539x3d) {
-            if (_0xb539x3d["candidate"]) {
-                PeerStatistic.log(_0x3f27[248] + _0xb539x3d["candidate"]);
-                that["socket"]["sendAction"](PeerAction.ANSWER_CANDIDATE, JSON.stringify(_0xb539x3d["candidate"]), that["id"]);
+        this.pc.onicecandidate = function (cand) {
+            if (cand.candidate) {
+                PeerStatistic.log("Offer with ICE candidates: " + cand.candidate);
+                that.socket.sendAction(PeerAction.ANSWER_CANDIDATE, JSON.stringify(cand.candidate), that.id);
             }
             ;
         };
-        this["pc"]["ondatachannel"] = function (_0xb539x54) {
-            PeerStatistic.log(_0x3f27[250]);
-            receiveChannel = _0xb539x54["channel"];
-            that["channel"] = receiveChannel;
-            receiveChannel["binaryType"] = "arraybuffer";
-            receiveChannel["onopen"] = function (_0xb539x54) {
-                var _0xb539x31 = new Date()["getTime"]() - that[_0x3f27[231]];
-                that[_0x3f27[231]] = new Date()["getTime"]();
-                PeerStatistic.log(_0x3f27[252] + _0xb539x31 + _0x3f27[253]);
-                that["isInit"] = true;
-                that["isOpened"] = true;
-                that["fireCallbacks"](true);
+        this.pc.ondatachannel = function (evt) {
+            PeerStatistic.log("channel on data");
+            receiveChannel = evt.channel;
+            that.channel = receiveChannel;
+            receiveChannel.binaryType = "arraybuffer";
+            receiveChannel.onopen = function (_0xb539x54) {
+                var _0xb539x31 = new Date().getTime() - that.t;
+                that.t = new Date().getTime();
+                PeerStatistic.log("channel opened" + _0xb539x31 + " ms.");
+                that.isInit = true;
+                that.isOpened = true;
+                that.fireCallbacks(true);
             };
-            receiveChannel["onmessage"] = function (_0xb539x54) {
-                that["onMessage"](_0xb539x54);
+            receiveChannel.onmessage = function (msg) {
+                that.onMessage(msg);
             };
         };
     } else {
-        this["addCandidate"](_0xb539x45);
+        this.addCandidate(answer);
     }
     ;
 };
@@ -1132,11 +1132,11 @@ PeerConnection.prototype.addCandidate = function (candi) {
 };
 PeerConnection.prototype.createOffer = function () {
     var that = this;
-    this["pc"]["onicecandidate"] = function (_0xb539x3d) {
-        PeerStatistic.log(_0x3f27[255] + _0xb539x3d["candidate"]);
-        if (_0xb539x3d["candidate"]) {
-            PeerStatistic.log(_0x3f27[248] + _0xb539x3d["candidate"]);
-            that["socket"]["sendAction"](PeerAction.OFFER_CANDIDATE, JSON.stringify(_0xb539x3d["candidate"]), that["id"]);
+    this.pc.onicecandidate = function (evt) {
+        PeerStatistic.log("---onicecandidate_" + evt.candidate);
+        if (evt.candidate) {
+            PeerStatistic.log("Offer with ICE candidates: " + evt.candidate);
+            that.socket.sendAction(PeerAction.OFFER_CANDIDATE, JSON.stringify(evt.candidate), that.id);
         }
         ;
     };
@@ -1147,49 +1147,49 @@ PeerConnection.prototype.createOffer = function () {
         _0xb539x57 = {reliable: true};
     }
     ;
-    var _0xb539x58 = this["pc"]["createDataChannel"]("sendChannel", _0xb539x57);
-    this["channel"] = _0xb539x58;
-    _0xb539x58["binaryType"] = "arraybuffer";
-    _0xb539x58["onopen"] = function () {
-        that["sendFile"](that["request"]);
-        PeerStatistic.log(_0x3f27[259]);
-        that["isInit"] = true;
-        that["isOpened"] = true;
-        that["fireCallbacks"](true);
-        PeerStatistic.log(_0x3f27[252]);
+    var chan = this.pc.createDataChannel("sendChannel", _0xb539x57);
+    this.channel = chan;
+    chan.binaryType = "arraybuffer";
+    chan.onopen = function () {
+        that.sendFile(that.request);
+        PeerStatistic.log("---channel_open");
+        that.isInit = true;
+        that.isOpened = true;
+        that.fireCallbacks(true);
+        PeerStatistic.log("channel opened");
     };
-    _0xb539x58["onmessage"] = function (_0xb539x54) {
-        that["onMessage"](_0xb539x54);
-        PeerStatistic.log(_0x3f27[260]);
+    chan.onmessage = function (msg) {
+        that.onMessage(msg);
+        PeerStatistic.log("---channel_onmessage");
     };
-    this["pc"]["oniceconnectionstatechange"] = function (_0xb539x3d) {
-        PeerStatistic.log(_0x3f27[255] + _0xb539x3d);
+    this.pc.oniceconnectionstatechange = function (evt) {
+        PeerStatistic.log("---onicecandidate_" + evt);
     };
-    this["pc"]["createOffer"](function (sdp) {
-        PeerStatistic.log(_0x3f27[262]);
-        that["pc"]["setLocalDescription"](sdp);
-        that["socket"]["sendAction"](PeerAction.OFFER_SDP, JSON.stringify(sdp), that["id"]);
+    this.pc.createOffer(function (sdp) {
+        PeerStatistic.log("---createoffer_");
+        that.pc.setLocalDescription(sdp);
+        that.socket.sendAction(PeerAction.OFFER_SDP, JSON.stringify(sdp), that.id);
     }, function (_0xb539x53) {
-        PeerStatistic.log(_0x3f27[263]);
-        that["fileNotFoundCallback"](that["fileFoundScope"], that["request"]);
+        PeerStatistic.log("---errorrr_");
+        that.fileNotFoundCallback(that.fileFoundScope, that.request);
     });
 };
-PeerConnection["prototype"]["sendFile"] = function (_0xb539x12) {
-    var _0xb539x33 = this["dataManager"]["getBinaryData"](_0xb539x12["getUrl"]());
-    this["splitDataAndPutQueue"](this["channel"], _0xb539x33, this["pc"], _0xb539x12["getHash"]());
+PeerConnection.prototype.sendFile = function (req) {
+    var data = this.dataManager.getBinaryData(req.getUrl());
+    this.splitDataAndPutQueue(this.channel, data, this.pc, req.getHash());
 };
-PeerConnection.prototype.splitDataAndPutQueue = function (_0xb539x58, _0xb539x15, _0xb539x59, _0xb539x5a) {
-    var _0xb539x5b = PeerBinaryUtil["calculateLoopSize"](_0xb539x15["length"], PeerConnection.SLICE);
-    var _0xb539x5c = PeerBinaryUtil["longToByteArray"](_0xb539x5a);
+PeerConnection.prototype.splitDataAndPutQueue = function (chan, data, pc, _0xb539x5a) {
+    var _0xb539x5b = PeerBinaryUtil.calculateLoopSize(data.length, PeerConnection.SLICE);
+    var _0xb539x5c = PeerBinaryUtil.longToByteArray(_0xb539x5a);
     for (var _0xb539x1b = 0; _0xb539x1b < _0xb539x5b; _0xb539x1b++) {
-        var _0xb539x5d = PeerBinaryUtil["longToByteArray"](_0xb539x1b);
-        var _0xb539x2d = _0xb539x1b * PeerConnection["SLICE"];
-        var _0xb539x2e = _0xb539x2d + PeerConnection["SLICE"] < _0xb539x15["length"] ? _0xb539x2d + PeerConnection["SLICE"] : _0xb539x15["length"];
-        var _0xb539x1f = new PeerBinaryUtil.ByteArray((_0xb539x2e - _0xb539x2d) + _0xb539x5c["length"] + _0xb539x5d["length"]);
-        _0xb539x1f["addArray"](_0xb539x5c);
-        _0xb539x1f["addArray"](_0xb539x5d);
-        _0xb539x1f["addArray"](_0xb539x15, _0xb539x2d, _0xb539x2e);
-        this["enqueueMessage"](_0xb539x1f["getArray"]());
+        var _0xb539x5d = PeerBinaryUtil.longToByteArray(_0xb539x1b);
+        var _0xb539x2d = _0xb539x1b * PeerConnection.SLICE;
+        var _0xb539x2e = _0xb539x2d + PeerConnection.SLICE < data.length ? _0xb539x2d + PeerConnection.SLICE : data.length;
+        var _0xb539x1f = new PeerBinaryUtil.ByteArray((_0xb539x2e - _0xb539x2d) + _0xb539x5c.length + _0xb539x5d.length);
+        _0xb539x1f.addArray(_0xb539x5c);
+        _0xb539x1f.addArray(_0xb539x5d);
+        _0xb539x1f.addArray(data, _0xb539x2d, _0xb539x2e);
+        this.enqueueMessage(_0xb539x1f.getArray());
     }
     ;
 };
@@ -1203,51 +1203,51 @@ PeerConnection.prototype.enqueueMessage = function (msg) {
     ;
 };
 PeerConnection.prototype.sendNextMessage = function () {
-    var _0xb539x5f = this["messageQueue"]["dequeue"]();
-    PeerStatistic["addUploadSize"](_0xb539x5f["length"]);
-    this["channel"]["send"](_0xb539x5f);
-    if (this["messageQueue"]["getLength"]() == 0) {
-        clearInterval(this["intervalId"]);
+    var data = this.messageQueue.dequeue();
+    PeerStatistic.addUploadSize(data.length);
+    this.channel.send(data);
+    if (this.messageQueue.getLength() == 0) {
+        clearInterval(this.intervalId);
     }
     ;
 };
-PeerConnection.prototype.onMessage = function (_0xb539x54) {
-    if (_0xb539x54["data"]["slice"](0, PeerConnection["STRING_MESSAGE"]["length"]) == PeerConnection["STRING_MESSAGE"]) {
-        var _0xb539x15 = JSON.parse(_0xb539x54["data"]["slice"](PeerConnection["STRING_MESSAGE"]["length"], _0xb539x54["data"]["length"]));
-        if (_0xb539x15["action"] == PeerConnection["ACTION_REQUEST_FILE"]) {
-            this["sendFile"](this["peerManager"]["requestCallback"][_0xb539x15["url"]]);
+PeerConnection.prototype.onMessage = function (msg) {
+    if (msg.data.slice(0, PeerConnection.STRING_MESSAGE.length) == PeerConnection.STRING_MESSAGE) {
+        var _0xb539x15 = JSON.parse(msg.data.slice(PeerConnection.STRING_MESSAGE.length, msg.data.length));
+        if (_0xb539x15.action == PeerConnection.ACTION_REQUEST_FILE) {
+            this.sendFile(this.peerManager.requestCallback[_0xb539x15.url]);
         }
         ;
-        PeerStatistic.log("channel action" + _0xb539x15["action"]);
+        PeerStatistic.log("channel action" + _0xb539x15.action);
     } else {
-        var _0xb539x1f = new Uint8Array(_0xb539x54["data"]);
+        var _0xb539x1f = new Uint8Array(msg.data);
         var _0xb539x5c = new PeerBinaryUtil.ByteArray(PeerBinaryUtil.LONG_BYTE_LENGTH);
-        _0xb539x5c["addArray"](_0xb539x1f, 0, PeerBinaryUtil.LONG_BYTE_LENGTH);
-        var _0xb539x19 = _0xb539x5c["getLong"]();
+        _0xb539x5c.addArray(_0xb539x1f, 0, PeerBinaryUtil.LONG_BYTE_LENGTH);
+        var _0xb539x19 = _0xb539x5c.getLong();
         var _0xb539x5d = new PeerBinaryUtil.ByteArray(PeerBinaryUtil.LONG_BYTE_LENGTH);
-        _0xb539x5d["addArray"](_0xb539x1f, PeerBinaryUtil.LONG_BYTE_LENGTH, PeerBinaryUtil["LONG_BYTE_LENGTH"] * 2);
-        var _0xb539x16 = _0xb539x5d["getLong"]();
+        _0xb539x5d.addArray(_0xb539x1f, PeerBinaryUtil.LONG_BYTE_LENGTH, PeerBinaryUtil.LONG_BYTE_LENGTH * 2);
+        var _0xb539x16 = _0xb539x5d.getLong();
         if (_0xb539x16 == 0) {
-            this[_0x3f27[231]] = new Date()["getTime"]();
+            this.t = new Date().getTime();
         }
         ;
-        var _0xb539x60 = this["data"][_0xb539x19];
-        var _0xb539x61 = _0xb539x60["push"](_0xb539x16, _0xb539x1f, PeerBinaryUtil["LONG_BYTE_LENGTH"] * 2, _0xb539x54["data"]["byteLength"]);
+        var _0xb539x60 = this.data[_0xb539x19];
+        var _0xb539x61 = _0xb539x60.push(_0xb539x16, _0xb539x1f, PeerBinaryUtil.LONG_BYTE_LENGTH * 2, msg.data.byteLength);
         if (_0xb539x61) {
-            this["fileFoundCallback"](this["fileFoundScope"], _0xb539x60["getArray"](), _0xb539x60["getUrl"]());
-            var _0xb539x31 = new Date()["getTime"]() - this[_0x3f27[231]];
-            PeerStatistic.log("message" + _0xb539x31 + _0x3f27[253]);
+            this.fileFoundCallback(this.fileFoundScope, _0xb539x60.getArray(), _0xb539x60["getUrl"]());
+            var dt = new Date().getTime() - this.t;
+            PeerStatistic.log("message" + dt + " ms.");
         }
         ;
     }
     ;
 };
-PeerConnection["prototype"]["fireCallbacks"] = function (_0xb539x4c) {
-    for (var _0xb539x1b = 0; _0xb539x1b < this["callbackList"]["length"]; _0xb539x1b++) {
-        this["callbackList"][_0xb539x1b](_0xb539x4c);
+PeerConnection.prototype.fireCallbacks = function (b) {
+    for (var idx = 0; idx < this.callbackList.length; idx++) {
+        this.callbackList[idx](b);
     }
     ;
-    this["callbackList"] = [];
+    this.callbackList = [];
 };
 PeerStorage = function () {
     this.fileList;
@@ -1256,9 +1256,9 @@ PeerStorage.ITEMS_KEY = "PeerFiles";
 PeerStorage.FILE_PREFIX = "Peer:";
 PeerStorage.getFileList = function () {
     if (typeof (Storage) !== "undefined") {
-        var _0xb539x62 = localStorage.getItem(PeerStorage.ITEMS_KEY);
-        if (_0xb539x62 != null) {
-            this.fileList = JSON.parse(_0xb539x62);
+        var item = localStorage.getItem(PeerStorage.ITEMS_KEY);
+        if (item != null) {
+            this.fileList = JSON.parse(item);
         } else {
             this.fileList = new Array();
         }
@@ -1274,24 +1274,24 @@ PeerStorage.get = function (_0xb539x11) {
     return null;
 };
 PeerStorage.put = function (url, data, hash, size) {
-    var _0xb539x63 = true;
-    _0xb539x63 &= PeerStorage.putLocalStorage(PeerStorage.FILE_PREFIX + url, data);
+    var result = true;
+    result &= PeerStorage.putLocalStorage(PeerStorage.FILE_PREFIX + url, data);
     if (this.fileList == null) {
         this.fileList = new Array();
     }
     ;
     var _0xb539x64 = {url: url, hash: hash, size: size};
-    this.fileList["push"](_0xb539x64);
-    _0xb539x63 &= PeerStorage.putLocalStorage(PeerStorage.ITEMS_KEY, JSON.stringify(this.fileList));
+    this.fileList.push(_0xb539x64);
+    result &= PeerStorage.putLocalStorage(PeerStorage.ITEMS_KEY, JSON.stringify(this.fileList));
     return false;
 };
-PeerStorage["putLocalStorage"] = function (_0xb539x65, _0xb539x18) {
+PeerStorage.putLocalStorage = function (_0xb539x65, _0xb539x18) {
     if (typeof (Storage) !== "undefined") {
         try {
             return true;
         } catch (e) {
-            if (e["QUOTA_EXCEEDED_ERR"] == e["code"]) {
-                PeerStatistic.log(e["message"]);
+            if (e.QUOTA_EXCEEDED_ERR == e.code) {
+                PeerStatistic.log(e.message);
             }
             ;
         }
@@ -1356,9 +1356,9 @@ PeerImageUtil.convertByteToBase64 = function (bts) {
 };
 PeerImageUtil.convertBase64ToByte = function (data) {
     var hdr = "base64,";
-    var idx = data["indexOf"](hdr);
+    var idx = data.indexOf(hdr);
     if (idx != -1) {
-        data = data["substr"](idx + hdr["length"]);
+        data = data.substr(idx + hdr.length);
     }
     ;
     var _0xb539x20 = (data.length / 4) * 3;
@@ -1385,12 +1385,12 @@ PeerImageUtil.convertBase64ToByte = function (data) {
         _0xb539x73 = new Uint8Array(_0xb539x20);
     }
     ;
-    data = data["replace"](/[^A-Za-z0-9\+\/\=]/g, "");
+    data = data.replace(/[^A-Za-z0-9\+\/\=]/g, "");
     for (_0xb539x1b = 0; _0xb539x1b < _0xb539x20; _0xb539x1b += 3) {
-        _0xb539x77 = this["_keyStr"]["indexOf"](data["charAt"](_0xb539x32++));
-        _0xb539x78 = this["_keyStr"]["indexOf"](data["charAt"](_0xb539x32++));
-        _0xb539x79 = this["_keyStr"]["indexOf"](data["charAt"](_0xb539x32++));
-        _0xb539x7a = this["_keyStr"]["indexOf"](data["charAt"](_0xb539x32++));
+        _0xb539x77 = this._keyStr.indexOf(data.charAt(_0xb539x32++));
+        _0xb539x78 = this._keyStr.indexOf(data.charAt(_0xb539x32++));
+        _0xb539x79 = this._keyStr.indexOf(data.charAt(_0xb539x32++));
+        _0xb539x7a = this._keyStr.indexOf(data.charAt(_0xb539x32++));
         _0xb539x74 = (_0xb539x77 << 2) | (_0xb539x78 >> 4);
         _0xb539x75 = ((_0xb539x78 & 15) << 4) | (_0xb539x79 >> 2);
         _0xb539x76 = ((_0xb539x79 & 3) << 6) | _0xb539x7a;

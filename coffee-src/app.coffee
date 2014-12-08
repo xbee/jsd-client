@@ -13,10 +13,16 @@ installApp = (sa) ->
     # JdyModule: import from jdyModule.js
     # register the module
     core.register "jdyModule", JdyModule
-    core.start "jdyModule", (err) ->
-      return console.log(err.message)  if err
-      console.log "started 'jdyModule' module"
-      return
+    core.register "statModule", StatModule
+    # start modules
+    core.start "jdyModule", options, (err) ->
+        return console.log(err.message)  if err
+        console.log "started 'jdyModule' module"
+        return
+    core.start "statModule", (err) ->
+        return console.log(err.message)  if err
+        console.log "started 'statModule' module"
+        return
 
     return
 

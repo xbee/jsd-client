@@ -1,0 +1,43 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html" >
+<link rel="import" href="../just-gauge/just-gauge.html" >
+<link rel="import" href="jdy-statmodel.html" >
+
+<polymer-element name="jdy-statistic" attributes="modelId">
+  <template>
+    <link rel="stylesheet" href="jdy-statistic.css">
+    <div id="left">
+      <div id="stats">
+        <div id="stat1" class="stat">
+          <img src="images/peer.png" class="title_icon"/>Peers Connected<span
+          id="connection_text" class="number_txt centered">{{model.peerNum}}</span>
+        </div>
+        <div class="line-separator"></div>
+        <div id="stat2" class="stat">
+          <img src="images/upload.png" class="title_icon"/>Upload<span id="upload_text"
+                                                                       class="number_txt centered">{{bytesToSize(model.upload)}}</span>
+        </div>
+        <div class="line-separator"></div>
+        <div id="stat3" class="stat">
+          <img src="images/download.png" class="title_icon"/>Total Download<span
+          id="download_text" class="number_txt centered">{{bytesToSize(model.download)}}</span>
+        </div>
+        <div class="line-separator"></div>
+        <div id="stat4" class="stat">Download From Peer<span id="download_peer_text" class="number_txt without_icon centered">{{bytesToSize(model.peerDown)}}<span
+          class="percent_text">{{model.peerPercent}}</span></span>
+          <just-gauge id="downloadPeer" value="{{model.peerPercent}}" width="140" height="110"></just-gauge>
+        </div>
+        <div class="line-separator"></div>
+        <div id="stat5" class="stat">Download From Server<span id="download_server_text"
+                                                               class="number_txt without_icon centered">{{bytesToSize(model.serverDown)}}<span
+          class="percent_text">{{model.serverPercent}}</span></span>
+          <just-gauge id="downloadServer" value="{{model.serverPercent}}" width="140" height="110"></just-gauge>
+        </div>
+        <div class="line-separator"></div>
+        <div id="stat6" onclick="window.open ( document.location.href,&quot;_blank&quot;);" class="stat">
+          <img src="images/addpeer.png" class="title_icon title_peer_icon"/>Add New Peer
+        </div>
+      </div>
+    </div>
+  </template>
+  <script src="jdy-statistic.js"></script>
+</polymer-element>

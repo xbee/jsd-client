@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  Polymer("jdy-dashboard", {
+  Polymer("jdy-statistic", {
 
     // define element prototype here
     attached: function () {
@@ -17,10 +17,6 @@
 
     modelIdChanged: function() {
       this.model = document.querySelector('#' + this.modelId);
-    },
-
-    sayHi: function() {
-      this.fire('said-hello');
     },
 
     /*

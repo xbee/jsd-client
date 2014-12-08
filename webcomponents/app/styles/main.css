@@ -36,3 +36,116 @@ leaflet-map {
   height: 100%;
 }
 
+/**
+ * .control styles.
+ */
+jdy-view-selector::shadow .control,
+jdy-date-selector::shadow .control {
+  display: inline-block;
+  margin: 0 1em 1.5em 0;
+}
+jdy-view-selector::shadow .control:last-child,
+jdy-date-selector::shadow .control:last-child {
+  margin-right: 0;
+}
+jdy-view-selector::shadow .control > label,
+jdy-date-selector::shadow .control > label {
+  display: block;
+  padding: 0 0 .4em 2px;
+}
+
+/**
+ * Common styles.
+ */
+jdy-view-selector,
+jdy-date-selector {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  float: left;
+  margin: 0 1.5em 1.5em 0;
+  padding: 1.5em 1.5em 0;
+}
+jdy-chart {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  float: left;
+  margin: 0 1.5em 1.5em 0;
+  padding: 1.5em;
+  position: relative;
+  transition: opacity .2s ease;
+}
+jdy-chart:not([rendered]) {
+  display: none;
+}
+
+jdy-chart:first-of-type {
+  clear: both;
+}
+jdy-chart h3 {
+  border: 0;
+  font-size: 1.3em;
+  font-weight: 300;
+  margin: 0;
+  padding: 0;
+}
+
+
+/**
+ * <jdy-view-selector> styles.
+ */
+jdy-dashboard {
+  display: block;
+  padding: 1.5em;
+  transition: opacity .3s ease;
+}
+jdy-dashboard:not([authorized]) {
+  opacity: .4;
+  pointer-events: none;
+}
+
+/**
+ * <jdy-view-selector> styles.
+ */
+jdy-view-selector::shadow label {
+  font-weight: bold;
+}
+jdy-view-selector::shadow select {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  height: 34px;
+  line-height: 20px;
+  min-width: 160px;
+  padding: 6px 12px;
+}
+jdy-view-selector::shadow select:focus {
+  border-color: #4d90fe;
+  outline: 0;
+}
+jdy-view-selector::shadow label {
+  font-weight: bold;
+}
+
+/**
+ * <jdy-date-selector> styles.
+ */
+jdy-date-selector::shadow label {
+  font-weight: bold;
+}
+jdy-date-selector::shadow input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font: inherit;
+  font-weight: 400;
+  height: 34px;
+  line-height: 20px;
+  min-width: 160px;
+  padding: 6px;
+}
+jdy-date-selector::shadow input:focus {
+  border-color: #4d90fe;
+  outline: 0;
+}

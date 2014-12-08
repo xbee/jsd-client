@@ -177,6 +177,28 @@ loadResourceByXHR = (url, callback) ->
     return
 
 
+String::format = ->
+
+    # Convert `arguments` to real []
+    args = Array::slice.call(arguments)
+
+    # First arg is an object map
+    args = args[0]  if args.length is 1 and typeof args[0] is "object"
+
+    # Do the replacing/formatting; args is now an object
+    result = this
+    match = undefined
+    i = 0
+
+    while match = /{(\d+|\w+)?}/g.exec(result)
+        key = match[1]
+        unless key
+            result = result.replace("{}", args[i])
+        else
+            result = result.replace(new RegExp("\\{" + key + "\\}", "gm"), args[key])
+        i++
+    result
+
 toolbox =
   doForAll: doForAll
   runParallel : runParallel

@@ -1,43 +1,96 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html" >
-<link rel="import" href="../just-gauge/just-gauge.html" >
-<link rel="import" href="jdy-model.html" >
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="jdy-dashboard" attributes="modelId">
+<!--
+Element for grouping Google Analytics elements together.
+
+`<google-analytics-chart>` elements inside a `<google-analytics-dashboard>`
+element will automatically update as control elements (e.g.
+`<google-analytics-view-selector>` or `<google-analytics-date-selector>`)
+update query parameters.
+
+##### Example
+
+    <google-analytics-dashboard>
+
+      <google-analytics-view-selector></google-analytics-view-selector>
+      <google-analytics-date-selector></google-analytics-date-selector>
+
+      <google-analytics-chart
+        metrics="ga:sessions"
+        dimensions="ga:country"
+        sort="-ga:sessions"
+        maxResults="5"
+        chartType="column">
+      </google-analytics-chart>
+
+    </google-analytics-dashboard>
+
+@element google-analytics-dashboard
+@extends google-analytics-base
+@blurb Element for grouping Google Analytics control and visualization elements.
+@status alpha
+@homepage http://googlewebcomponents.github.io/google-analytics
+-->
+
+<polymer-element
+  name="jdy-dashboard"
+  on-jdy-dashboard-control-change="{{queryUpdated}}">
+
   <template>
-    <link rel="stylesheet" href="jdy-dashboard.css">
-    <div id="left">
-      <div id="stats">
-        <div id="stat1" class="stat">
-          <img src="images/peer.png" class="title_icon"/>Peers Connected<span
-          id="connection_text" class="number_txt centered">{{model.peerNum}}</span>
-        </div>
-        <div class="line-separator"></div>
-        <div id="stat2" class="stat">
-          <img src="images/upload.png" class="title_icon"/>Upload<span id="upload_text"
-                                                                       class="number_txt centered">{{bytesToSize(model.upload)}}</span>
-        </div>
-        <div class="line-separator"></div>
-        <div id="stat3" class="stat">
-          <img src="images/download.png" class="title_icon"/>Total Download<span
-          id="download_text" class="number_txt centered">{{bytesToSize(model.download)}}</span>
-        </div>
-        <div class="line-separator"></div>
-        <div id="stat4" class="stat">Download From Peer<span id="download_peer_text" class="number_txt without_icon centered">{{bytesToSize(model.peerDown)}}<span
-          class="percent_text">{{model.peerPercent}}</span></span>
-          <just-gauge id="downloadPeer" value="{{model.peerPercent}}" width="140" height="110"></just-gauge>
-        </div>
-        <div class="line-separator"></div>
-        <div id="stat5" class="stat">Download From Server<span id="download_server_text"
-                                                               class="number_txt without_icon centered">{{bytesToSize(model.serverDown)}}<span
-          class="percent_text">{{model.serverPercent}}</span></span>
-          <just-gauge id="downloadServer" value="{{model.serverPercent}}" width="140" height="110"></just-gauge>
-        </div>
-        <div class="line-separator"></div>
-        <div id="stat6" onclick="window.open ( document.location.href,&quot;_blank&quot;);" class="stat">
-          <img src="images/addpeer.png" class="title_icon title_peer_icon"/>Add New Peer
-        </div>
-      </div>
-    </div>
+    <content></content>
   </template>
-  <script src="js/jdy-dashboard.js"></script>
+  <script>
+
+    Polymer('jdy-dashboard', {
+
+      ready: function() {
+        /**
+         * The `query` attribute represents the internal query object of this
+         * dashboard. It is updated when control elements fire the
+         * `analytics-dashboard-control-change` event and pass along query data.
+         *
+         * @attribute query
+         * @type object
+         */
+        this.query = {};
+
+        this.updateChildren();
+      },
+
+      /**
+       * The `queryUpdated` method is the callback for whenever the
+       * `analytics-dashboard-control-change` event is fired. It updates the
+       * query attribute, which is then sent to child charts.
+       *
+       * @method queryUpdated
+       * @param {CustomEvent} event - The event with the query data.
+       */
+      queryUpdated: function(event) {
+        // Update `this.query` with the passed event data.
+        Object.keys(event.detail).forEach(function(key) {
+          this.query[key] = event.detail[key];
+        }.bind(this))
+
+        this.updateChildren();
+      },
+
+      /**
+       * The `updateChildren` method updates each of this dashboards
+       * `<google-analytics-chart>` element with its current query value.
+       *
+       * @method updateChildren
+       */
+      updateChildren: function() {
+        var charts = this.querySelectorAll('google-analytics-chart');
+        for (var i = 0, chart; chart = charts[i]; i++) {
+          Object.keys(this.query).forEach(function(key) {
+            chart[key] = this.query[key];
+          }.bind(this));
+        }
+      }
+
+    });
+
+  </script>
+
 </polymer-element>

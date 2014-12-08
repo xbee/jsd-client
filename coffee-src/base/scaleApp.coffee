@@ -1,7 +1,11 @@
 
 #= require <Util.coffee>
 #= require <Common.coffee>
+#= require ES6Promise
+#= require Queue
 #= require JLogger
+#= require LRUCache
+#= require IndexDBCache
 #= require Mediator
 #= require Core
 
@@ -19,6 +23,14 @@ api =
 
   # the mediator class
   Mediator: Mediator
+
+  Promise: ES6Promise.Promise
+
+  Queue: Queue
+
+  IndexDBCache: IndexDBCache
+
+  LRUCache: LRUCache
 
   # the core class
   Core: Core

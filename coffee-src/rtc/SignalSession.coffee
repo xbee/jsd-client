@@ -1,29 +1,12 @@
 
 #= require JBase
+#= require <Constants.coffee>
 #= require <FileBufferReader.coffee>
-#= require <Adapter.coffee>
+#= require <detect.coffee>
 #= require <JOptions.coffee>
 
-JRtcCMD =
-  AUTH: "signal:auth"
-  LIST: "peer:list"
-  PARTICIPANT: "peer:participant"
-  OFFER: "peer:offer"
-  ANSWER: "peer:answer"
-  SDP: "peer:sdp" # include offer and answer
-  CANDIDATE: "peer:candidate"
-
-JRtcSignalEvent =
-  CONNECTED: "signal:onenterconnected"
-  DETECTED: "signal:onenterdetected"
-  DISCONNECTED: "signal:onenterdisconnected"
-  AUTHENTICATED: "signal:onenterauthenticated"
-  BEFORECONNECT: "signal:onbeforeconnect"
-  BEFOREAUTHENTICATE: "signal:onbeforeauthenticate"
-  ERROR: "signal:error"
 
 # alias
-JCMD = JRtcCMD
 JSignalEvent = JRtcSignalEvent
 
 class JRtcSignaler extends JBase
@@ -148,7 +131,7 @@ class JRtcSignaler extends JBase
     # set callback for auth message
     responseHandler = (e) ->
       response = JSON.parse(e.data)
-      if response.cmd is JCMD.AUTH
+      if response.cmd is JRtcCMD.AUTH
         self.socket.removeEventListener "message", responseHandler
         # received response of auth
         if response["data"]["success"] and (response["data"]["success"] is true)
@@ -286,49 +269,49 @@ class JRtcSignaler extends JBase
     return
 
   sendAuthentication: ->
-    self = this
-    @send CMD.AUTH,
-      from: self.uuid
-      apiKey: self.opts.get('apiKey')
-      ips: self.localIPs
+    @send JRtcCMD.AUTH,
+      from: @uuid
+      apiKey: @opts.get('apiKey')
+      ips: @localIPs
       host: window.location.host
 
 
   sendPeerOffer: (targetPeerUuid, offer) ->
-    self = this
-    @send CMD.OFFER,
-      from: self.opts.get('uuid')
+    @send JRtcCMD.OFFER,
+      from: @opts.get('uuid')
       to: targetPeerUuid
       offer: offer
 
 
   sendPeerAnswer: (targetPeerUuid, answer) ->
-    self = this
-    @send CMD.ANSWER,
-      from: self.opts.get('uuid')
+    @send JRtcCMD.ANSWER,
+      from: @opts.get('uuid')
       to: targetPeerUuid
       answer: answer
 
 
   sendPeerCandidate: (target, candidate) ->
-    self = this
-    @send CMD.CANDIDATE,
-      from: self.opts.get('uuid')
+    @send JRtcCMD.CANDIDATE,
+      from: @opts.get('uuid')
       to: target
       candidate: candidate
 
 
   sendParticipantRequest: (target) ->
-    self = this
-    @send CMD.PARTICIPANT,
-      from: self.opts.get('uuid')
+    @send JRtcCMD.PARTICIPANT,
+      from: @opts.get('uuid')
       to: target
+
+  sendQueryResource: (target, resid, url) ->
+      @send JRtcCMD.QUERY,
+          from: @opts.get('uuid')
+          resid: resid
+          url: url
 
 
   getAllRelatedPeers: ->
-    self = this
-    @send CMD.LIST,
-      from: self.opts.get('uuid')
+    @send JRtcCMD.LIST,
+      from: @opts.get('uuid')
 
 
   messageHandler: (e) ->
@@ -337,19 +320,19 @@ class JRtcSignaler extends JBase
     cmd = data.cmd
     @log.debug "Signal " + @uuid, "Received", data.cmd, data.data
     switch cmd.toLowerCase()
-      when JCMD.CANDIDATE
-        @emit CMD.CANDIDATE,
-          from: self.uuid
+      when JRtcCMD.CANDIDATE
+        @emit JRtcCMD.CANDIDATE,
+          from: @uuid
           to: data.data.to
           candidate: data.data.candidate
-      when CMD.SDP
+      when JRtcCMD.SDP
         #this.emit(CMD.SDP, { from: self.uuid, to: data.data.to, sdp: data.data.sdp });
         @onsdp data.data # include: from, to, sdp.type, sdp.sdp
-      when CMD.PARTICIPANT
+      when JRtcCMD.PARTICIPANT
         @acceptPartitipantRequest data.data
 
 
-  #this.emit(CMD.PARTICIPANT, { from: self.uuid, to: data.data.to });
+  #this.emit(JRtcCMD.PARTICIPANT, { from: self.uuid, to: data.data.to });
   serialize: ->
     host: @host
     isSecure: @isSecure

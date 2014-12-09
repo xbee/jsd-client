@@ -8,7 +8,7 @@ JCacheManager = ->
     return
 
 JCacheManager::contains = (key) ->
-    return true  if @cache.has(key) or PeerStorage.get(key)?
+    return true  if @cache.has(key) or JStorage.get(key)?
     false
 
 JCacheManager::getData = (key, req) ->
@@ -20,13 +20,13 @@ JCacheManager::getData = (key, req) ->
         else
             result = PeerImageUtil.convertByteToBase64(ab)
     else
-        result = PeerStorage.get(key)
+        result = JStorage.get(key)
     result
 
 JCacheManager::getBinaryData = (key) ->
     result = @cache.get(key)
     unless result?
-        data = PeerStorage.get(key)
+        data = JStorage.get(key)
         result = PeerImageUtil.convertBase64ToByte(data)
     else
         result = new Uint8Array(result)
@@ -37,6 +37,6 @@ JCacheManager::putData = (req, ab) ->
     PeerStatistic.log "===========" + req.getUrl() + " length:" + ab.byteLength
     @size += ab.byteLength
     sdata = req.convertBase64(ab)
-    PeerStorage.put req.getUrl(), sdata, req.getHash(), ab.byteLength
+    JStorage.put req.getUrl(), sdata, req.getHash(), ab.byteLength
     sdata = req.convertResponseType(ab)  unless req.isResponseTypeBase64()
     sdata
